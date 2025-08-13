@@ -47,13 +47,25 @@ var scrollView = Ti.UI.createScrollView({
 
 // Status label
 var statusLabel = Ti.UI.createLabel({
-  text: 'Initializing AdMob...',
+  text: 'AdMob Unified - Initializing...',
   top: 20,
   left: 20,
   right: 20,
   height: Ti.UI.SIZE,
   color: '#333',
   font: { fontSize: 16 },
+  textAlign: 'center'
+});
+
+// Info label about mediation
+var infoLabel = Ti.UI.createLabel({
+  text: '💡 This module includes mediation adapters for Facebook, InMobi, Unity, AppLovin, and more to maximize your ad revenue!',
+  top: 10,
+  left: 20,
+  right: 20,
+  height: Ti.UI.SIZE,
+  color: '#666',
+  font: { fontSize: 12 },
   textAlign: 'center'
 });
 
@@ -248,6 +260,7 @@ buttonsContainer.add(showInterstitialButton);
 buttonsContainer.add(createBannerButton);
 
 scrollView.add(statusLabel);
+scrollView.add(infoLabel);
 scrollView.add(buttonsContainer);
 
 win.add(scrollView);
