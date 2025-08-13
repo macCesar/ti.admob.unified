@@ -1,0 +1,27 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 1.0.0
+apiversion: 4
+architectures: arm64-v8a armeabi-v7a x86 x86_64
+description: ti.admob.unified
+author: César Estrada
+license: Specify your license
+copyright: Copyright (c) 2025 by 
+
+# these should not be edited
+name: ti.admob.unified
+moduleid: mx.codigomovil.tiadmobunified
+guid: a1fceebd-a836-429f-8efb-e2d4e25af99c
+platform: android
+#
+# Classpaths and plugins are used for android packages that requires them
+# to use them you have to add your classpaths and plugins comma separated
+# Ex:
+# classpaths: classpath1,classpath2
+# plugins: plugin1,plugin2
+#
+classpaths:
+plugins:
+minsdk: 12.8.0.GA

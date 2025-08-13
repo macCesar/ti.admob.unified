@@ -1,0 +1,34 @@
+/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/build/intermediates/cxx/Release/2fa2p124/obj/local/armeabi-v7a/objs/mx.codigomovil.tiadmobunified/__/__/__/build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.o: \
+  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.cpp \
+  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/Proxy.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JavaObject.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/EventEmitter.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/NativeObject.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/cppgc/common.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8config.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8-internal.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8-version.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/V8Util.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JSException.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JNIUtil.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/AndroidUtil.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/TypeConverter.h \
+  /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/org.appcelerator.titanium.proxy.TiViewProxy.h
+/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/Proxy.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JavaObject.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/EventEmitter.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/NativeObject.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/cppgc/common.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8config.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8-internal.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8-version.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/V8Util.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JSException.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JNIUtil.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/AndroidUtil.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/TypeConverter.h:
+/Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/org.appcelerator.titanium.proxy.TiViewProxy.h:

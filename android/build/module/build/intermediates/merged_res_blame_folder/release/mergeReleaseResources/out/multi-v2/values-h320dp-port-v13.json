@@ -1,0 +1,34 @@
+{
+    "logs": [
+        {
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-40:/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+            "map": [
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/c618085fe856d760570169a36a3c1423/transformed/material-1.12.0/res/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "63",
+                        "endOffsets": "114"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-38:/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+            "map": [
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/c618085fe856d760570169a36a3c1423/transformed/material-1.12.0/res/values-h320dp-port-v13/values-h320dp-port-v13.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "63",
+                        "endOffsets": "114"
+                    }
+                }
+            ]
+        }
+    ]
+}

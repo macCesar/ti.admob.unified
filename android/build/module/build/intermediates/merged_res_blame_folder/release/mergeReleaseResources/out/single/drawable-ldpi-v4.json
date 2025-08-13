@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-ldpi-v4/ic_call_answer_low.png",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-ldpi-v4/ic_call_answer_low.png"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-ldpi-v4/ic_call_decline.png",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-ldpi-v4/ic_call_decline.png"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-ldpi-v4/ic_call_answer_video_low.png",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-ldpi-v4/ic_call_answer_video_low.png"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-ldpi-v4/ic_call_decline_low.png",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-ldpi-v4/ic_call_decline_low.png"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-ldpi-v4/ic_call_answer.png",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-ldpi-v4/ic_call_answer.png"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-ldpi-v4/ic_call_answer_video.png",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-ldpi-v4/ic_call_answer_video.png"
+    }
+]

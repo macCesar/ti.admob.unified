@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/btn_checkbox_unchecked_mtrl_animation_interpolator_0.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/btn_checkbox_unchecked_mtrl_animation_interpolator_0.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/btn_checkbox_checked_mtrl_animation_interpolator_1.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/btn_checkbox_checked_mtrl_animation_interpolator_1.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/fast_out_slow_in.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/fast_out_slow_in.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/btn_checkbox_checked_mtrl_animation_interpolator_0.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/btn_checkbox_checked_mtrl_animation_interpolator_0.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/btn_checkbox_unchecked_mtrl_animation_interpolator_1.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/btn_checkbox_unchecked_mtrl_animation_interpolator_1.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/btn_radio_to_on_mtrl_animation_interpolator_0.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/btn_radio_to_on_mtrl_animation_interpolator_0.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/mtrl_linear.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-30:/interpolator/mtrl_linear.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/interpolator/btn_radio_to_off_mtrl_animation_interpolator_0.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-32:/interpolator/btn_radio_to_off_mtrl_animation_interpolator_0.xml"
+    }
+]

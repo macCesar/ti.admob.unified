@@ -1,0 +1,19 @@
+#
+# this is your module manifest and used by Titanium
+# during compilation, packaging, distribution, etc.
+#
+version: 1.0.0
+apiversion: 2
+architectures: arm64 x86_64
+mac: false
+description: ti.admob.unified
+author: César Estrada
+license: Specify your license
+copyright: Copyright (c) 2025 by
+
+# these should not be edited
+name: ti.admob.unified
+moduleid: mx.codigomovil.tiadmobunified
+guid: a1fceebd-a836-429f-8efb-e2d4e25af99c
+platform: iphone
+minsdk: 12.8.0.GA

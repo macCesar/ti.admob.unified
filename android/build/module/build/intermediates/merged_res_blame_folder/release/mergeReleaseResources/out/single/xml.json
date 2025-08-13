@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/xml/titanium_ui_horizontal_nested_scrollview.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-titanium-12.8.0-13:/xml/titanium_ui_horizontal_nested_scrollview.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/xml/titanium_ui_vertical_nested_scrollview.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-titanium-12.8.0-13:/xml/titanium_ui_vertical_nested_scrollview.xml"
+    }
+]

@@ -1,0 +1,2 @@
+rootProject.name = 'mx.codigomovil.tiadmobunified'
+include ':module'
