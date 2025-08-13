@@ -9,6 +9,9 @@ echo ""
 # Execute pod install and capture output
 pod install 2>&1 | sed '/\[!\] Oh no, an error occurred\./,$d'
 
+# Clean up CocoaPods files after installation
+rm -rf Pods/ Podfile.lock ti.admob.unified.xcworkspace 2>/dev/null
+
 # Verify frameworks were installed correctly
 if [ -d "platform" ] && [ "$(ls -1 platform/*.xcframework 2>/dev/null | wc -l)" -gt 0 ]; then
     echo ""
