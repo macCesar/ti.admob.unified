@@ -52,3 +52,65 @@ target 'ti.admob.unified' do
   # pod 'GoogleMobileAdsMediationMaio'
 
 end
+
+# Option 3: Use CocoaPods only as automatic downloader
+# Copy frameworks to platform/ and clean Pods/ to follow Titanium standard
+post_install do |installer|
+  puts "🚀 Starting post-install for Titanium module..."
+
+  # Fix configuration conflicts between pods
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      # Remove conflicting configurations
+      config.build_settings.delete('EXCLUDED_ARCHS[sdk=iphonesimulator*]')
+      # Ensure Titanium compatibility
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+    end
+  end
+
+  platform_dir = File.expand_path('../platform', __FILE__)
+
+  # Create platform directory if it doesn't exist
+  FileUtils.mkdir_p(platform_dir) unless Dir.exist?(platform_dir)
+  puts "📁 Platform directory prepared"
+
+  # Find and copy ONLY .xcframework (modern format, multiple architectures)
+  framework_count = 0
+  Dir.glob('Pods/**/*.xcframework').each do |framework_path|
+    framework_name = File.basename(framework_path)
+    destination = File.join(platform_dir, framework_name)
+
+    # Always copy (without file comparison to avoid errors)
+    puts "📦 Copying #{framework_name} → platform/"
+    FileUtils.cp_r(framework_path, destination, remove_destination: true)
+    framework_count += 1
+  end
+
+  puts "✅ #{framework_count} frameworks copied to platform/"
+
+  # Clean CocoaPods files (we don't need them anymore)
+  puts "🧹 Cleaning temporary CocoaPods files..."
+
+  # Remove Pods folder (suppress output to avoid confusion)
+  FileUtils.rm_rf('Pods') if Dir.exist?('Pods')
+
+  # Remove CocoaPods configuration files (suppress errors)
+  ['Podfile.lock', 'ti.admob.unified.xcworkspace'].each do |file|
+    FileUtils.rm_rf(file) if File.exist?(file)
+  end
+
+  puts "🎯 Done! Frameworks installed in platform/ following Titanium standard"
+  puts "💡 You can now run: ti build -p ios --build-only"
+  puts ""
+  puts "📋 XCFrameworks installed (modern format):"
+  Dir.glob(File.join(platform_dir, '*.xcframework')).each do |fw|
+    puts "   • #{File.basename(fw)}"
+  end
+
+  # Note about expected errors
+  puts ""
+  puts "⚠️  Note: Any errors that appear after this are normal - CocoaPods tries"
+  puts "   to access files we intentionally deleted. You can ignore them."
+  puts ""
+end
+end

@@ -5,11 +5,11 @@
 version: 1.0.0
 apiversion: 2
 architectures: arm64 x86_64
-mac: true
+mac: false
 description: ti.admob.unified
 author: César Estrada
 license: Specify your license
-copyright: Copyright (c) 2025 by 
+copyright: Copyright (c) 2025 by
 
 # these should not be edited
 name: ti.admob.unified
