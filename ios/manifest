@@ -6,10 +6,10 @@ version: 1.0.0
 apiversion: 2
 architectures: arm64 x86_64
 mac: false
-description: ti.admob.unified
+description: Unified AdMob Module for Titanium SDK with automatic compliance handling for GDPR, CCPA, and App Tracking Transparency
 author: César Estrada
-license: Specify your license
-copyright: Copyright (c) 2025 by
+license: MIT License
+copyright: Copyright (c) 2025 by César Estrada
 
 # these should not be edited
 name: ti.admob.unified

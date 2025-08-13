@@ -1,28 +1,42 @@
 //
-// PLACE ANY BUILD DEFINITIONS IN THIS FILE AND THEY WILL BE 
-// PICKED UP DURING THE APP BUILD FOR YOUR MODULE
+// ti.admob.unified - iOS Module Configuration
+// Build settings for Google Mobile Ads SDK integration
 //
-// see the following webpage for instructions on the settings
-// for this file:
-// https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Build_Settings.html
-// 
 
-//
-// How to manually add a Framework (example)
-// Note: Titanium SDK 6.2.2+ detects and links frameworks automatically
-//
-// OTHER_LDFLAGS=$(inherited) -framework Foo
-//
-// Adding a framework for a specific version(s) of iOS, e.g iOS 11:
-//
-// OTHER_LDFLAGS[sdk=iphoneos11*]=$(inherited) -framework Foo
-// OTHER_LDFLAGS[sdk=iphonesimulator11*]=$(inherited) -framework Foo
-//
-//
-// How to add a compiler define:
-//
-// OTHER_CFLAGS=$(inherited) -DFOO=1
-//
-//
-// IMPORTANT NOTE: always use $(inherited) in your overrides
-// 
+// Minimum iOS version for Google Mobile Ads SDK
+IPHONEOS_DEPLOYMENT_TARGET = 12.0
+
+// Framework search paths for platform frameworks
+FRAMEWORK_SEARCH_PATHS = $(inherited) $(PROJECT_DIR)/platform
+
+// Link frameworks automatically (Titanium 6.2.2+)
+// The following frameworks are automatically detected from platform/ folder:
+// - GoogleMobileAds.xcframework
+// - UserMessagingPlatform.xcframework
+// - AppLovinSDK.xcframework
+// - AppLovinAdapter.xcframework
+// - InMobiSDK.xcframework
+// - InMobiAdapter.xcframework
+// - IronSource.xcframework
+// - IronSourceAdapter.xcframework
+// - IronSourceAdQualitySDK.xcframework
+// - LiftoffMonetizeAdapter.xcframework
+// - MetaAdapter.xcframework
+// - FBAudienceNetwork.xcframework
+// - UnityAds.xcframework
+// - UnityAdapter.xcframework
+// - VungleAdsSDK.xcframework
+
+// Required system frameworks
+OTHER_LDFLAGS = $(inherited) -framework AppTrackingTransparency -framework AdSupport -framework CoreTelephony -framework SystemConfiguration -framework MessageUI -framework CoreLocation -framework WebKit -framework StoreKit -framework MediaPlayer -framework CFNetwork -framework AudioToolbox -framework AVFoundation -framework Security -framework ImageIO -ObjC
+
+// Compiler flags
+OTHER_CFLAGS = $(inherited) -DUSE_TI_UIDIRECTION
+
+// Swift support (for some mediation adapters)
+SWIFT_VERSION = 5.0
+ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES
+
+// Privacy manifests inclusion
+COPY_PHASE_STRIP = NO
+ENABLE_BITCODE = NO
