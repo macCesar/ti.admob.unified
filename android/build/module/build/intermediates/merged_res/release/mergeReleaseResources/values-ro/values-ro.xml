@@ -69,9 +69,9 @@
     <string name="error_a11y_label">Eroare: nevalidă</string>
     <string name="error_icon_content_description">Eroare</string>
     <string name="exposed_dropdown_menu_content_description">Afișați meniul drop-down</string>
-    <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"Copiați linkul"</string>
-    <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"Deschideți în browser"</string>
-    <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Trimiteți linkul"</string>
+    <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"Copiază linkul"</string>
+    <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"Deschide în browser"</string>
+    <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Trimite linkul"</string>
     <string name="icon_content_description">Pictogramă de dialog</string>
     <string name="item_view_role_description">Filă</string>
     <string name="material_clock_toggle_content_description">Selectați ora</string>
@@ -138,10 +138,11 @@
     <string name="notifications_permission_confirm">Permite</string>
     <string name="notifications_permission_decline">Nu permite</string>
     <string name="notifications_permission_title">Permiți aplicației să îți trimită notificări?</string>
-    <string name="offline_notification_text">Atinge pentru a deschide anunțul</string>
-    <string name="offline_notification_title">Vezi anunțul salvat când erai offline</string>
+    <string name="offline_dialog_image_description">Pictogramă</string>
+    <string name="offline_dialog_text">Îți mulțumim pentru interes.\nÎți vom oferi mai multe informații când revii online.</string>
+    <string name="offline_notification_title">Ești iar online! Reia de unde ai rămas</string>
+    <string name="offline_notification_title_with_advertiser">Ești iar online! Continuă să afli mai multe despre %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Vei primi o notificare cu linkul când revii online</string>
     <string name="offline_opt_in_decline">Nu</string>
     <string name="offline_opt_in_message">Îți vom trimite o notificare cu un link la site-ul advertiserului.</string>
     <string name="offline_opt_in_title">Deschide anunțul când revii online.</string>

@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">允许</string>
     <string name="notifications_permission_decline">不允许</string>
     <string name="notifications_permission_title">允许应用向您发送通知吗？</string>
-    <string name="offline_notification_text">点按即可打开广告</string>
-    <string name="offline_notification_title">查看您在离线时保存的广告</string>
+    <string name="offline_dialog_image_description">图标</string>
+    <string name="offline_dialog_text">感谢您的关注。\n我们会在您重新联网时分享更多资讯。</string>
+    <string name="offline_notification_title">您已重新联网！让我们接着上次的进度继续吧</string>
+    <string name="offline_notification_title_with_advertiser">您已重新联网！不妨继续了解一下%s吧</string>
     <string name="offline_opt_in_confirm">确定</string>
-    <string name="offline_opt_in_confirmation">您会在重新联网后收到包含该链接的通知</string>
     <string name="offline_opt_in_decline">不用了</string>
     <string name="offline_opt_in_message">我们会向您发送包含广告客户网站链接的通知。</string>
     <string name="offline_opt_in_title">在您重新联网后打开广告。</string>

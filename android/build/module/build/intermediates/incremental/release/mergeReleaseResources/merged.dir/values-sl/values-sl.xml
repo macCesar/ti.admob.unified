@@ -139,10 +139,11 @@
     <string name="notifications_permission_confirm">Dovoli</string>
     <string name="notifications_permission_decline">Ne dovoli</string>
     <string name="notifications_permission_title">Želite aplikaciji dovoliti, da vam pošilja obvestila?</string>
-    <string name="offline_notification_text">Dotaknite se, če želite odpreti oglas</string>
-    <string name="offline_notification_title">Oglejte si oglas, ki ste shranili, ko ste bili brez povezave</string>
+    <string name="offline_dialog_image_description">Ikona</string>
+    <string name="offline_dialog_text">Zahvaljujemo se vam za zanimanje.\nVeč boste izvedeli, ko bo povezava znova vzpostavljena.</string>
+    <string name="offline_notification_title">Povezava je znova vzpostavljena. Nadaljujmo, kjer smo končali</string>
+    <string name="offline_notification_title_with_advertiser">Povezava je znova vzpostavljena. Nadaljujte s pridobivanjem informacij o oglaševalcu %s</string>
     <string name="offline_opt_in_confirm">V redu</string>
-    <string name="offline_opt_in_confirmation">Prejeli boste obvestilo s povezavo, ko bo povezava znova vzpostavljena</string>
     <string name="offline_opt_in_decline">Ne, hvala</string>
     <string name="offline_opt_in_message">Poslali vam bomo obvestilo s povezavo na spletno mesto oglaševalca.</string>
     <string name="offline_opt_in_title">Odprite oglas, ko bo povezava znova vzpostavljena.</string>

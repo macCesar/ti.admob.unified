@@ -87,8 +87,9 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// Debug Geography Constants
 	@Kroll.constant public static final int DEBUG_GEOGRAPHY_DISABLED = ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_DISABLED;
 	@Kroll.constant public static final int DEBUG_GEOGRAPHY_EEA = ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_EEA;
-	@Kroll.constant public static final int DEBUG_GEOGRAPHY_REGULATED_US_STATE = ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_NOT_EEA;
-	@Kroll.constant public static final int DEBUG_GEOGRAPHY_OTHER = ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_NOT_EEA;
+	// Using non-deprecated constants for US states and other regions
+	@Kroll.constant public static final int DEBUG_GEOGRAPHY_REGULATED_US_STATE = ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_REGULATED_US_STATE;
+	@Kroll.constant public static final int DEBUG_GEOGRAPHY_OTHER = ConsentDebugSettings.DebugGeography.DEBUG_GEOGRAPHY_OTHER;
 
 	// Content Rating Constants
 	@Kroll.constant public static final String MAX_AD_CONTENT_RATING_GENERAL = "G";
@@ -480,4 +481,3 @@ public class TiAdmobUnifiedModule extends KrollModule
 		return false;
 	}
 }
-

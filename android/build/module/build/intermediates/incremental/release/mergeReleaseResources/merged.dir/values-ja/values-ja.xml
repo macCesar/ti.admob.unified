@@ -31,6 +31,14 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"共有"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g>と共有"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"折りたたむ"</string>
+    <string name="applovin_agree_message">アプリを利用するために「次へ」をクリックしてください。</string>
+    <string name="applovin_alt_privacy_policy_text"/>
+    <string name="applovin_continue_button_text">次へ</string>
+    <string name="applovin_pp_and_tos_title">%s を使用するためには利用規約への同意およびプライバシーポリシーの確認が必要です。</string>
+    <string name="applovin_pp_title">%sを使用するためにはプライバシーポリシーを慎重に確認し、承認する必要があります。</string>
+    <string name="applovin_privacy_policy_text">プライバシーポリシー</string>
+    <string name="applovin_terms_of_service_text">利用規約</string>
+    <string name="applovin_terms_of_use_text">利用規約</string>
     <string name="bottomsheet_action_collapse">ボトムシートを閉じる</string>
     <string name="bottomsheet_action_expand">ボトムシートを開く</string>
     <string name="bottomsheet_action_expand_halfway">下半分を展開</string>
@@ -137,10 +145,11 @@
     <string name="notifications_permission_confirm">許可</string>
     <string name="notifications_permission_decline">許可しない</string>
     <string name="notifications_permission_title">通知の送信をアプリに許可しますか？</string>
-    <string name="offline_notification_text">タップすると広告を表示します</string>
-    <string name="offline_notification_title">オフライン時に保存した広告を表示します</string>
+    <string name="offline_dialog_image_description">アイコン</string>
+    <string name="offline_dialog_text">関心をお寄せいただきありがとうございます。\n再度オンラインになりましたら、追加情報をご案内します。</string>
+    <string name="offline_notification_title">オンラインになりました: 続きをご覧ください</string>
+    <string name="offline_notification_title_with_advertiser">オンラインになりました: %sについて続きをご確認ください</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">ネットワークに接続したときに、リンクが記載された通知が届きます</string>
     <string name="offline_opt_in_decline">設定しない</string>
     <string name="offline_opt_in_message">広告主のサイトへのリンクが記載された通知が届きます。</string>
     <string name="offline_opt_in_title">ネットワークに接続したときに、広告を表示します。</string>

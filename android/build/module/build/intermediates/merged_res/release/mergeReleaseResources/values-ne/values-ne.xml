@@ -64,7 +64,7 @@
     <string name="common_open_on_phone">फोनमा खोल्नुहोस्</string>
     <string name="common_signin_button_text">साइन इन गर्नुहोस्</string>
     <string name="common_signin_button_text_long">Google मार्फत साइन‍ इन गर्नुहोस्</string>
-    <string msgid="3260749812566568062" name="copy_toast_msg">"क्लिपबोर्डमा लिंक प्रतिलिपि गरियो"</string>
+    <string msgid="3260749812566568062" name="copy_toast_msg">"क्लिपबोर्डमा लिंक कपी गरियो"</string>
     <string name="error_a11y_label">त्रुटि: अवैध छ</string>
     <string name="error_icon_content_description">त्रुटि</string>
     <string name="exposed_dropdown_menu_content_description">ड्रपडाउन मेनु देखाउनुहोस्</string>
@@ -137,16 +137,17 @@
     <string name="notifications_permission_confirm">अनुमति दिनुहोस्</string>
     <string name="notifications_permission_decline">अनुमति नदिनुहोस्</string>
     <string name="notifications_permission_title">यो एपलाई तपाईंलाई सूचनाहरू पठाउने अनुमति दिने हो?</string>
-    <string name="offline_notification_text">विज्ञापन खोल्न ट्याप गर्नुहोस्</string>
-    <string name="offline_notification_title">आफूले अफलाइन हुँदा सुरक्षित गरेको विज्ञापन हेर्नुहोस्</string>
+    <string name="offline_dialog_image_description">आइकन</string>
+    <string name="offline_dialog_text">रुचि देखाउनुभएकोमा धन्यवाद।\nतपाईं फेरी अनलाइन आएपछि हामी थप जानकारी सेयर गर्ने छौँ।</string>
+    <string name="offline_notification_title">तपाईं फेरि अनलाइन हुनुभयो! हामीले छोडेकै ठाउँबाट सुरु गरौँ</string>
+    <string name="offline_notification_title_with_advertiser">तपाईं फेरि अनलाइन हुनुभयो! %s का बारेमा पढ्न जारी राख्नुहोस्</string>
     <string name="offline_opt_in_confirm">ठिक छ</string>
-    <string name="offline_opt_in_confirmation">तपाईं फेरि अनलाइन हुँदा यो लिंकसहित एउटा सूचना प्राप्त गर्नु हुने छ</string>
     <string name="offline_opt_in_decline">पर्दैन, धन्यवाद</string>
     <string name="offline_opt_in_message">हामी तपाईंलाई विज्ञापनदाताको साइटको लिंकसहित एउटा सूचना पठाउने छौँ।</string>
     <string name="offline_opt_in_title">फेरि अनलाइन हुँदा विज्ञापन खोल्नुहोस्।</string>
     <string name="password_toggle_content_description">पासवर्ड देखाउनुहोस्</string>
     <string name="s1">छविलाई सेभ गर्नुहोस्</string>
-    <string name="s2">विज्ञापनलाई तस्बिरको ग्यालरीमा छवि भण्डारण गर्न अनुमति दिने हो?</string>
+    <string name="s2">विज्ञापनलाई तस्बिरको ग्यालरीमा फोटो भण्डारण गर्न अनुमति दिने हो?</string>
     <string name="s3">स्वीकार गर्नुहोस्</string>
     <string name="s4">अस्वीकार गर्नुहोस्</string>
     <string name="s5">पात्रोमा कार्यक्रम सिर्जना गर्नुहोस्</string>

@@ -160,7 +160,7 @@ Local<FunctionTemplate> TiAdmobUnifiedModule::getProxyTemplate(v8::Isolate* isol
 
 			DEFINE_STRING_CONSTANT(isolate, prototypeTemplate, "AD_TYPE_REWARDED", "rewarded");
 
-			DEFINE_INT_CONSTANT(isolate, prototypeTemplate, "DEBUG_GEOGRAPHY_OTHER", 2);
+			DEFINE_INT_CONSTANT(isolate, prototypeTemplate, "DEBUG_GEOGRAPHY_OTHER", 4);
 
 			DEFINE_STRING_CONSTANT(isolate, prototypeTemplate, "MEDIUM_RECTANGLE", "medium_rectangle");
 
@@ -182,7 +182,7 @@ Local<FunctionTemplate> TiAdmobUnifiedModule::getProxyTemplate(v8::Isolate* isol
 
 			DEFINE_STRING_CONSTANT(isolate, prototypeTemplate, "TEST_NATIVE", "ca-app-pub-3940256099942544/2247696110");
 
-			DEFINE_INT_CONSTANT(isolate, prototypeTemplate, "DEBUG_GEOGRAPHY_REGULATED_US_STATE", 2);
+			DEFINE_INT_CONSTANT(isolate, prototypeTemplate, "DEBUG_GEOGRAPHY_REGULATED_US_STATE", 3);
 
 			DEFINE_STRING_CONSTANT(isolate, prototypeTemplate, "AD_TYPE_BANNER", "banner");
 

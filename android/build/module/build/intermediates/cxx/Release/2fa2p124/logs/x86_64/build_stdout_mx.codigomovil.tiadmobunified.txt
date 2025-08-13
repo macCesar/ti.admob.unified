@@ -4,6 +4,6 @@ Android NDK:     or LOCAL_SHARED_LIBRARIES instead to list the library dependenc
 Android NDK:     current module    
 [x86_64] Compile++      : mx.codigomovil.tiadmobunified <= mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy.cpp
 [x86_64] Compile++      : mx.codigomovil.tiadmobunified <= mx.codigomovil.tiadmobunified.TiAdmobUnifiedModule.cpp
-[x86_64] Compile++      : mx.codigomovil.tiadmobunified <= mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.cpp
 [x86_64] Compile++      : mx.codigomovil.tiadmobunified <= TiModuleBootstrap.cpp
+[x86_64] Compile++      : mx.codigomovil.tiadmobunified <= mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.cpp
 [x86_64] SharedLibrary  : libmx.codigomovil.tiadmobunified.so

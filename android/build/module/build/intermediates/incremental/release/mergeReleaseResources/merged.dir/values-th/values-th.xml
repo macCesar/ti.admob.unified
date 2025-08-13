@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">อนุญาต</string>
     <string name="notifications_permission_decline">ไม่อนุญาต</string>
     <string name="notifications_permission_title">อนุญาตให้แอปส่งการแจ้งเตือนถึงคุณไหม</string>
-    <string name="offline_notification_text">แตะเพื่อเปิดโฆษณา</string>
-    <string name="offline_notification_title">ดูโฆษณาที่คุณบันทึกไว้ขณะออฟไลน์</string>
+    <string name="offline_dialog_image_description">ไอคอน</string>
+    <string name="offline_dialog_text">ขอขอบคุณที่ให้ความสนใจ\nเราจะแชร์ข้อมูลเพิ่มเติมเมื่อคุณกลับมาออนไลน์อีกครั้ง</string>
+    <string name="offline_notification_title">คุณกลับมาออนไลน์แล้ว มาดำเนินการต่อจากที่ค้างไว้กันเลย</string>
+    <string name="offline_notification_title_with_advertiser">คุณกลับมาออนไลน์แล้ว เรียนรู้ข้อมูลเกี่ยวกับ %s ต่อ</string>
     <string name="offline_opt_in_confirm">ตกลง</string>
-    <string name="offline_opt_in_confirmation">คุณจะได้รับการแจ้งเตือนพร้อมลิงก์เมื่อกลับมาออนไลน์</string>
     <string name="offline_opt_in_decline">ไม่เป็นไร</string>
     <string name="offline_opt_in_message">เราจะส่งการแจ้งเตือนให้คุณพร้อมลิงก์ไปยังเว็บไซต์ของผู้ลงโฆษณา</string>
     <string name="offline_opt_in_title">เปิดโฆษณาเมื่อคุณกลับมาออนไลน์</string>

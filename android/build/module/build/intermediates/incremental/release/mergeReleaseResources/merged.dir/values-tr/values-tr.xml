@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">İzin ver</string>
     <string name="notifications_permission_decline">İzin verme</string>
     <string name="notifications_permission_title">Uygulamanın size bildirim göndermesine izin verilsin mi?</string>
-    <string name="offline_notification_text">Reklamı açmak için dokunun</string>
-    <string name="offline_notification_title">Kaydettiğiniz reklamı internet bağlantınız yokken görüntüleyin</string>
+    <string name="offline_dialog_image_description">Simge</string>
+    <string name="offline_dialog_text">İlginiz için teşekkür ederiz.\nTekrar internete bağlandığınızda daha fazla bilgi paylaşacağız.</string>
+    <string name="offline_notification_title">İnternete tekrar bağlandınız. Bıraktığımız yerden devam edelim</string>
+    <string name="offline_notification_title_with_advertiser">İnternete tekrar bağlandınız. %s hakkında bilgi edinmeye devam edin</string>
     <string name="offline_opt_in_confirm">Tamam</string>
-    <string name="offline_opt_in_confirmation">İnternete tekrar bağlandığınızda bağlantı içeren bir bildirim alacaksınız</string>
     <string name="offline_opt_in_decline">Hayır</string>
     <string name="offline_opt_in_message">Size reklamverenin sitesine bir bağlantının olduğu bildirim göndereceğiz.</string>
     <string name="offline_opt_in_title">İnternete tekrar bağlandığınızda reklamı açın.</string>

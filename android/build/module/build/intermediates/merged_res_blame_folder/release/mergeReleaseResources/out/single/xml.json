@@ -1,18 +1,14 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/xml/image_share_filepaths.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-browser-1.4.0-35:/xml/image_share_filepaths.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/xml/image_share_filepaths.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-browser-1.8.0-45:/xml/image_share_filepaths.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/xml/gma_ad_services_config.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-play-services-ads-lite-22.6.0-28:/xml/gma_ad_services_config.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/xml/titanium_ui_vertical_nested_scrollview.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-titanium-12.8.0-17:/xml/titanium_ui_vertical_nested_scrollview.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/xml/titanium_ui_vertical_nested_scrollview.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-titanium-12.8.0-14:/xml/titanium_ui_vertical_nested_scrollview.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/xml/titanium_ui_horizontal_nested_scrollview.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-titanium-12.8.0-14:/xml/titanium_ui_horizontal_nested_scrollview.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/xml/titanium_ui_horizontal_nested_scrollview.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-titanium-12.8.0-17:/xml/titanium_ui_horizontal_nested_scrollview.xml"
     }
 ]

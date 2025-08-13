@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/raw/applovin_consent_flow_unified_cmp.json",
+        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/raw/applovin_consent_flow_unified_cmp.json"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/raw/omid_session_client_v1_5_3.js",
+        "source": "mx.codigomovil.tiadmobunified.module-vungle-ads-7.5.0-26:/raw/omid_session_client_v1_5_3.js"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/raw/omsdk_v1_5_3.js",
+        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/raw/omsdk_v1_5_3.js"
+    }
+]

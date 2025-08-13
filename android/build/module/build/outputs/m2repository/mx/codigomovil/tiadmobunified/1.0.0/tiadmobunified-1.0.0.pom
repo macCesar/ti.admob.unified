@@ -29,7 +29,32 @@
     <dependency>
       <groupId>com.google.ads.mediation</groupId>
       <artifactId>facebook</artifactId>
-      <version>6.16.0.0</version>
+      <version>6.20.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.ads.mediation</groupId>
+      <artifactId>inmobi</artifactId>
+      <version>10.8.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.ads.mediation</groupId>
+      <artifactId>unity</artifactId>
+      <version>4.16.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.ads.mediation</groupId>
+      <artifactId>applovin</artifactId>
+      <version>13.3.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.ads.mediation</groupId>
+      <artifactId>vungle</artifactId>
+      <version>7.5.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.ads.mediation</groupId>
+      <artifactId>ironsource</artifactId>
+      <version>8.10.0.0</version>
     </dependency>
   </dependencies>
 </project>

@@ -1,0 +1,26 @@
+[
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v24/im_pause.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v24/im_pause.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v24/im_mute.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v24/im_mute.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v24/im_play.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v24/im_play.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v24/im_unmute.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v24/im_unmute.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v24/applovin_ic_mediation_yso.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v24/applovin_ic_mediation_yso.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v24/im_refresh.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v24/im_refresh.xml"
+    }
+]

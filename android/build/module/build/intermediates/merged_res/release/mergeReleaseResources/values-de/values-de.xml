@@ -31,6 +31,14 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Teilen mit"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Mit <ns1:g id="APPLICATION_NAME">%s</ns1:g> teilen"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Minimieren"</string>
+    <string name="applovin_agree_message">Bitte drücke auf \"Weiter\" um unsere App zu benutzen.</string>
+    <string name="applovin_alt_privacy_policy_text"/>
+    <string name="applovin_continue_button_text">Weiter</string>
+    <string name="applovin_pp_and_tos_title">Um %s zu benutzen, musst du den AGB und der Datenschutzerklärung des Entwicklers dieser App zustimmen.</string>
+    <string name="applovin_pp_title">Um %s zu benutzen, musst du bestätigen, dass du unsere Datenschutzerklärung gelesen und akzeptiert hast.</string>
+    <string name="applovin_privacy_policy_text">Datenschutzerklärung</string>
+    <string name="applovin_terms_of_service_text">AGB</string>
+    <string name="applovin_terms_of_use_text">AGB</string>
     <string name="bottomsheet_action_collapse">Ansicht am unteren Rand minimieren</string>
     <string name="bottomsheet_action_expand">Ansicht am unteren Rand maximieren</string>
     <string name="bottomsheet_action_expand_halfway">Zur Hälfte maximieren</string>
@@ -137,10 +145,11 @@
     <string name="notifications_permission_confirm">Zulassen</string>
     <string name="notifications_permission_decline">Nicht zulassen</string>
     <string name="notifications_permission_title">App-Benachrichtigungen zulassen?</string>
-    <string name="offline_notification_text">Tippen, um die Werbung zu öffnen</string>
-    <string name="offline_notification_title">Werbung anzeigen, die du gespeichert hast, während du offline warst</string>
+    <string name="offline_dialog_image_description">Symbol</string>
+    <string name="offline_dialog_text">Vielen Dank für dein Interesse.\nDu erhältst weitere Informationen, sobald du wieder online bist.</string>
+    <string name="offline_notification_title">Du bist wieder online! Machen wir da weiter, wo wir aufgehört haben</string>
+    <string name="offline_notification_title_with_advertiser">Du bist wieder online! Weitere Informationen zu %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Du bekommst eine Benachrichtigung mit dem Link, wenn du wieder online bist</string>
     <string name="offline_opt_in_decline">Nein danke</string>
     <string name="offline_opt_in_message">Wir senden dir eine Benachrichtigung mit einem Link zur Website des Werbetreibenden.</string>
     <string name="offline_opt_in_title">Werbung öffnen, wenn du wieder online bist.</string>

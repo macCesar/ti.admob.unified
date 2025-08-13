@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">Tillad</string>
     <string name="notifications_permission_decline">Tillad ikke</string>
     <string name="notifications_permission_title">Vil du tillade, at appen sender dig notifikationer?</string>
-    <string name="offline_notification_text">Tryk for at åbne annoncen</string>
-    <string name="offline_notification_title">Se den annonce, du gemte, mens du var offline</string>
+    <string name="offline_dialog_image_description">Ikon</string>
+    <string name="offline_dialog_text">Tak for din interesse.\nVi deler mere, når du er online igen.</string>
+    <string name="offline_notification_title">Du er online igen Lad os fortsætte, hvor vi slap</string>
+    <string name="offline_notification_title_with_advertiser">Du er online igen Fortsæt med at få flere oplysninger om %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Du får en notifikation med linket, når du er online igen</string>
     <string name="offline_opt_in_decline">Nej tak</string>
     <string name="offline_opt_in_message">Vi sender dig en notifikation med et link til annoncørens website.</string>
     <string name="offline_opt_in_title">Åbn annoncen, når du er online igen.</string>

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-47:/values-en-rCA/values-en-rCA.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-52:/values-en-rCA/values-en-rCA.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/d02f1fb6c6bbbc4ba28972788228ea16/transformed/appcompat-1.7.0/res/values-en-rCA/values-en-rCA.xml",
@@ -21,23 +21,6 @@
                     }
                 },
                 {
-                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/c2486ebf3fcba97960a42245de52a18e/transformed/browser-1.4.0/res/values-en-rCA/values-en-rCA.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,153,250,359",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "148,245,354,453"
-                    },
-                    "to": {
-                        "startLines": "36,37,38,39",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "3480,3578,3675,3784",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "3573,3670,3779,3878"
-                    }
-                },
-                {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/29f6d653128e5e87f71b6be1792d8912/transformed/core-1.13.0/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
@@ -52,12 +35,29 @@
                         "startOffsets": "2762,2858,2960,3059,3158,3262,3364,3966",
                         "endColumns": "95,101,98,98,103,101,115,100",
                         "endOffsets": "2853,2955,3054,3153,3257,3359,3475,4062"
+                    }
+                },
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/e9efe9f9c0de6061f15377da701fef21/transformed/browser-1.8.0/res/values-en-rCA/values-en-rCA.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,153,250,359",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "148,245,354,453"
+                    },
+                    "to": {
+                        "startLines": "36,37,38,39",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "3480,3578,3675,3784",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "3573,3670,3779,3878"
                     }
                 }
             ]
         },
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-release-49:/values-en-rCA/values-en-rCA.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-54:/values-en-rCA/values-en-rCA.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/d02f1fb6c6bbbc4ba28972788228ea16/transformed/appcompat-1.7.0/res/values-en-rCA/values-en-rCA.xml",
@@ -77,23 +77,6 @@
                     }
                 },
                 {
-                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/c2486ebf3fcba97960a42245de52a18e/transformed/browser-1.4.0/res/values-en-rCA/values-en-rCA.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,153,250,359",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "148,245,354,453"
-                    },
-                    "to": {
-                        "startLines": "36,37,38,39",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "3480,3578,3675,3784",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "3573,3670,3779,3878"
-                    }
-                },
-                {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/29f6d653128e5e87f71b6be1792d8912/transformed/core-1.13.0/res/values-en-rCA/values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
@@ -108,6 +91,23 @@
                         "startOffsets": "2762,2858,2960,3059,3158,3262,3364,3966",
                         "endColumns": "95,101,98,98,103,101,115,100",
                         "endOffsets": "2853,2955,3054,3153,3257,3359,3475,4062"
+                    }
+                },
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/e9efe9f9c0de6061f15377da701fef21/transformed/browser-1.8.0/res/values-en-rCA/values-en-rCA.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,153,250,359",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "148,245,354,453"
+                    },
+                    "to": {
+                        "startLines": "36,37,38,39",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "3480,3578,3675,3784",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "3573,3670,3779,3878"
                     }
                 }
             ]

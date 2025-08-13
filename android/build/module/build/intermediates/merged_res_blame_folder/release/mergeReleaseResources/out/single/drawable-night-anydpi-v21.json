@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-night-anydpi-v21/applovin_ic_warning_outline.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-night-anydpi-v21/applovin_ic_warning_outline.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-night-anydpi-v21/applovin_ic_baseline_add_circle_outline.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-night-anydpi-v21/applovin_ic_baseline_add_circle_outline.xml"
+    }
+]

@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">Tillat</string>
     <string name="notifications_permission_decline">Ikke tillat</string>
     <string name="notifications_permission_title">Vil du la appen sende deg varsler?</string>
-    <string name="offline_notification_text">Trykk for å åpne annonsen</string>
-    <string name="offline_notification_title">Se annonsen du lagret mens du var uten nett</string>
+    <string name="offline_dialog_image_description">Ikon</string>
+    <string name="offline_dialog_text">Takk for interessen.\nVi deler mer når du er på nettet igjen.</string>
+    <string name="offline_notification_title">Du er på nettet igjen. La oss fortsette der vi slapp</string>
+    <string name="offline_notification_title_with_advertiser">Du er på nettet igjen. Fortsett å lære om %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Du får et varsel med linken når du er på nettet igjen</string>
     <string name="offline_opt_in_decline">Nei takk</string>
     <string name="offline_opt_in_message">Vi sender deg et varsel med en link til annonsørnettstedet.</string>
     <string name="offline_opt_in_title">Åpne annonsen når du er på nettet igjen.</string>

@@ -1,0 +1,34 @@
+{
+    "logs": [
+        {
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-52:/values-zh-rMO/values-zh-rMO.xml",
+            "map": [
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/cdd77e6697e0162fee84f42e2e64af8b/transformed/applovin-sdk-13.3.1/res/values-zh-rMO/values-zh-rMO.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,131,185,246,341,417,479,543",
+                        "endColumns": "75,53,60,94,75,61,63,59",
+                        "endOffsets": "126,180,241,336,412,474,538,598"
+                    }
+                }
+            ]
+        },
+        {
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-54:/values-zh-rMO/values-zh-rMO.xml",
+            "map": [
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/cdd77e6697e0162fee84f42e2e64af8b/transformed/applovin-sdk-13.3.1/res/values-zh-rMO/values-zh-rMO.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,131,185,246,341,417,479,543",
+                        "endColumns": "75,53,60,94,75,61,63,59",
+                        "endOffsets": "126,180,241,336,412,474,538,598"
+                    }
+                }
+            ]
+        }
+    ]
+}

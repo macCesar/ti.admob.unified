@@ -31,6 +31,14 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Partager avec"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Partager avec <ns1:g id="APPLICATION_NAME">%s</ns1:g>"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Réduire"</string>
+    <string name="applovin_agree_message">Cliquez sur \"Continuer\" afin d\'utiliser notre application.</string>
+    <string name="applovin_alt_privacy_policy_text"/>
+    <string name="applovin_continue_button_text">Continuer</string>
+    <string name="applovin_pp_and_tos_title">Pour utiliser %s vous devez accepter les termes et conditions et confirmer avoir lu notre politique de confidentialité.</string>
+    <string name="applovin_pp_title">Pour utiliser %s vous devez confirmer avoir lu et accepté notre politique de confidentialité.</string>
+    <string name="applovin_privacy_policy_text">politique de confidentialité</string>
+    <string name="applovin_terms_of_service_text">termes et conditions</string>
+    <string name="applovin_terms_of_use_text">termes et conditions</string>
     <string name="bottomsheet_action_collapse">Réduire la bottom sheet</string>
     <string name="bottomsheet_action_expand">Développer la bottom sheet</string>
     <string name="bottomsheet_action_expand_halfway">Développer en entier</string>
@@ -137,13 +145,14 @@
     <string name="notifications_permission_confirm">Autoriser</string>
     <string name="notifications_permission_decline">Ne pas autoriser</string>
     <string name="notifications_permission_title">Autoriser l\'appli à vous envoyer des notifications ?</string>
-    <string name="offline_notification_text">Appuyez pour ouvrir l\'annonce</string>
-    <string name="offline_notification_title">Afficher l\'annonce que vous avez enregistrée lorsque vous n\'aviez pas accès à Internet</string>
+    <string name="offline_dialog_image_description">Icône</string>
+    <string name="offline_dialog_text">Merci de votre intérêt.\nNous partagerons plus d\'informations quand vous serez de nouveau en ligne.</string>
+    <string name="offline_notification_title">Connexion Internet rétablie ! Reprenez là où vous vous êtes arrêté</string>
+    <string name="offline_notification_title_with_advertiser">Connexion Internet rétablie ! Continuez à découvrir %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Vous recevrez une notification contenant le lien lorsque vous serez à nouveau connecté à Internet</string>
     <string name="offline_opt_in_decline">Non, merci</string>
     <string name="offline_opt_in_message">Nous vous enverrons une notification contenant un lien vers le site de l\'annonceur.</string>
-    <string name="offline_opt_in_title">Ouvrez l\'annonce lorsque vous serez à nouveau connecté à Internet.</string>
+    <string name="offline_opt_in_title">Ouvrez l\'annonce lorsque vous serez à nouveau en ligne.</string>
     <string name="password_toggle_content_description">Afficher le mot de passe</string>
     <string name="s1">Enregistrer l\'image</string>
     <string name="s2">Autoriser l\'annonce à stocker l\'image dans la galerie d\'images ?</string>

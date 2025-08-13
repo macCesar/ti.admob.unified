@@ -2,17 +2,32 @@
 dependencies {
 	// Core Google Mobile Ads SDK - Latest stable version
 	implementation 'com.google.android.gms:play-services-ads:22.6.0'
-	
+
 	// User Messaging Platform SDK for GDPR/CCPA/UMP consent
 	implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
-	
+
 	// ===================================================================
 	// MEDIATION ADAPTERS - Using verified available versions
 	// ===================================================================
-	
+
 	// Facebook Audience Network (Meta) - Verified available version
-	implementation 'com.google.ads.mediation:facebook:6.16.0.0'
-	
+	implementation 'com.google.ads.mediation:facebook:6.20.0.0'
+
+	// InMobi - Strong in international markets
+	implementation 'com.google.ads.mediation:inmobi:10.8.7.0'
+
+	// Unity Ads - Perfect for gaming apps, high video eCPM
+	implementation 'com.google.ads.mediation:unity:4.16.0.0'
+
+	// AppLovin MAX - Premium mediation platform, excellent optimization
+	implementation 'com.google.ads.mediation:applovin:13.3.1.1'
+
+	// Vungle - Video advertising specialists, great for rewarded ads
+	implementation 'com.google.ads.mediation:vungle:7.5.0.1'
+
+	// IronSource - Gaming-focused, high retention campaigns
+	implementation 'com.google.ads.mediation:ironsource:8.10.0.0'
+
 	// ===================================================================
 	// OPTIONAL: Additional popular networks (uncomment if needed)
 	// ===================================================================

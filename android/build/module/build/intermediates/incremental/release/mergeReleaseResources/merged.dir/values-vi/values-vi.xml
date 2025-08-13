@@ -70,7 +70,7 @@
     <string name="exposed_dropdown_menu_content_description">Hiển thị menu thả xuống</string>
     <string msgid="4566929209979330987" name="fallback_menu_item_copy_link">"Sao chép đường liên kết"</string>
     <string msgid="3413186855122069269" name="fallback_menu_item_open_in_browser">"Mở trong trình duyệt"</string>
-    <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Chia sẻ liên kết"</string>
+    <string msgid="7145444925855055364" name="fallback_menu_item_share_link">"Chia sẻ đường liên kết"</string>
     <string name="icon_content_description">Biểu tượng hộp thoại</string>
     <string name="item_view_role_description">Thẻ</string>
     <string name="material_clock_toggle_content_description">Chọn SA hoặc CH</string>
@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">Cho phép</string>
     <string name="notifications_permission_decline">Không cho phép</string>
     <string name="notifications_permission_title">Cho phép ứng dụng gửi thông báo cho bạn?</string>
-    <string name="offline_notification_text">Nhấn để mở quảng cáo</string>
-    <string name="offline_notification_title">Xem quảng cáo đã lưu khi bạn không có kết nối mạng</string>
+    <string name="offline_dialog_image_description">Biểu tượng</string>
+    <string name="offline_dialog_text">Cảm ơn bạn đã quan tâm.\nChúng tôi sẽ chia sẻ nhiều hơn khi bạn kết nối mạng trở lại.</string>
+    <string name="offline_notification_title">Bạn đã kết nối mạng trở lại! Hãy tiếp tục từ thời điểm chúng ta dừng lại lần trước</string>
+    <string name="offline_notification_title_with_advertiser">Bạn đã kết nối mạng trở lại! Tiếp tục tìm hiểu về %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Bạn sẽ nhận được thông báo kèm theo đường liên kết khi có kết nối mạng trở lại</string>
     <string name="offline_opt_in_decline">Để sau</string>
     <string name="offline_opt_in_message">Chúng tôi sẽ gửi thông báo cho bạn kèm theo đường liên kết đến trang web của nhà quảng cáo.</string>
     <string name="offline_opt_in_title">Mở quảng cáo khi bạn có kết nối mạng trở lại.</string>

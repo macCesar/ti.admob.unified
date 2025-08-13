@@ -139,10 +139,11 @@
     <string name="notifications_permission_confirm">Zezwól</string>
     <string name="notifications_permission_decline">Nie zezwalaj</string>
     <string name="notifications_permission_title">Zezwolić aplikacji na wysyłanie powiadomień?</string>
-    <string name="offline_notification_text">Kliknij, by otworzyć reklamę</string>
-    <string name="offline_notification_title">Wyświetl reklamę zapisaną w trybie offline</string>
+    <string name="offline_dialog_image_description">Ikona</string>
+    <string name="offline_dialog_text">Dziękujemy za zainteresowanie.\nWięcej informacji otrzymasz, gdy znów będziesz online.</string>
+    <string name="offline_notification_title">Znów jesteś online. Zacznijmy tam, gdzie ostatnio skończyliśmy</string>
+    <string name="offline_notification_title_with_advertiser">Znów jesteś online. Dowiedz się więcej o reklamodawcy %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Otrzymasz powiadomienie z linkiem, gdy znów połączysz się z internetem</string>
     <string name="offline_opt_in_decline">Nie</string>
     <string name="offline_opt_in_message">Wyślemy Ci powiadomienie z linkiem do strony reklamodawcy.</string>
     <string name="offline_opt_in_title">Otwórz reklamę, gdy znów połączysz się z internetem.</string>

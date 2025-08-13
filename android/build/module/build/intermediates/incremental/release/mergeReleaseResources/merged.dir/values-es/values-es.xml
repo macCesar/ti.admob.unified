@@ -31,6 +31,14 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Compartir con"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Compartir con <ns1:g id="APPLICATION_NAME">%s</ns1:g>"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Ocultar"</string>
+    <string name="applovin_agree_message">Por favor, presione \"Continuar\" si elige comenzar a usar nuestra aplicación.</string>
+    <string name="applovin_alt_privacy_policy_text">Política de Privacidad</string>
+    <string name="applovin_continue_button_text">Continuar</string>
+    <string name="applovin_pp_and_tos_title">Para usar %s debe aceptar nuestros Términos y Condiciones Y afirmar que ha revisado nuestra Políza de Privacidad.</string>
+    <string name="applovin_pp_title">Para usar %s, debe afirmar que ha revisado y aceptado nuestra Políza de Privacidad. </string>
+    <string name="applovin_privacy_policy_text">Políza de Privacidad</string>
+    <string name="applovin_terms_of_service_text">Términos y Condiciones</string>
+    <string name="applovin_terms_of_use_text">Términos de Uso</string>
     <string name="bottomsheet_action_collapse">Ocultar la hoja inferior</string>
     <string name="bottomsheet_action_expand">Mostrar la hoja inferior</string>
     <string name="bottomsheet_action_expand_halfway">Desplegar hasta la mitad</string>
@@ -137,10 +145,11 @@
     <string name="notifications_permission_confirm">Permitir</string>
     <string name="notifications_permission_decline">No permitir</string>
     <string name="notifications_permission_title">¿Permitir que la aplicación te envíe notificaciones?</string>
-    <string name="offline_notification_text">Toca para abrir el anuncio</string>
-    <string name="offline_notification_title">Mira el anuncio guardado cuando no tenías conexión</string>
+    <string name="offline_dialog_image_description">Icono</string>
+    <string name="offline_dialog_text">Gracias por tu interés.\nTe daremos más información cuando vuelvas a estar online.</string>
+    <string name="offline_notification_title">Vuelves a estar online. ¿Seguimos por donde lo dejamos?</string>
+    <string name="offline_notification_title_with_advertiser">Vuelves a estar online. Sigue informándote sobre %s.</string>
     <string name="offline_opt_in_confirm">Aceptar</string>
-    <string name="offline_opt_in_confirmation">Recibirás una notificación que incluirá el enlace cuando recuperes la conexión</string>
     <string name="offline_opt_in_decline">No, gracias</string>
     <string name="offline_opt_in_message">Te enviaremos una notificación que incluirá un enlace al sitio web del anunciante.</string>
     <string name="offline_opt_in_title">Se abrirá el anuncio cuando recuperes la conexión.</string>

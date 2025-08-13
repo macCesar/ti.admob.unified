@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">Izinkan</string>
     <string name="notifications_permission_decline">Jangan izinkan</string>
     <string name="notifications_permission_title">Izinkan aplikasi mengirim notifikasi kepada Anda?</string>
-    <string name="offline_notification_text">Ketuk untuk membuka iklan</string>
-    <string name="offline_notification_title">Lihat iklan yang Anda simpan ketika offline</string>
+    <string name="offline_dialog_image_description">Ikon</string>
+    <string name="offline_dialog_text">Terima kasih atas minat Anda.\nKami akan membagikan lebih banyak informasi setelah Anda kembali online.</string>
+    <string name="offline_notification_title">Anda kembali online. Mari kita lanjutkan progres sebelumnya</string>
+    <string name="offline_notification_title_with_advertiser">Anda kembali online. Lanjutkan mempelajari tentang %s</string>
     <string name="offline_opt_in_confirm">Oke</string>
-    <string name="offline_opt_in_confirmation">Anda akan menerima notifikasi berisi link ketika Anda kembali online</string>
     <string name="offline_opt_in_decline">Tidak</string>
     <string name="offline_opt_in_message">Kami akan mengirimkan notifikasi kepada Anda berisi link ke situs pengiklan.</string>
     <string name="offline_opt_in_title">Buka iklan ketika Anda kembali online.</string>

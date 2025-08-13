@@ -1,10 +1,10 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/animator-v21/design_appbar_state_list_animator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-36:/animator-v21/design_appbar_state_list_animator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/animator-v21/m3_appbar_state_list_animator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/animator-v21/m3_appbar_state_list_animator.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/animator-v21/m3_appbar_state_list_animator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-36:/animator-v21/m3_appbar_state_list_animator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/animator-v21/design_appbar_state_list_animator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/animator-v21/design_appbar_state_list_animator.xml"
     }
 ]

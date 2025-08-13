@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?><!-- This template represents a standard native banner ad. -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:background="@android:color/white">
+
+    <include
+        android:id="@+id/applovin_native_icon_and_text_layout"
+        layout="@layout/max_native_ad_banner_icon_and_text_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toStartOf="@+id/applovin_native_cta_button"
+        android:layout_toLeftOf="@id/applovin_native_cta_button" />
+
+    <Button
+        android:id="@+id/applovin_native_cta_button"
+        style="@style/com.applovin.mediation.nativeAds.MaxNativeAdView.CTAButton"
+        android:layout_width="74dp"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:textSize="15sp"
+        tools:text="CTA" />
+</RelativeLayout>

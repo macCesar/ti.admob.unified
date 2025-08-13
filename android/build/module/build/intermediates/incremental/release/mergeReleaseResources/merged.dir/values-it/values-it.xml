@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">Consenti</string>
     <string name="notifications_permission_decline">Non consentire</string>
     <string name="notifications_permission_title">Consentire all\'app di inviarti notifiche?</string>
-    <string name="offline_notification_text">Tocca per aprire l\'annuncio</string>
-    <string name="offline_notification_title">Visualizza l\'annuncio salvato quando eri offline</string>
+    <string name="offline_dialog_image_description">Icona</string>
+    <string name="offline_dialog_text">Grazie per il tuo interesse.\nComunicheremo ulteriori dettagli quando tornerai online.</string>
+    <string name="offline_notification_title">Sei di nuovo online Riprendiamo da dove abbiamo interrotto</string>
+    <string name="offline_notification_title_with_advertiser">Sei di nuovo online Continua a scoprire informazioni su %s</string>
     <string name="offline_opt_in_confirm">OK</string>
-    <string name="offline_opt_in_confirmation">Riceverai una notifica con il link quando sarai di nuovo online</string>
     <string name="offline_opt_in_decline">No, grazie</string>
     <string name="offline_opt_in_message">Ti invieremo una notifica con un link che rimanda al sito dell\'inserzionista.</string>
     <string name="offline_opt_in_title">Apri l\'annuncio quando sarai di nuovo online.</string>

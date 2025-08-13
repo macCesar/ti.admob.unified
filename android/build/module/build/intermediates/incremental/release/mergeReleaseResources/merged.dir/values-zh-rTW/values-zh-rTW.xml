@@ -31,6 +31,14 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"分享對象"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"與「<ns1:g id="APPLICATION_NAME">%s</ns1:g>」分享"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"收合"</string>
+    <string name="applovin_agree_message">如果您選擇開始使用我們的應用，請點擊\"繼續\"</string>
+    <string name="applovin_alt_privacy_policy_text"/>
+    <string name="applovin_continue_button_text">繼續</string>
+    <string name="applovin_pp_and_tos_title">使用%s之前, 您必須同意我们的服務條款，並確認您已經閱讀並知悉我們的隱私政策。</string>
+    <string name="applovin_pp_title">使用%s之前, 您必須確認您已經閱讀並知悉我們的隱私政策.</string>
+    <string name="applovin_privacy_policy_text">隱私政策</string>
+    <string name="applovin_terms_of_service_text">服務條款</string>
+    <string name="applovin_terms_of_use_text">使用條款</string>
     <string name="bottomsheet_action_collapse">收合底部功能表</string>
     <string name="bottomsheet_action_expand">展開底部功能表</string>
     <string name="bottomsheet_action_expand_halfway">展開一半</string>
@@ -137,10 +145,11 @@
     <string name="notifications_permission_confirm">允許</string>
     <string name="notifications_permission_decline">不允許</string>
     <string name="notifications_permission_title">允許應用程式傳送通知給你嗎？</string>
-    <string name="offline_notification_text">輕觸即可開啟廣告</string>
-    <string name="offline_notification_title">查看你在離線時儲存的廣告</string>
+    <string name="offline_dialog_image_description">圖示</string>
+    <string name="offline_dialog_text">感謝你的支持。\n我們會在你重新連上網路後提供更多資訊。</string>
+    <string name="offline_notification_title">你已重新連上網路！讓我們從上次中斷的地方繼續</string>
+    <string name="offline_notification_title_with_advertiser">你已重新連上網路！請繼續瞭解「%s」的相關資訊</string>
     <string name="offline_opt_in_confirm">確定</string>
-    <string name="offline_opt_in_confirmation">你會在重新連上網路後收到含有該連結的通知。</string>
     <string name="offline_opt_in_decline">不用了，謝謝</string>
     <string name="offline_opt_in_message">我們會傳送含有廣告主網站連結的通知給你。</string>
     <string name="offline_opt_in_title">系統會在重新連上網路後開啟廣告。</string>

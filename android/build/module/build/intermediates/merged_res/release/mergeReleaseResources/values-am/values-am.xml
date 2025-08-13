@@ -137,10 +137,11 @@
     <string name="notifications_permission_confirm">ፍቀድ</string>
     <string name="notifications_permission_decline">አትፍቀድ</string>
     <string name="notifications_permission_title">መተግበሪያ ማሳወቂያዎችን እንዲልክልዎ ይፈቀድ?</string>
-    <string name="offline_notification_text">ማስታወቂያን ለመክፈት መታ ያድርጉ</string>
-    <string name="offline_notification_title">ከመስመር ውጭ ሲሆኑ ያስቀመጡትን ማስታወቂያ ይመልከቱ</string>
+    <string name="offline_dialog_image_description">አዶ</string>
+    <string name="offline_dialog_text">ለፍላጎትዎ እናመሰግናለን።\nወደ መስመር ሲመለሱ ተጨማሪ እናጋራዎታለን።</string>
+    <string name="offline_notification_title">መስመር ላይ ተመልሰዋል! ከቋምንበት እንቀጥል</string>
+    <string name="offline_notification_title_with_advertiser">መስመር ላይ ተመልሰዋል! ስለ %s መማርዎን ይቀጥሉ</string>
     <string name="offline_opt_in_confirm">እሺ</string>
-    <string name="offline_opt_in_confirmation">ወደ መስመር ላይ ሲመለሱ ከአገናኙ ጋር አንድ ማሳወቂያ ይደርስዎታል</string>
     <string name="offline_opt_in_decline">አይ አመሰግናለሁ</string>
     <string name="offline_opt_in_message">ወደ ማስታወቂያ አስነጋሪ ጣቢያው ከሚወስድ አገናኝ ጋር አንድ ማሳወቂያ እንልክልዎታለን።</string>
     <string name="offline_opt_in_title">መስመር ላይ ሲመለሱ ማስታወቂያ ይክፈቱ።</string>
