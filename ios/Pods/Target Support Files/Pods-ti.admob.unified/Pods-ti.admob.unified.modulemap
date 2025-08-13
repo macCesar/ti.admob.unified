@@ -1,6 +1,0 @@
-framework module Pods_ti_admob_unified {
-  umbrella header "Pods-ti.admob.unified-umbrella.h"
-
-  export *
-  module * { export * }
-}
