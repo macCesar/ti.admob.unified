@@ -24,19 +24,29 @@ function moduleBootstrap(moduleBinding) {
 		invocationAPIs.push({ namespace: namespace, api: api });
 	}
 
-	addInvocationAPI(module, "TiAdmobUnified", "TiAdmobUnified", "createExample");
+	addInvocationAPI(module, "TiAdmobUnified", "TiAdmobUnified", "createTiAdmobUnifiedInterstitialAd");addInvocationAPI(module, "TiAdmobUnified", "TiAdmobUnified", "createTiAdmobUnifiedRewardedAd");
 		if (!("__propertiesDefined__" in module)) {Object.defineProperties(module, {
-"Example": {
+"TiAdmobUnifiedInterstitialAd": {
 get: function() {
-var Example =  lazyGet(this, "mx.codigomovil.tiadmobunified.ExampleProxy", "Example", "Example");
-return Example;
+var TiAdmobUnifiedInterstitialAd =  lazyGet(this, "mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy", "TiAdmobUnifiedInterstitialAd", "TiAdmobUnifiedInterstitialAd");
+return TiAdmobUnifiedInterstitialAd;
+},
+configurable: true
+},
+"TiAdmobUnifiedRewardedAd": {
+get: function() {
+var TiAdmobUnifiedRewardedAd =  lazyGet(this, "mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy", "TiAdmobUnifiedRewardedAd", "TiAdmobUnifiedRewardedAd");
+return TiAdmobUnifiedRewardedAd;
 },
 configurable: true
 },
 
 });
-module.constructor.prototype.createExample = function() {
-return new module["Example"](arguments);
+module.constructor.prototype.createTiAdmobUnifiedInterstitialAd = function() {
+return new module["TiAdmobUnifiedInterstitialAd"](arguments);
+}
+module.constructor.prototype.createTiAdmobUnifiedRewardedAd = function() {
+return new module["TiAdmobUnifiedRewardedAd"](arguments);
 }
 }
 module.__propertiesDefined__ = true;

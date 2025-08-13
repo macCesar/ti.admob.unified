@@ -30,11 +30,21 @@ private:
 	static v8::Persistent<v8::Object> moduleInstance;
 
 	// Methods -----------------------------------------------------------
-	static void example(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void resetConsent(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void canShowAds(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void setAppVolume(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void isGDPR(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void createInterstitial(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void isTestDevice(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void presentPrivacyOptions(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void canShowPersonalizedAds(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void initialize(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void setTestDevice(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void isPrivacyOptionsRequired(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void requestConsent(const v8::FunctionCallbackInfo<v8::Value>&);
+	static void createRewarded(const v8::FunctionCallbackInfo<v8::Value>&);
 
 	// Dynamic property accessors ----------------------------------------
-	static void getter_exampleProp(v8::Local<v8::Name> name, const v8::PropertyCallbackInfo<v8::Value>& info);
-	static void setter_exampleProp(v8::Local<v8::Name> name, v8::Local<v8::Value> value, const v8::PropertyCallbackInfo<void>& info);
 
 };
 

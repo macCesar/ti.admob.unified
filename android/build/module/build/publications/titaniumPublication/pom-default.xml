@@ -16,5 +16,20 @@
       <artifactId>kotlin-stdlib-jdk8</artifactId>
       <version>1.9.23</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.android.gms</groupId>
+      <artifactId>play-services-ads</artifactId>
+      <version>22.6.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.android.ump</groupId>
+      <artifactId>user-messaging-platform</artifactId>
+      <version>2.1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.ads.mediation</groupId>
+      <artifactId>facebook</artifactId>
+      <version>6.16.0.0</version>
+    </dependency>
   </dependencies>
 </project>

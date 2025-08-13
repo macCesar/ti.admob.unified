@@ -15,7 +15,8 @@
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JNIUtil.h \
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/AndroidUtil.h \
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/TypeConverter.h \
-  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.h \
+  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy.h \
+  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.h \
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/org.appcelerator.kroll.KrollModule.h
 /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedModule.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/Proxy.h:
@@ -32,5 +33,6 @@
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JNIUtil.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/AndroidUtil.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/TypeConverter.h:
-/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.h:
+/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy.h:
+/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/org.appcelerator.kroll.KrollModule.h:

@@ -17,7 +17,8 @@
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JavaObject.h \
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/EventEmitter.h \
   /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/NativeObject.h \
-  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.h
+  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy.h \
+  /Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.h
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JSException.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/v8.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/cppgc/common.h:
@@ -35,4 +36,5 @@
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/JavaObject.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/EventEmitter.h:
 /Users/cesar/Library/Application\ Support/Titanium/mobilesdk/osx/12.8.0.GA/android/native/include/NativeObject.h:
-/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.ExampleProxy.h:
+/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy.h:
+/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified/android/build/module/src/main/jni/../../../build/ti-generated/jni/mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.h:

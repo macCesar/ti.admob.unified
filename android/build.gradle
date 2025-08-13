@@ -1,5 +1,23 @@
 
 dependencies {
-	// Add the module's library dependencies here.
-	// See:  https://developer.android.com/studio/build/dependencies
+	// Core Google Mobile Ads SDK - Latest stable version
+	implementation 'com.google.android.gms:play-services-ads:22.6.0'
+	
+	// User Messaging Platform SDK for GDPR/CCPA/UMP consent
+	implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+	
+	// ===================================================================
+	// MEDIATION ADAPTERS - Using verified available versions
+	// ===================================================================
+	
+	// Facebook Audience Network (Meta) - Verified available version
+	implementation 'com.google.ads.mediation:facebook:6.16.0.0'
+	
+	// ===================================================================
+	// OPTIONAL: Additional popular networks (uncomment if needed)
+	// ===================================================================
+	// implementation 'com.google.ads.mediation:chartboost:9.5.1.1'
+	// implementation 'com.google.ads.mediation:adcolony:4.8.0.1'
+	// implementation 'com.google.ads.mediation:tapjoy:12.11.1.1'
+	// implementation 'com.google.ads.mediation:maio:1.1.16.0'
 }

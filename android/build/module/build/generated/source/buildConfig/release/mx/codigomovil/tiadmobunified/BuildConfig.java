@@ -10,13 +10,13 @@ public final class BuildConfig {
   // Field from default config.
   public static final String TI_MODULE_AUTHOR = "César Estrada";
   // Field from default config.
-  public static final String TI_MODULE_COPYRIGHT = "Copyright (c) 2025 by";
+  public static final String TI_MODULE_COPYRIGHT = "Copyright (c) 2025 by César Estrada";
   // Field from default config.
-  public static final String TI_MODULE_DESCRIPTION = "ti.admob.unified";
+  public static final String TI_MODULE_DESCRIPTION = "A unified AdMob module for Titanium SDK with automatic compliance handling";
   // Field from default config.
   public static final String TI_MODULE_ID = "mx.codigomovil.tiadmobunified";
   // Field from default config.
-  public static final String TI_MODULE_LICENSE = "Specify your license";
+  public static final String TI_MODULE_LICENSE = "MIT";
   // Field from default config.
   public static final String TI_MODULE_NAME = "ti.admob.unified";
   // Field from default config.

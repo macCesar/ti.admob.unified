@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-release-40:/values-v23/values-v23.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-47:/values-v23/values-v23.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/910020540a818774ee34f2492e4630a4/transformed/cardview-1.0.0/res/values-v23/values-v23.xml",
@@ -14,12 +14,12 @@
                         "endOffsets": "200"
                     },
                     "to": {
-                        "startLines": "56",
+                        "startLines": "58",
                         "startColumns": "4",
-                        "startOffsets": "3543",
-                        "endLines": "58",
+                        "startOffsets": "3672",
+                        "endLines": "60",
                         "endColumns": "12",
-                        "endOffsets": "3688"
+                        "endOffsets": "3817"
                     }
                 },
                 {
@@ -33,12 +33,22 @@
                         "endOffsets": "185,320,395,482,1220,1970,2089,2216,2438,2662,2777,2884,2997,3227"
                     },
                     "to": {
-                        "startLines": "2,3,4,5,12,26,40,41,42,45,49,50,51,52",
+                        "startLines": "4,5,6,7,14,28,42,43,44,47,51,52,53,54",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,190,325,400,798,1536,2286,2405,2532,2754,2978,3093,3200,3313",
-                        "endLines": "2,3,4,5,25,39,40,41,44,48,49,50,51,55",
+                        "startOffsets": "184,319,454,529,927,1665,2415,2534,2661,2883,3107,3222,3329,3442",
+                        "endLines": "4,5,6,7,27,41,42,43,46,50,51,52,53,57",
                         "endColumns": "134,134,74,86,12,12,118,126,12,12,114,106,112,12",
-                        "endOffsets": "185,320,395,482,1531,2281,2400,2527,2749,2973,3088,3195,3308,3538"
+                        "endOffsets": "314,449,524,611,1660,2410,2529,2656,2878,3102,3217,3324,3437,3667"
+                    }
+                },
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/68e0b7604879ce6967f7ba0a0ac3818a/transformed/work-runtime-2.7.0/res/values-v23/values-v23.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,121",
+                        "endColumns": "65,62",
+                        "endOffsets": "116,179"
                     }
                 },
                 {
@@ -52,12 +62,12 @@
                         "endOffsets": "195,361,859"
                     },
                     "to": {
-                        "startLines": "6,9,59",
+                        "startLines": "8,11,61",
                         "startColumns": "4,4,4",
-                        "startOffsets": "487,632,3693",
-                        "endLines": "8,11,66",
+                        "startOffsets": "616,761,3822",
+                        "endLines": "10,13,68",
                         "endColumns": "9,9,9",
-                        "endOffsets": "627,793,4186"
+                        "endOffsets": "756,922,4315"
                     }
                 },
                 {
@@ -71,18 +81,18 @@
                         "endOffsets": "266,408,569,779,986,1193,1396,1598,1863,2136"
                     },
                     "to": {
-                        "startLines": "67,70,74,78,81,84,87,90,93,97",
+                        "startLines": "69,72,76,80,83,86,89,92,95,99",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "4191,4407,4549,4710,4920,5127,5334,5537,5739,6004",
-                        "endLines": "69,73,77,80,83,86,89,92,96,100",
+                        "startOffsets": "4320,4536,4678,4839,5049,5256,5463,5666,5868,6133",
+                        "endLines": "71,75,79,82,85,88,91,94,98,102",
                         "endColumns": "10,10,10,10,10,10,10,10,10,10",
-                        "endOffsets": "4402,4544,4705,4915,5122,5329,5532,5734,5999,6272"
+                        "endOffsets": "4531,4673,4834,5044,5251,5458,5661,5863,6128,6401"
                     }
                 }
             ]
         },
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-38:/values-v23/values-v23.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-49:/values-v23/values-v23.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/910020540a818774ee34f2492e4630a4/transformed/cardview-1.0.0/res/values-v23/values-v23.xml",
@@ -95,12 +105,12 @@
                         "endOffsets": "200"
                     },
                     "to": {
-                        "startLines": "56",
+                        "startLines": "58",
                         "startColumns": "4",
-                        "startOffsets": "3543",
-                        "endLines": "58",
+                        "startOffsets": "3672",
+                        "endLines": "60",
                         "endColumns": "12",
-                        "endOffsets": "3688"
+                        "endOffsets": "3817"
                     }
                 },
                 {
@@ -114,12 +124,22 @@
                         "endOffsets": "185,320,395,482,1220,1970,2089,2216,2438,2662,2777,2884,2997,3227"
                     },
                     "to": {
-                        "startLines": "2,3,4,5,12,26,40,41,42,45,49,50,51,52",
+                        "startLines": "4,5,6,7,14,28,42,43,44,47,51,52,53,54",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "55,190,325,400,798,1536,2286,2405,2532,2754,2978,3093,3200,3313",
-                        "endLines": "2,3,4,5,25,39,40,41,44,48,49,50,51,55",
+                        "startOffsets": "184,319,454,529,927,1665,2415,2534,2661,2883,3107,3222,3329,3442",
+                        "endLines": "4,5,6,7,27,41,42,43,46,50,51,52,53,57",
                         "endColumns": "134,134,74,86,12,12,118,126,12,12,114,106,112,12",
-                        "endOffsets": "185,320,395,482,1531,2281,2400,2527,2749,2973,3088,3195,3308,3538"
+                        "endOffsets": "314,449,524,611,1660,2410,2529,2656,2878,3102,3217,3324,3437,3667"
+                    }
+                },
+                {
+                    "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/68e0b7604879ce6967f7ba0a0ac3818a/transformed/work-runtime-2.7.0/res/values-v23/values-v23.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,121",
+                        "endColumns": "65,62",
+                        "endOffsets": "116,179"
                     }
                 },
                 {
@@ -133,12 +153,12 @@
                         "endOffsets": "195,361,859"
                     },
                     "to": {
-                        "startLines": "6,9,59",
+                        "startLines": "8,11,61",
                         "startColumns": "4,4,4",
-                        "startOffsets": "487,632,3693",
-                        "endLines": "8,11,66",
+                        "startOffsets": "616,761,3822",
+                        "endLines": "10,13,68",
                         "endColumns": "9,9,9",
-                        "endOffsets": "627,793,4186"
+                        "endOffsets": "756,922,4315"
                     }
                 },
                 {
@@ -152,12 +172,12 @@
                         "endOffsets": "266,408,569,779,986,1193,1396,1598,1863,2136"
                     },
                     "to": {
-                        "startLines": "67,70,74,78,81,84,87,90,93,97",
+                        "startLines": "69,72,76,80,83,86,89,92,95,99",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4",
-                        "startOffsets": "4191,4407,4549,4710,4920,5127,5334,5537,5739,6004",
-                        "endLines": "69,73,77,80,83,86,89,92,96,100",
+                        "startOffsets": "4320,4536,4678,4839,5049,5256,5463,5666,5868,6133",
+                        "endLines": "71,75,79,82,85,88,91,94,98,102",
                         "endColumns": "10,10,10,10,10,10,10,10,10,10",
-                        "endOffsets": "4402,4544,4705,4915,5122,5329,5532,5734,5999,6272"
+                        "endOffsets": "4531,4673,4834,5044,5251,5458,5661,5863,6128,6401"
                     }
                 }
             ]

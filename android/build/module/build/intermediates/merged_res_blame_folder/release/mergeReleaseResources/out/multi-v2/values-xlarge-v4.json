@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-release-40:/values-xlarge-v4/values-xlarge-v4.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-49:/values-xlarge-v4/values-xlarge-v4.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/d02f1fb6c6bbbc4ba28972788228ea16/transformed/appcompat-1.7.0/res/values-xlarge-v4/values-xlarge-v4.xml",
@@ -16,7 +16,7 @@
             ]
         },
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-38:/values-xlarge-v4/values-xlarge-v4.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-47:/values-xlarge-v4/values-xlarge-v4.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/d02f1fb6c6bbbc4ba28972788228ea16/transformed/appcompat-1.7.0/res/values-xlarge-v4/values-xlarge-v4.xml",

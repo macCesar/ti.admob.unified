@@ -1,26 +1,26 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-anydpi-v21/ic_call_decline_low.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_decline_low.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/drawable-anydpi-v21/ic_call_answer_video_low.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-6:/drawable-anydpi-v21/ic_call_answer_video_low.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-anydpi-v21/ic_call_answer_low.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_low.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/drawable-anydpi-v21/ic_call_decline_low.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-6:/drawable-anydpi-v21/ic_call_decline_low.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-anydpi-v21/ic_call_answer_video.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_video.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/drawable-anydpi-v21/ic_call_answer_video.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-6:/drawable-anydpi-v21/ic_call_answer_video.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-anydpi-v21/ic_call_answer_video_low.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_video_low.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/drawable-anydpi-v21/ic_call_decline.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-6:/drawable-anydpi-v21/ic_call_decline.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-anydpi-v21/ic_call_decline.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_decline.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/drawable-anydpi-v21/ic_call_answer.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-6:/drawable-anydpi-v21/ic_call_answer.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-40:/drawable-anydpi-v21/ic_call_answer.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-49:/drawable-anydpi-v21/ic_call_answer_low.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-6:/drawable-anydpi-v21/ic_call_answer_low.xml"
     }
 ]

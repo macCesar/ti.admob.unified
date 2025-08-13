@@ -10,7 +10,8 @@
 #include <KrollBindings.h>
 
 #include "mx.codigomovil.tiadmobunified.TiAdmobUnifiedModule.h"
-#include "mx.codigomovil.tiadmobunified.ExampleProxy.h"
+#include "mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy.h"
+#include "mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy.h"
 
 
 namespace titanium {
@@ -43,12 +44,14 @@ namespace titanium {
 
 		BindEntry* TiModuleBindings::lookupGeneratedInit(const char* name, unsigned int length) {
 			static BindEntry binds[] = {
-				{"mx.codigomovil.tiadmobunified.ExampleProxy", ::mx::codigomovil::tiadmobunified::tiadmobunified::ExampleProxy::bindProxy, ::mx::codigomovil::tiadmobunified::tiadmobunified::ExampleProxy::dispose},
+				{"mx.codigomovil.tiadmobunified.TiAdmobUnifiedRewardedAdProxy", ::mx::codigomovil::tiadmobunified::tiadmobunified::TiAdmobUnifiedRewardedAdProxy::bindProxy, ::mx::codigomovil::tiadmobunified::tiadmobunified::TiAdmobUnifiedRewardedAdProxy::dispose},
+				{"mx.codigomovil.tiadmobunified.TiAdmobUnifiedInterstitialAdProxy", ::mx::codigomovil::tiadmobunified::tiadmobunified::TiAdmobUnifiedInterstitialAdProxy::bindProxy, ::mx::codigomovil::tiadmobunified::tiadmobunified::TiAdmobUnifiedInterstitialAdProxy::dispose},
 				{"mx.codigomovil.tiadmobunified.TiAdmobUnifiedModule", ::mx::codigomovil::tiadmobunified::TiAdmobUnifiedModule::bindProxy, ::mx::codigomovil::tiadmobunified::TiAdmobUnifiedModule::dispose}
 			};
 			static std::unordered_map<const char*, BindEntry&, Hash, Compare> map = {
 				{binds[0].name, binds[0]},
-				{binds[1].name, binds[1]}
+				{binds[1].name, binds[1]},
+				{binds[2].name, binds[2]}
 			};
 
 			auto result = map.find(name);

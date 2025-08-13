@@ -116,6 +116,9 @@ int attr actionTextColorAlpha 0x0
 int attr actionViewClass 0x0
 int attr activeIndicatorLabelPadding 0x0
 int attr activityChooserViewStyle 0x0
+int attr adSize 0x0
+int attr adSizes 0x0
+int attr adUnitId 0x0
 int attr addElevationShadow 0x0
 int attr alertDialogButtonGroupStyle 0x0
 int attr alertDialogCenterButtons 0x0
@@ -1349,7 +1352,11 @@ int attr yearTodayStyle 0x0
 int bool abc_action_bar_embed_tabs 0x0
 int bool abc_allow_stacked_button_bar 0x0
 int bool abc_config_actionMenuItemAllCaps 0x0
+int bool enable_system_alarm_service_default 0x0
+int bool enable_system_foreground_service_default 0x0
+int bool enable_system_job_service_default 0x0
 int bool mtrl_btn_textappearance_all_caps 0x0
+int bool workmanager_test_configuration 0x0
 int color abc_background_cache_hint_selector_material_dark 0x0
 int color abc_background_cache_hint_selector_material_light 0x0
 int color abc_btn_colored_borderless_text_material 0x0
@@ -1389,6 +1396,10 @@ int color bright_foreground_inverse_material_dark 0x0
 int color bright_foreground_inverse_material_light 0x0
 int color bright_foreground_material_dark 0x0
 int color bright_foreground_material_light 0x0
+int color browser_actions_bg_grey 0x0
+int color browser_actions_divider_color 0x0
+int color browser_actions_text_color 0x0
+int color browser_actions_title_color 0x0
 int color button_material_dark 0x0
 int color button_material_light 0x0
 int color call_notification_answer_color 0x0
@@ -2227,6 +2238,8 @@ int dimen abc_text_size_subtitle_material_toolbar 0x0
 int dimen abc_text_size_title_material 0x0
 int dimen abc_text_size_title_material_toolbar 0x0
 int dimen appcompat_dialog_background_inset 0x0
+int dimen browser_actions_context_menu_max_width 0x0
+int dimen browser_actions_context_menu_min_padding 0x0
 int dimen cardview_compat_inset_shadow 0x0
 int dimen cardview_default_elevation 0x0
 int dimen cardview_default_radius 0x0
@@ -3040,6 +3053,8 @@ int drawable abc_textfield_search_activated_mtrl_alpha 0x0
 int drawable abc_textfield_search_default_mtrl_alpha 0x0
 int drawable abc_textfield_search_material 0x0
 int drawable abc_vector_test 0x0
+int drawable admob_close_button_black_circle_white_cross 0x0
+int drawable admob_close_button_white_circle_black_cross 0x0
 int drawable avd_hide_password 0x0
 int drawable avd_show_password 0x0
 int drawable btn_checkbox_checked_mtrl 0x0
@@ -3277,6 +3292,11 @@ int id bottom 0x0
 int id bottomNavBar 0x0
 int id bottomNavBar_content 0x0
 int id bounce 0x0
+int id browser_actions_header_text 0x0
+int id browser_actions_menu_item_icon 0x0
+int id browser_actions_menu_item_text 0x0
+int id browser_actions_menu_items 0x0
+int id browser_actions_menu_view 0x0
 int id buttonPanel 0x0
 int id callMeasure 0x0
 int id camera_ui_container 0x0
@@ -3790,6 +3810,9 @@ int layout abc_search_dropdown_item_icons_2line 0x0
 int layout abc_search_view 0x0
 int layout abc_select_dialog_material 0x0
 int layout abc_tooltip 0x0
+int layout admob_empty_layout 0x0
+int layout browser_actions_context_menu_page 0x0
+int layout browser_actions_context_menu_row 0x0
 int layout custom_dialog 0x0
 int layout design_bottom_navigation_item 0x0
 int layout design_bottom_sheet_dialog 0x0
@@ -3916,6 +3939,7 @@ int string abc_searchview_description_voice 0x0
 int string abc_shareactionprovider_share_with 0x0
 int string abc_shareactionprovider_share_with_application 0x0
 int string abc_toolbar_collapse_description 0x0
+int string androidx_startup 0x0
 int string appbar_scrolling_view_behavior 0x0
 int string bottom_sheet_behavior 0x0
 int string bottomsheet_action_collapse 0x0
@@ -3952,6 +3976,7 @@ int string common_google_play_services_wear_update_text 0x0
 int string common_open_on_phone 0x0
 int string common_signin_button_text 0x0
 int string common_signin_button_text_long 0x0
+int string copy_toast_msg 0x0
 int string drawer_layout_close 0x0
 int string drawer_layout_open 0x0
 int string error_a11y_label 0x0
@@ -3959,6 +3984,9 @@ int string error_icon_content_description 0x0
 int string exposed_dropdown_menu_content_description 0x0
 int string fab_transformation_scrim_behavior 0x0
 int string fab_transformation_sheet_behavior 0x0
+int string fallback_menu_item_copy_link 0x0
+int string fallback_menu_item_open_in_browser 0x0
+int string fallback_menu_item_share_link 0x0
 int string hide_bottom_view_on_scroll_behavior 0x0
 int string icon_content_description 0x0
 int string item_view_role_description 0x0
@@ -4062,11 +4090,31 @@ int string mtrl_switch_track_decoration_path 0x0
 int string mtrl_switch_track_path 0x0
 int string mtrl_timepicker_cancel 0x0
 int string mtrl_timepicker_confirm 0x0
+int string native_body 0x0
+int string native_headline 0x0
+int string native_media_view 0x0
+int string notifications_permission_confirm 0x0
+int string notifications_permission_decline 0x0
+int string notifications_permission_title 0x0
+int string offline_notification_text 0x0
+int string offline_notification_title 0x0
+int string offline_opt_in_confirm 0x0
+int string offline_opt_in_confirmation 0x0
+int string offline_opt_in_decline 0x0
+int string offline_opt_in_message 0x0
+int string offline_opt_in_title 0x0
 int string password_toggle_content_description 0x0
 int string path_password_eye 0x0
 int string path_password_eye_mask_strike_through 0x0
 int string path_password_eye_mask_visible 0x0
 int string path_password_strike_through 0x0
+int string s1 0x0
+int string s2 0x0
+int string s3 0x0
+int string s4 0x0
+int string s5 0x0
+int string s6 0x0
+int string s7 0x0
 int string search_menu_title 0x0
 int string searchbar_scrolling_view_behavior 0x0
 int string searchview_clear_text_content_description 0x0
@@ -4074,6 +4122,7 @@ int string searchview_navigation_content_description 0x0
 int string side_sheet_accessibility_pane_title 0x0
 int string side_sheet_behavior 0x0
 int string status_bar_notification_info_overflow 0x0
+int string watermark_label_prefix 0x0
 int style AlertDialog_AppCompat 0x0
 int style AlertDialog_AppCompat_Light 0x0
 int style Animation_AppCompat_Dialog 0x0
@@ -4760,6 +4809,7 @@ int style Theme_Design_Light 0x0
 int style Theme_Design_Light_BottomSheetDialog 0x0
 int style Theme_Design_Light_NoActionBar 0x0
 int style Theme_Design_NoActionBar 0x0
+int style Theme_IAPTheme 0x0
 int style Theme_Material3_Dark 0x0
 int style Theme_Material3_Dark_BottomSheetDialog 0x0
 int style Theme_Material3_Dark_Dialog 0x0
@@ -5297,6 +5347,10 @@ int styleable ActionMode_titleTextStyle 5
 int[] styleable ActivityChooserView { 0x0, 0x0 }
 int styleable ActivityChooserView_expandActivityOverflowButtonDrawable 0
 int styleable ActivityChooserView_initialActivityCount 1
+int[] styleable AdsAttrs { 0x0, 0x0, 0x0 }
+int styleable AdsAttrs_adSize 0
+int styleable AdsAttrs_adSizes 1
+int styleable AdsAttrs_adUnitId 2
 int[] styleable AlertDialog { 0x10100f2, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0 }
 int styleable AlertDialog_android_layout 0
 int styleable AlertDialog_buttonIconDimen 1
@@ -7356,5 +7410,7 @@ int styleable ViewTransition_upDuration 13
 int styleable ViewTransition_viewTransitionMode 14
 int[] styleable include { 0x0 }
 int styleable include_constraintSet 0
+int xml gma_ad_services_config 0x0
+int xml image_share_filepaths 0x0
 int xml titanium_ui_horizontal_nested_scrollview 0x0
 int xml titanium_ui_vertical_nested_scrollview 0x0

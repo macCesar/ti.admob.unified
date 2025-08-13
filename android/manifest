@@ -1,14 +1,15 @@
 #
-# this is your module manifest and used by Titanium
-# during compilation, packaging, distribution, etc.
+# ti.admob.unified - Unified AdMob Module for Titanium SDK
+# This module provides a consistent API across iOS and Android platforms
+# with automatic compliance handling for GDPR, CCPA, and App Tracking Transparency.
 #
 version: 1.0.0
 apiversion: 4
 architectures: arm64-v8a armeabi-v7a x86 x86_64
-description: ti.admob.unified
+description: A unified AdMob module for Titanium SDK with automatic compliance handling
 author: César Estrada
-license: Specify your license
-copyright: Copyright (c) 2025 by 
+license: MIT
+copyright: Copyright (c) 2025 by César Estrada
 
 # these should not be edited
 name: ti.admob.unified
