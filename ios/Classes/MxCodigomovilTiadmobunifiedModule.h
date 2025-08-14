@@ -10,10 +10,12 @@
 #import "TiModule.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 #import <UserMessagingPlatform/UserMessagingPlatform.h>
-#import <AppTrackingTransparency/AppTrackingTransparency.h>
-#import <AdSupport/AdSupport.h>
 
-@interface MxCodigomovilTiadmobunifiedModule : TiModule <GADInitializationDelegate> {
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
+#import <AppTrackingTransparency/AppTrackingTransparency.h>
+#endif
+
+@interface MxCodigomovilTiadmobunifiedModule : TiModule {
 
 }
 

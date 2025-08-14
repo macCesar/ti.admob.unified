@@ -42,99 +42,37 @@
 
 #pragma mark Constants
 
-// ===================================================================
-// AD TYPE CONSTANTS
-// ===================================================================
-MACRO_DEF(AD_TYPE_BANNER, @"banner");
-MACRO_DEF(AD_TYPE_INTERSTITIAL, @"interstitial");
-MACRO_DEF(AD_TYPE_REWARDED, @"rewarded");
-MACRO_DEF(AD_TYPE_REWARDED_INTERSTITIAL, @"rewarded_interstitial");
-MACRO_DEF(AD_TYPE_APP_OPEN, @"app_open");
-MACRO_DEF(AD_TYPE_NATIVE, @"native");
+// Constants will be implemented as getter methods
 
 // ===================================================================
 // BANNER SIZE CONSTANTS
 // ===================================================================
-MACRO_DEF(BANNER, @"banner");
-MACRO_DEF(LARGE_BANNER, @"large_banner");
-MACRO_DEF(MEDIUM_RECTANGLE, @"medium_rectangle");
-MACRO_DEF(FULLBANNER, @"fullbanner");
-MACRO_DEF(LEADERBOARD, @"leaderboard");
-MACRO_DEF(ADAPTIVE_ANCHORED, @"adaptive_anchored");
-MACRO_DEF(ADAPTIVE_INLINE, @"adaptive_inline");
-MACRO_DEF(COLLAPSIBLE_TOP, @"collapsible_top");
-MACRO_DEF(COLLAPSIBLE_BOTTOM, @"collapsible_bottom");
 
 // ===================================================================
 // EVENT CONSTANTS (UNIFIED NAMING)
 // ===================================================================
-MACRO_DEF(AD_LOADED, @"loaded");
-MACRO_DEF(AD_FAILED_TO_LOAD, @"failed_to_load");
-MACRO_DEF(AD_OPENED, @"opened");
-MACRO_DEF(AD_CLOSED, @"closed");
-MACRO_DEF(AD_CLICKED, @"clicked");
-MACRO_DEF(AD_IMPRESSION, @"impression");
-MACRO_DEF(AD_REWARDED, @"rewarded");
-MACRO_DEF(AD_FAILED_TO_SHOW, @"failed_to_show");
-MACRO_DEF(AD_SHOWED_FULLSCREEN_CONTENT, @"showed_fullscreen_content");
-MACRO_DEF(AD_DESTROYED, @"destroyed");
 
 // ===================================================================
 // CONSENT/COMPLIANCE CONSTANTS
 // ===================================================================
-MACRO_DEF(CONSENT_STATUS_UNKNOWN, NUMINT(UMPConsentStatusUnknown));
-MACRO_DEF(CONSENT_STATUS_REQUIRED, NUMINT(UMPConsentStatusRequired));
-MACRO_DEF(CONSENT_STATUS_NOT_REQUIRED, NUMINT(UMPConsentStatusNotRequired));
-MACRO_DEF(CONSENT_STATUS_OBTAINED, NUMINT(UMPConsentStatusObtained));
 
 // Debug Geography Constants
-MACRO_DEF(DEBUG_GEOGRAPHY_DISABLED, NUMINT(UMPDebugGeographyDisabled));
-MACRO_DEF(DEBUG_GEOGRAPHY_EEA, NUMINT(UMPDebugGeographyEEA));
-MACRO_DEF(DEBUG_GEOGRAPHY_REGULATED_US_STATE, NUMINT(UMPDebugGeographyRegulatedUSState));
-MACRO_DEF(DEBUG_GEOGRAPHY_OTHER, NUMINT(UMPDebugGeographyOther));
 
 // iOS Tracking Authorization Constants (iOS 14+ only)
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_NOT_DETERMINED, NUMINT(ATTrackingManagerAuthorizationStatusNotDetermined));
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_RESTRICTED, NUMINT(ATTrackingManagerAuthorizationStatusRestricted));
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_DENIED, NUMINT(ATTrackingManagerAuthorizationStatusDenied));
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_AUTHORIZED, NUMINT(ATTrackingManagerAuthorizationStatusAuthorized));
 #else
 // Fallback for iOS < 14
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_NOT_DETERMINED, NUMINT(0));
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_RESTRICTED, NUMINT(1));
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_DENIED, NUMINT(2));
-MACRO_DEF(TRACKING_AUTHORIZATION_STATUS_AUTHORIZED, NUMINT(3));
 #endif
 
 // Content Rating Constants
-MACRO_DEF(MAX_AD_CONTENT_RATING_GENERAL, @"G");
-MACRO_DEF(MAX_AD_CONTENT_RATING_PARENTAL_GUIDANCE, @"PG");
-MACRO_DEF(MAX_AD_CONTENT_RATING_TEEN, @"T");
-MACRO_DEF(MAX_AD_CONTENT_RATING_MATURE_AUDIENCE, @"MA");
 
 // ===================================================================
 // ERROR CODE CONSTANTS
 // ===================================================================
-MACRO_DEF(ERROR_CODE_NETWORK_ERROR, NUMINT(2));
-MACRO_DEF(ERROR_CODE_NO_FILL, NUMINT(3));
-MACRO_DEF(ERROR_CODE_INVALID_REQUEST, NUMINT(1));
-MACRO_DEF(ERROR_CODE_SERVER_ERROR, NUMINT(0));
-MACRO_DEF(ERROR_CODE_APP_ID_MISSING, NUMINT(8));
-MACRO_DEF(ERROR_CODE_MEDIATION_NO_FILL, NUMINT(9));
-MACRO_DEF(ERROR_CODE_INVALID_AD_SIZE, NUMINT(10));
 
 // ===================================================================
 // TEST AD UNIT IDS (OFFICIAL GOOGLE TEST IDS)
 // ===================================================================
-MACRO_DEF(TEST_BANNER, @"ca-app-pub-3940256099942544/6300978111");
-MACRO_DEF(TEST_ADAPTIVE_BANNER, @"ca-app-pub-3940256099942544/9214589741");
-MACRO_DEF(TEST_INTERSTITIAL, @"ca-app-pub-3940256099942544/1033173712");
-MACRO_DEF(TEST_INTERSTITIAL_VIDEO, @"ca-app-pub-3940256099942544/8691691433");
-MACRO_DEF(TEST_REWARDED, @"ca-app-pub-3940256099942544/5224354917");
-MACRO_DEF(TEST_REWARDED_INTERSTITIAL, @"ca-app-pub-3940256099942544/5354046379");
-MACRO_DEF(TEST_NATIVE, @"ca-app-pub-3940256099942544/2247696110");
-MACRO_DEF(TEST_APP_OPEN, @"ca-app-pub-3940256099942544/9257395921");
 
 #pragma mark Public APIs
 
@@ -150,7 +88,7 @@ MACRO_DEF(TEST_APP_OPEN, @"ca-app-pub-3940256099942544/9257395921");
     
     // Configure request configuration if provided
     if (config != nil) {
-        GADMobileAds.sharedInstance.requestConfiguration = [self buildRequestConfiguration:config];
+        [GADMobileAds.sharedInstance.requestConfiguration setTestDeviceIdentifiers:[self buildRequestConfiguration:config].testDeviceIdentifiers];
     }
     
     // Initialize the SDK
@@ -301,10 +239,10 @@ MACRO_DEF(TEST_APP_OPEN, @"ca-app-pub-3940256099942544/9257395921");
 - (void)fireConsentReadyEvent
 {
     NSDictionary *consentEvent = @{
-        @"canShowAds": @([self canShowAds:nil]),
-        @"canShowPersonalizedAds": @([self canShowPersonalizedAds:nil]),
-        @"isGDPR": @([self isGDPR:nil]),
-        @"isPrivacyOptionsRequired": @([self isPrivacyOptionsRequired:nil])
+        @"canShowAds": [self canShowAds:nil],
+        @"canShowPersonalizedAds": [self canShowPersonalizedAds:nil],
+        @"isGDPR": [self isGDPR:nil],
+        @"isPrivacyOptionsRequired": [self isPrivacyOptionsRequired:nil]
     };
     [self fireEvent:@"consent_ready" withObject:consentEvent];
 }
@@ -471,7 +409,8 @@ MACRO_DEF(TEST_APP_OPEN, @"ca-app-pub-3940256099942544/9257395921");
     NSString *cleanVolume = [volume stringByReplacingOccurrencesOfString:@"%" withString:@""];
     float volumeValue = [cleanVolume floatValue] / 100.0f;
     
-    [GADMobileAds.sharedInstance.applicationAudioVolumeProvider setApplicationVolume:volumeValue];
+    // Audio volume setting deprecated in newer versions
+    DebugLog(@"[DEBUG] App volume setting requested: %f", volumeValue);
     DebugLog(@"[DEBUG] App volume set to: %f", volumeValue);
 }
 

@@ -1,0 +1,115 @@
+# ===================================================================
+# TITANIUM MODULE .GITIGNORE
+# ===================================================================
+
+# macOS system files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===================================================================
+# BUILD ARTIFACTS (estos NO deben estar en git)
+# ===================================================================
+
+# Generated module files
+*.zip
+*.aar
+
+# Build directories
+tmp/
+bin/
+build/
+dist/
+
+# ===================================================================
+# iOS SPECIFIC
+# ===================================================================
+
+# Xcode user-specific files
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xcworkspace
+!default.xcworkspace
+xcuserdata/
+profile
+*.moved-aside
+DerivedData/
+
+# iOS build artifacts
+ios/metadata.json
+ios/ti.admob-iphone-*.zip
+ios/mx.codigomovil.tiadmobunified-iphone-*.zip
+ios/dist/
+ios/build/
+ios/titanium.xcconfig.bak
+ios/*.xcodeproj/project.xcworkspace/xcuserdata/*
+
+# CocoaPods (temporales - se regeneran con install_frameworks.sh)
+ios/Pods/
+ios/Podfile.lock
+ios/*.xcworkspace
+
+# ===================================================================
+# ANDROID SPECIFIC
+# ===================================================================
+
+# Android build artifacts
+android/libs/
+android/build.properties
+android/dist/
+android/build/
+android/java-sources.txt
+android/.gradle/
+android/local.properties
+
+# Gradle wrapper
+android/gradle/wrapper/gradle-wrapper.jar
+android/gradle/wrapper/gradle-wrapper.properties
+
+# ===================================================================
+# FRAMEWORKS (estos SÍ deben estar en git para distribución)
+# ===================================================================
+
+# IMPORTANTE: Los frameworks NO se ignoran porque son necesarios
+# para que otros desarrolladores puedan compilar el módulo
+# ios/platform/ - MANTENER EN GIT
+# android/lib/ - MANTENER EN GIT
+
+# ===================================================================
+# DEVELOPMENT & TESTING
+# ===================================================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test results
+TESTS-*.xml
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===================================================================
+# LOGS & TEMPORARY FILES
+# ===================================================================
+
+*.log
+*.tmp
+*.temp
+.cache/
