@@ -6,7 +6,7 @@
  * Please see the LICENSE included with this distribution for details.
  *
  */
-package mx.codigomovil.tiadmobunified;
+package ti.admob.unified;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -25,11 +25,12 @@ import org.appcelerator.titanium.TiApplication;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 
-@Kroll.module(name="TiAdmobUnified", id="mx.codigomovil.tiadmobunified")
+@Kroll.module(name="TiAdmobUnified", id="ti.admob.unified")
 public class TiAdmobUnifiedModule extends KrollModule
 {
 	// Standard Debugging variables
@@ -156,6 +157,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			if (config.containsKey("testDeviceIds")) {
 				String[] testDeviceIds = config.getStringArray("testDeviceIds");
 				if (testDeviceIds != null && testDeviceIds.length > 0) {
+					Log.d(LCAT, "Setting test device IDs: " + Arrays.toString(testDeviceIds));
 					requestConfigBuilder.setTestDeviceIds(Arrays.asList(testDeviceIds));
 				}
 			}
@@ -185,11 +187,21 @@ public class TiAdmobUnifiedModule extends KrollModule
 			MobileAds.setRequestConfiguration(requestConfigBuilder.build());
 		}
 
-		// Initialize the SDK
+		// Initialize the SDK with fast initialization
+		Log.d(LCAT, "Starting AdMob SDK initialization...");
+		
 		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {
 				Log.d(LCAT, "AdMob SDK initialization completed successfully");
+				
+				// Log adapter statuses for debugging
+				Map<String, com.google.android.gms.ads.initialization.AdapterStatus> statusMap = 
+					initializationStatus.getAdapterStatusMap();
+				for (String adapterClass : statusMap.keySet()) {
+					com.google.android.gms.ads.initialization.AdapterStatus status = statusMap.get(adapterClass);
+					Log.d(LCAT, String.format("Adapter %s: %s", adapterClass, status.getDescription()));
+				}
 				
 				// Fire module initialization event
 				Map<String, Object> event = new HashMap<>();
@@ -443,6 +455,17 @@ public class TiAdmobUnifiedModule extends KrollModule
 	{
 		Log.d(LCAT, "Creating interstitial ad");
 		return new TiAdmobUnifiedInterstitialAdProxy(config);
+	}
+
+	@Kroll.method
+	public TiAdmobUnifiedBannerAdProxy createBanner(KrollDict config)
+	{
+		Log.d(LCAT, "Creating banner ad");
+		TiAdmobUnifiedBannerAdProxy proxy = new TiAdmobUnifiedBannerAdProxy();
+		if (config != null) {
+			proxy.handleCreationDict(config);
+		}
+		return proxy;
 	}
 
 	// ===================================================================

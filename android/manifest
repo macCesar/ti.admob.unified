@@ -13,7 +13,7 @@ copyright: Copyright (c) 2025 by César Estrada
 
 # these should not be edited
 name: ti.admob.unified
-moduleid: mx.codigomovil.tiadmobunified
+moduleid: ti.admob.unified
 guid: a1fceebd-a836-429f-8efb-e2d4e25af99c
 platform: android
 #

@@ -1,12 +1,12 @@
 /**
- * ti.admob.unified - Unified AdMob Rewarded Ad Proxy for Android
+ * ti.admob.unified - Unified AdMob Interstitial Ad Proxy for Android
  *
  * Copyright (c) 2025 César Estrada
  * Licensed under the terms of the MIT License
  * Please see the LICENSE included with this distribution for details.
  *
  */
-package mx.codigomovil.tiadmobunified;
+package ti.admob.unified;
 
 import android.app.Activity;
 
@@ -14,10 +14,8 @@ import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
-import com.google.android.gms.ads.OnUserEarnedRewardListener;
-import com.google.android.gms.ads.rewarded.RewardItem;
-import com.google.android.gms.ads.rewarded.RewardedAd;
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
@@ -29,9 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Kroll.proxy(creatableInModule = TiAdmobUnifiedModule.class)
-public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
+public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 {
-	private static final String LCAT = "TiAdmobUnifiedRewardedAdProxy";
+	private static final String LCAT = "TiAdmobUnifiedInterstitialAdProxy";
 	
 	// Ad configuration
 	private String adUnitId;
@@ -39,11 +37,11 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 	private String[] keywords;
 	private Map<String, String> extras;
 	
-	// Ad instance (Android requires fresh ads, so we'll create new instances as needed)
-	private RewardedAd rewardedAd;
+	// Ad instance (Android requires fresh ads)
+	private InterstitialAd interstitialAd;
 	private boolean isLoading = false;
 
-	public TiAdmobUnifiedRewardedAdProxy(KrollDict config)
+	public TiAdmobUnifiedInterstitialAdProxy(KrollDict config)
 	{
 		super();
 		
@@ -72,7 +70,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 			}
 		}
 		
-		Log.d(LCAT, "RewardedAdProxy created with adUnitId: " + this.adUnitId);
+		Log.d(LCAT, "InterstitialAdProxy created with adUnitId: " + this.adUnitId);
 	}
 
 	// ===================================================================
@@ -81,7 +79,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 	@Kroll.method
 	public void load()
 	{
-		Log.d(LCAT, "Loading rewarded ad");
+		Log.d(LCAT, "Loading interstitial ad");
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
@@ -113,30 +111,19 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 			}
 		}
 		
-		// Add extras for mediation networks
-		if (extras != null) {
-			for (Map.Entry<String, String> entry : extras.entrySet()) {
-				// Handle non-personalized ads flag
-				if ("npa".equals(entry.getKey()) && "1".equals(entry.getValue())) {
-					// This would be handled by consent management in UMP
-					Log.d(LCAT, "Non-personalized ads requested via extras");
-				}
-			}
-		}
-		
 		AdRequest adRequest = adRequestBuilder.build();
 		
-		// Load rewarded ad (Android: create fresh ad instance)
-		RewardedAd.load(
+		// Load interstitial ad
+		InterstitialAd.load(
 			activity,
 			adUnitId,
 			adRequest,
-			new RewardedAdLoadCallback() {
+			new InterstitialAdLoadCallback() {
 				@Override
-				public void onAdLoaded(RewardedAd ad) {
-					Log.d(LCAT, "Rewarded ad loaded successfully");
+				public void onAdLoaded(InterstitialAd ad) {
+					Log.d(LCAT, "Interstitial ad loaded successfully");
 					
-					rewardedAd = ad;
+					interstitialAd = ad;
 					isLoading = false;
 					
 					// Set up ad callbacks
@@ -150,7 +137,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 				
 				@Override
 				public void onAdFailedToLoad(LoadAdError error) {
-					Log.e(LCAT, "Rewarded ad failed to load: " + error.getMessage());
+					Log.e(LCAT, "Interstitial ad failed to load: " + error.getMessage());
 					
 					isLoading = false;
 					
@@ -164,7 +151,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 	@Kroll.method
 	public void show()
 	{
-		Log.d(LCAT, "Showing rewarded ad");
+		Log.d(LCAT, "Showing interstitial ad");
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
@@ -173,42 +160,30 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 			return;
 		}
 		
-		if (rewardedAd == null) {
+		if (interstitialAd == null) {
 			Log.e(LCAT, "Cannot show ad - ad not loaded");
 			fireFailedToShowEvent("Ad not loaded", TiAdmobUnifiedModule.ERROR_CODE_INVALID_REQUEST);
 			return;
 		}
 		
-		// Show rewarded ad
-		rewardedAd.show(activity, new OnUserEarnedRewardListener() {
-			@Override
-			public void onUserEarnedReward(RewardItem rewardItem) {
-				Log.d(LCAT, "User earned reward: " + rewardItem.getType() + " " + rewardItem.getAmount());
-				
-				// Fire rewarded event with unified format
-				Map<String, Object> rewardEvent = new HashMap<>();
-				rewardEvent.put("adUnitId", adUnitId);
-				rewardEvent.put("rewardType", rewardItem.getType());
-				rewardEvent.put("rewardAmount", rewardItem.getAmount());
-				fireEvent(TiAdmobUnifiedModule.AD_REWARDED, rewardEvent);
-			}
-		});
+		// Show interstitial ad
+		interstitialAd.show(activity);
 	}
 
 	@Kroll.method
 	public boolean isLoaded()
 	{
-		return rewardedAd != null && !isLoading;
+		return interstitialAd != null && !isLoading;
 	}
 
 	@Kroll.method
 	public void destroy()
 	{
-		Log.d(LCAT, "Destroying rewarded ad");
+		Log.d(LCAT, "Destroying interstitial ad");
 		
-		if (rewardedAd != null) {
+		if (interstitialAd != null) {
 			// Clear ad reference (Android ads are single-use anyway)
-			rewardedAd = null;
+			interstitialAd = null;
 		}
 		
 		isLoading = false;
@@ -224,14 +199,14 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 	// ===================================================================
 	private void setupAdCallbacks()
 	{
-		if (rewardedAd == null) {
+		if (interstitialAd == null) {
 			return;
 		}
 		
-		rewardedAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+		interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
 			@Override
 			public void onAdShowedFullScreenContent() {
-				Log.d(LCAT, "Rewarded ad showed full screen content");
+				Log.d(LCAT, "Interstitial ad showed full screen content");
 				
 				// Fire opened event
 				Map<String, Object> event = new HashMap<>();
@@ -244,7 +219,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 			
 			@Override
 			public void onAdDismissedFullScreenContent() {
-				Log.d(LCAT, "Rewarded ad dismissed full screen content");
+				Log.d(LCAT, "Interstitial ad dismissed full screen content");
 				
 				// Fire closed event
 				Map<String, Object> event = new HashMap<>();
@@ -252,29 +227,29 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 				fireEvent(TiAdmobUnifiedModule.AD_CLOSED, event);
 				
 				// Android: Clear the ad since it's single-use
-				rewardedAd = null;
+				interstitialAd = null;
 				
 				// Auto-reload if enabled (create fresh ad for Android)
 				if (autoReload) {
-					Log.d(LCAT, "Auto-reloading rewarded ad (creating fresh instance for Android)");
+					Log.d(LCAT, "Auto-reloading interstitial ad (creating fresh instance for Android)");
 					load();
 				}
 			}
 			
 			@Override
 			public void onAdFailedToShowFullScreenContent(AdError error) {
-				Log.e(LCAT, "Rewarded ad failed to show: " + error.getMessage());
+				Log.e(LCAT, "Interstitial ad failed to show: " + error.getMessage());
 				
 				// Fire failed to show event
 				fireFailedToShowEvent(error.getMessage(), error.getCode());
 				
 				// Clear the ad since it failed
-				rewardedAd = null;
+				interstitialAd = null;
 			}
 			
 			@Override
 			public void onAdClicked() {
-				Log.d(LCAT, "Rewarded ad clicked");
+				Log.d(LCAT, "Interstitial ad clicked");
 				
 				// Fire clicked event
 				Map<String, Object> event = new HashMap<>();
@@ -284,7 +259,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 			
 			@Override
 			public void onAdImpression() {
-				Log.d(LCAT, "Rewarded ad impression recorded");
+				Log.d(LCAT, "Interstitial ad impression recorded");
 				
 				// Fire impression event
 				Map<String, Object> event = new HashMap<>();
