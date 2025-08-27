@@ -13,6 +13,7 @@
 #import "TiUtils.h"
 #import "MxCodigomovilTiadmobunifiedRewardedAdProxy.h"
 #import "MxCodigomovilTiadmobunifiedInterstitialAdProxy.h"
+#import "MxCodigomovilTiadmobunifiedBannerAdProxy.h"
 
 @implementation MxCodigomovilTiadmobunifiedModule
 
@@ -373,8 +374,8 @@
     NSDictionary *config = [args objectAtIndex:0];
     
     DebugLog(@"[DEBUG] Creating banner ad");
-    // TODO: Implement banner ad proxy
-    return nil;
+    MxCodigomovilTiadmobunifiedBannerAdProxy *bannerProxy = [[MxCodigomovilTiadmobunifiedBannerAdProxy alloc] _initWithPageContext:[self pageContext] args:args];
+    return bannerProxy;
 }
 
 - (id)createAdaptiveBanner:(id)args
