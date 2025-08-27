@@ -1,10 +1,10 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/layout-sw600dp-v13/design_layout_snackbar.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/layout-sw600dp-v13/design_layout_snackbar.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/layout-sw600dp-v13/mtrl_layout_snackbar.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/layout-sw600dp-v13/mtrl_layout_snackbar.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/layout-sw600dp-v13/mtrl_layout_snackbar.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/layout-sw600dp-v13/mtrl_layout_snackbar.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/layout-sw600dp-v13/design_layout_snackbar.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/layout-sw600dp-v13/design_layout_snackbar.xml"
     }
 ]

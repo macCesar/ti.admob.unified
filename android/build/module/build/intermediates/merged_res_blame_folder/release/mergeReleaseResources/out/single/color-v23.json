@@ -1,38 +1,38 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_tint_edittext.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_tint_edittext.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_btn_colored_borderless_text_material.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_btn_colored_borderless_text_material.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_color_highlight_material.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_color_highlight_material.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_tint_edittext.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_tint_edittext.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_tint_spinner.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_tint_spinner.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_tint_switch_track.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_tint_switch_track.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_btn_colored_borderless_text_material.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_btn_colored_borderless_text_material.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_tint_spinner.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_tint_spinner.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_btn_colored_text_material.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_btn_colored_text_material.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_btn_colored_text_material.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_btn_colored_text_material.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_tint_default.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_tint_default.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_tint_default.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_tint_default.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_tint_seek_thumb.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_tint_seek_thumb.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_tint_btn_checkable.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_tint_btn_checkable.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_tint_btn_checkable.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_tint_btn_checkable.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_color_highlight_material.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_color_highlight_material.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/color-v23/abc_tint_switch_track.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/color-v23/abc_tint_switch_track.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/color-v23/abc_tint_seek_thumb.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/color-v23/abc_tint_seek_thumb.xml"
     }
 ]

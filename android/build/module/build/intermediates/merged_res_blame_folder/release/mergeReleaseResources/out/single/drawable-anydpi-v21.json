@@ -1,198 +1,50 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/im_back.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_back.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_line.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_line.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_x_mark.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_x_mark.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/im_forward_inactive.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_forward_inactive.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_replay_icon.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_replay_icon.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_bidmachine.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_bidmachine.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/ic_call_decline.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_decline.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_mintegral.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_mintegral.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_pangle.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_pangle.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_mytarget.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_mytarget.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/ic_call_answer_video_low.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_video_low.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_ogury_presage.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_ogury_presage.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/ic_call_answer_low.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_low.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_warning.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_warning.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_smaato.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_smaato.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_inmobi.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_inmobi.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_pubmatic.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_pubmatic.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/ic_call_answer_video.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_video.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_google_ad_manager.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_google_ad_manager.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_adjoe.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_adjoe.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_play_icon.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_play_icon.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_yandex.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_yandex.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_mobilefuse.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_mobilefuse.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_moloco.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_moloco.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_ironsource.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_ironsource.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/im_close_icon.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_close_icon.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_fyber.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_fyber.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_disclosure_arrow.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_disclosure_arrow.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_unity.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_unity.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_amazon_marketplace.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_amazon_marketplace.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_tiktok.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_tiktok.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_verve.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_verve.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_bigo.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_bigo.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_warning_outline.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_warning_outline.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_applovin.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_applovin.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_vungle.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_vungle.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_facebook.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_facebook.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_check_mark_borderless.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_check_mark_borderless.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_linkedin.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_linkedin.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_check_mark_bordered.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_check_mark_bordered.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/ic_call_answer.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_admob.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_admob.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/im_close_button.xml",
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/im_close_button.xml",
         "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_close_button.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/im_close_transparent.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_close_transparent.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/ic_call_answer_low.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_low.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/ic_call_decline_low.xml",
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/ic_call_answer_video_low.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_video_low.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/ic_call_decline_low.xml",
         "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_decline_low.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_mediation_chartboost.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_mediation_chartboost.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/ic_call_answer_video.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer_video.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_baseline_add_circle_outline.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_baseline_add_circle_outline.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/im_forward_inactive.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_forward_inactive.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/applovin_ic_pause_icon.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/drawable-anydpi-v21/applovin_ic_pause_icon.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/ic_call_decline.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_decline.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/drawable-anydpi-v21/im_forward_active.xml",
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/im_back.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_back.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/ic_call_answer.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-core-1.13.0-5:/drawable-anydpi-v21/ic_call_answer.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/im_close_icon.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_close_icon.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/im_close_transparent.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_close_transparent.xml"
+    },
+    {
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/drawable-anydpi-v21/im_forward_active.xml",
         "source": "mx.codigomovil.tiadmobunified.module-inmobi-ads-kotlin-10.8.7-9:/drawable-anydpi-v21/im_forward_active.xml"
     }
 ]

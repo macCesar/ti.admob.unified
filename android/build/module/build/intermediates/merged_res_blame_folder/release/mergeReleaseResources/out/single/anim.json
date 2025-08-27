@@ -1,142 +1,134 @@
 [
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/linear_indeterminate_line2_head_interpolator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/linear_indeterminate_line2_head_interpolator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_radio_to_off_mtrl_ring_outer_path_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_radio_to_off_mtrl_ring_outer_path_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_popup_exit.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_popup_exit.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_radio_to_off_mtrl_dot_group_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_radio_to_off_mtrl_dot_group_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_checkbox_to_unchecked_check_path_merged_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_checkbox_to_unchecked_check_path_merged_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/mtrl_card_lowers_interpolator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/mtrl_card_lowers_interpolator.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_slide_in_bottom.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_slide_in_bottom.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_checkbox_to_checked_box_inner_merged_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_checkbox_to_checked_box_inner_merged_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_radio_to_off_mtrl_dot_group_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_radio_to_off_mtrl_dot_group_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/linear_indeterminate_line1_head_interpolator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/linear_indeterminate_line1_head_interpolator.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/applovin_slide_up_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/anim/applovin_slide_up_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_grow_fade_in_from_bottom.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_grow_fade_in_from_bottom.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_fade_out.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_fade_out.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_shrink_fade_out_from_bottom.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_shrink_fade_out_from_bottom.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_grow_fade_in_from_bottom.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_grow_fade_in_from_bottom.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/m3_motion_fade_exit.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/m3_motion_fade_exit.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_checkbox_to_unchecked_icon_null_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_checkbox_to_unchecked_icon_null_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_popup_enter.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_popup_enter.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_radio_to_off_mtrl_ring_outer_path_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_radio_to_off_mtrl_ring_outer_path_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_radio_to_on_mtrl_ring_outer_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_radio_to_on_mtrl_ring_outer_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_slide_out_bottom.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_slide_out_bottom.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_radio_to_on_mtrl_dot_group_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_radio_to_on_mtrl_dot_group_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_checkbox_to_checked_icon_null_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_checkbox_to_checked_icon_null_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_tooltip_exit.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_tooltip_exit.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_radio_to_on_mtrl_ring_outer_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_radio_to_on_mtrl_ring_outer_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/m3_motion_fade_enter.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/m3_motion_fade_enter.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/design_snackbar_out.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/design_snackbar_out.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/linear_indeterminate_line1_tail_interpolator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/linear_indeterminate_line1_tail_interpolator.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_radio_to_off_mtrl_ring_outer_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_radio_to_off_mtrl_ring_outer_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_slide_out_top.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_slide_out_top.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_checkbox_to_checked_box_outer_merged_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_checkbox_to_checked_box_outer_merged_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_checkbox_to_unchecked_icon_null_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_checkbox_to_unchecked_icon_null_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_shrink_fade_out_from_bottom.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_shrink_fade_out_from_bottom.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_checkbox_to_unchecked_box_inner_merged_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_checkbox_to_unchecked_box_inner_merged_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/mtrl_card_lowers_interpolator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/mtrl_card_lowers_interpolator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_fade_in.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_fade_in.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_radio_to_on_mtrl_dot_group_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_radio_to_on_mtrl_dot_group_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_slide_in_bottom.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_slide_in_bottom.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_slide_in_top.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_slide_in_top.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/design_snackbar_in.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/design_snackbar_in.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/linear_indeterminate_line1_head_interpolator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/linear_indeterminate_line1_head_interpolator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_checkbox_to_checked_box_outer_merged_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_checkbox_to_checked_box_outer_merged_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_radio_to_on_mtrl_ring_outer_path_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_radio_to_on_mtrl_ring_outer_path_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_popup_exit.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_popup_exit.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_checkbox_to_checked_box_inner_merged_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_checkbox_to_checked_box_inner_merged_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_checkbox_to_unchecked_check_path_merged_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_checkbox_to_unchecked_check_path_merged_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_fade_in.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_fade_in.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_tooltip_enter.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_tooltip_enter.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/m3_motion_fade_enter.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/m3_motion_fade_enter.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_radio_to_off_mtrl_ring_outer_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_radio_to_off_mtrl_ring_outer_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/linear_indeterminate_line2_tail_interpolator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/linear_indeterminate_line2_tail_interpolator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/linear_indeterminate_line2_head_interpolator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/linear_indeterminate_line2_head_interpolator.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/btn_checkbox_to_unchecked_box_inner_merged_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/btn_checkbox_to_unchecked_box_inner_merged_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_fade_out.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_fade_out.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/linear_indeterminate_line1_tail_interpolator.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/linear_indeterminate_line1_tail_interpolator.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/linear_indeterminate_line2_tail_interpolator.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/linear_indeterminate_line2_tail_interpolator.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_slide_out_top.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_slide_out_top.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_slide_out_bottom.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_slide_out_bottom.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_tooltip_enter.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_tooltip_enter.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_checkbox_to_checked_icon_null_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_checkbox_to_checked_icon_null_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/design_snackbar_in.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/design_snackbar_in.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/btn_radio_to_on_mtrl_ring_outer_path_animation.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/btn_radio_to_on_mtrl_ring_outer_path_animation.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/m3_motion_fade_exit.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-39:/anim/m3_motion_fade_exit.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/design_snackbar_out.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-material-1.12.0-38:/anim/design_snackbar_out.xml"
     },
     {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_popup_enter.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_popup_enter.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/abc_tooltip_exit.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-43:/anim/abc_tooltip_exit.xml"
-    },
-    {
-        "merged": "mx.codigomovil.tiadmobunified.module-release-54:/anim/applovin_slide_down_animation.xml",
-        "source": "mx.codigomovil.tiadmobunified.module-applovin-sdk-13.3.1-42:/anim/applovin_slide_down_animation.xml"
+        "merged": "mx.codigomovil.tiadmobunified.module-release-52:/anim/abc_slide_in_top.xml",
+        "source": "mx.codigomovil.tiadmobunified.module-appcompat-1.7.0-41:/anim/abc_slide_in_top.xml"
     }
 ]
