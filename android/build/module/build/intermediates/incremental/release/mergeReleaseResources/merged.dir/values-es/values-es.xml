@@ -31,14 +31,6 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Compartir con"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Compartir con <ns1:g id="APPLICATION_NAME">%s</ns1:g>"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Ocultar"</string>
-    <string name="applovin_agree_message">Por favor, presione \"Continuar\" si elige comenzar a usar nuestra aplicación.</string>
-    <string name="applovin_alt_privacy_policy_text">Política de Privacidad</string>
-    <string name="applovin_continue_button_text">Continuar</string>
-    <string name="applovin_pp_and_tos_title">Para usar %s debe aceptar nuestros Términos y Condiciones Y afirmar que ha revisado nuestra Políza de Privacidad.</string>
-    <string name="applovin_pp_title">Para usar %s, debe afirmar que ha revisado y aceptado nuestra Políza de Privacidad. </string>
-    <string name="applovin_privacy_policy_text">Políza de Privacidad</string>
-    <string name="applovin_terms_of_service_text">Términos y Condiciones</string>
-    <string name="applovin_terms_of_use_text">Términos de Uso</string>
     <string name="bottomsheet_action_collapse">Ocultar la hoja inferior</string>
     <string name="bottomsheet_action_expand">Mostrar la hoja inferior</string>
     <string name="bottomsheet_action_expand_halfway">Desplegar hasta la mitad</string>
