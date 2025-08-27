@@ -22,11 +22,11 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		24DD6CF91134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DD6CF71134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.h */; };
-		24DD6CFA1134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DD6CF81134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.m */; };
-		24DE9E1111C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.h */; };
-		24DE9E1211C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DE9E1011C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.m */; };
-		AA747D9F0F9514B9006C5449 /* MxCodigomovilTiadmobunified_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* MxCodigomovilTiadmobunified_Prefix.pch */; };
+		24DD6CF91134B3F500162E58 /* TiAdmobUnifiedModule.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DD6CF71134B3F500162E58 /* TiAdmobUnifiedModule.h */; };
+		24DD6CFA1134B3F500162E58 /* TiAdmobUnifiedModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DD6CF81134B3F500162E58 /* TiAdmobUnifiedModule.m */; };
+		24DE9E1111C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h */; };
+		24DE9E1211C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DE9E1011C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m */; };
+		AA747D9F0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch */; };
 		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
 		B11E042C241AC5C100EFA7DC /* TitaniumKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = B11E042B241AC5C100EFA7DC /* TitaniumKit.xcframework */; };
 /* End PBXBuildFile section */
@@ -42,15 +42,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		24DD6CF71134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "MxCodigomovilTiadmobunifiedModule.h"; path = "Classes/MxCodigomovilTiadmobunifiedModule.h"; sourceTree = "<group>"; };
-		24DD6CF81134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "MxCodigomovilTiadmobunifiedModule.m"; path = "Classes/MxCodigomovilTiadmobunifiedModule.m"; sourceTree = "<group>"; };
+		24DD6CF71134B3F500162E58 /* TiAdmobUnifiedModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedModule.h"; path = "Classes/TiAdmobUnifiedModule.h"; sourceTree = "<group>"; };
+		24DD6CF81134B3F500162E58 /* TiAdmobUnifiedModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedModule.m"; path = "Classes/TiAdmobUnifiedModule.m"; sourceTree = "<group>"; };
 		24DD6D1B1134B66800162E58 /* titanium.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = titanium.xcconfig; sourceTree = "<group>"; };
-		24DE9E0F11C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "MxCodigomovilTiadmobunifiedModuleAssets.h"; path = "Classes/MxCodigomovilTiadmobunifiedModuleAssets.h"; sourceTree = "<group>"; };
-		24DE9E1011C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "MxCodigomovilTiadmobunifiedModuleAssets.m"; path = "Classes/MxCodigomovilTiadmobunifiedModuleAssets.m"; sourceTree = "<group>"; };
-		AA747D9E0F9514B9006C5449 /* MxCodigomovilTiadmobunified_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "MxCodigomovilTiadmobunified_Prefix.pch"; sourceTree = SOURCE_ROOT; };
+		24DE9E0F11C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedModuleAssets.h"; path = "Classes/TiAdmobUnifiedModuleAssets.h"; sourceTree = "<group>"; };
+		24DE9E1011C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedModuleAssets.m"; path = "Classes/TiAdmobUnifiedModuleAssets.m"; sourceTree = "<group>"; };
+		AA747D9E0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "TiAdmobUnified_Prefix.pch"; sourceTree = SOURCE_ROOT; };
 		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B11E042B241AC5C100EFA7DC /* TitaniumKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TitaniumKit.xcframework; path = "$(TITANIUM_SDK)/iphone/Frameworks/TitaniumKit.xcframework"; sourceTree = "<group>"; };
-		D2AAC07E0554694100DB518D /* libmx.codigomovil.tiadmobunified.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libmx.codigomovil.tiadmobunified.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2AAC07E0554694100DB518D /* libti.admob.unified.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libti.admob.unified.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,7 +69,7 @@
 		034768DFFF38A50411DB9C8B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D2AAC07E0554694100DB518D /* libmx.codigomovil.tiadmobunified.a */,
+				D2AAC07E0554694100DB518D /* libti.admob.unified.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -97,10 +97,10 @@
 		08FB77AEFE84172EC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				24DE9E0F11C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.h */,
-				24DE9E1011C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.m */,
-				24DD6CF71134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.h */,
-				24DD6CF81134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.m */,
+				24DE9E0F11C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h */,
+				24DE9E1011C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m */,
+				24DD6CF71134B3F500162E58 /* TiAdmobUnifiedModule.h */,
+				24DD6CF81134B3F500162E58 /* TiAdmobUnifiedModule.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -108,7 +108,7 @@
 		32C88DFF0371C24200C91783 /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				AA747D9E0F9514B9006C5449 /* MxCodigomovilTiadmobunified_Prefix.pch */,
+				AA747D9E0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch */,
 				24DD6D1B1134B66800162E58 /* titanium.xcconfig */,
 			);
 			name = "Other Sources";
@@ -121,9 +121,9 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA747D9F0F9514B9006C5449 /* MxCodigomovilTiadmobunified_Prefix.pch in Headers */,
-				24DD6CF91134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.h in Headers */,
-				24DE9E1111C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.h in Headers */,
+				AA747D9F0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch in Headers */,
+				24DD6CF91134B3F500162E58 /* TiAdmobUnifiedModule.h in Headers */,
+				24DE9E1111C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,7 +144,7 @@
 			);
 			name = "ti.admob.unified";
 			productName = "ti.admob.unified";
-			productReference = D2AAC07E0554694100DB518D /* libmx.codigomovil.tiadmobunified.a */;
+			productReference = D2AAC07E0554694100DB518D /* libti.admob.unified.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -195,8 +195,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				24DD6CFA1134B3F500162E58 /* MxCodigomovilTiadmobunifiedModule.m in Sources */,
-				24DE9E1211C5FE74003F90F6 /* MxCodigomovilTiadmobunifiedModuleAssets.m in Sources */,
+				24DD6CFA1134B3F500162E58 /* TiAdmobUnifiedModule.m in Sources */,
+				24DE9E1211C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,11 +217,11 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DSTROOT = /tmp/MxCodigomovilTiadmobunified.dst;
+				DSTROOT = /tmp/TiAdmobUnified.dst;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = MxCodigomovilTiadmobunified_Prefix.pch;
+				GCC_PREFIX_HEADER = TiAdmobUnified_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = "";
@@ -241,7 +241,7 @@
 					"-DTI_POST_1_2",
 				);
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = mx.codigomovil.tiadmobunified;
+				PRODUCT_NAME = ti.admob.unified;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				RUN_CLANG_STATIC_ANALYZER = NO;
@@ -257,11 +257,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				DEPLOYMENT_POSTPROCESSING = YES;
-				DSTROOT = /tmp/MxCodigomovilTiadmobunified.dst;
+				DSTROOT = /tmp/TiAdmobUnified.dst;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = MxCodigomovilTiadmobunified_Prefix.pch;
+				GCC_PREFIX_HEADER = TiAdmobUnified_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"TI_VERSION=$(TI_VERSION)",
 					NDEBUG,
@@ -281,7 +281,7 @@
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CFLAGS = "-DTI_POST_1_2";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = mx.codigomovil.tiadmobunified;
+				PRODUCT_NAME = ti.admob.unified;
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "";
@@ -324,14 +324,14 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				DSTROOT = /tmp/MxCodigomovilTiadmobunified.dst;
+				DSTROOT = /tmp/TiAdmobUnified.dst;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = MxCodigomovilTiadmobunified_Prefix.pch;
+				GCC_PREFIX_HEADER = TiAdmobUnified_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = "";
@@ -354,7 +354,7 @@
 					"-DTI_POST_1_2",
 				);
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = mx.codigomovil.tiadmobunified;
+				PRODUCT_NAME = ti.admob.unified;
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				RUN_CLANG_STATIC_ANALYZER = NO;
@@ -397,13 +397,13 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				DSTROOT = /tmp/MxCodigomovilTiadmobunified.dst;
+				DSTROOT = /tmp/TiAdmobUnified.dst;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_MODEL_TUNING = G5;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
-				GCC_PREFIX_HEADER = MxCodigomovilTiadmobunified_Prefix.pch;
+				GCC_PREFIX_HEADER = TiAdmobUnified_Prefix.pch;
 				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
 				GCC_TREAT_WARNINGS_AS_ERRORS = NO;
 				GCC_VERSION = "";
@@ -422,7 +422,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				OTHER_CFLAGS = "-DTI_POST_1_2";
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = mx.codigomovil.tiadmobunified;
+				PRODUCT_NAME = ti.admob.unified;
 				RUN_CLANG_STATIC_ANALYZER = NO;
 				SDKROOT = iphoneos;
 				USER_HEADER_SEARCH_PATHS = "";

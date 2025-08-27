@@ -13,7 +13,7 @@ copyright: Copyright (c) 2025 by César Estrada
 
 # these should not be edited
 name: ti.admob.unified
-moduleid: mx.codigomovil.tiadmobunified
+moduleid: ti.admob.unified
 guid: 67829dbd-d857-4749-9e7c-6143caedee43
 platform: iphone
 minsdk: 12.8.0.GA
