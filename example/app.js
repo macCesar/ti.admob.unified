@@ -214,7 +214,8 @@ var createBannerButton = createButton('7. Create Banner Ad', function () {
   bannerAd = Admob.createBanner({
     adUnitId: getAdUnitId('BANNER'),
     adSize: Admob.BANNER,
-    backgroundColor: 'transparent'
+    width: Ti.UI.FILL,
+    height: 60
   });
 
   // Set up event listeners
@@ -232,6 +233,9 @@ var createBannerButton = createButton('7. Create Banner Ad', function () {
 
   // Add banner to scroll view
   scrollView.add(bannerAd);
+  
+  // Load the banner ad
+  bannerAd.load();
 });
 
 // Module event listeners
