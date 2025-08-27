@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-release-54:/values-night-v8/values-night-v8.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-52:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/d02f1fb6c6bbbc4ba28972788228ea16/transformed/appcompat-1.7.0/res/values-night-v8/values-night-v8.xml",
@@ -57,7 +57,7 @@
             ]
         },
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-52:/values-night-v8/values-night-v8.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-50:/values-night-v8/values-night-v8.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/d02f1fb6c6bbbc4ba28972788228ea16/transformed/appcompat-1.7.0/res/values-night-v8/values-night-v8.xml",

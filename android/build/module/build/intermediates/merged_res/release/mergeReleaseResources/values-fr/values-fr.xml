@@ -31,14 +31,6 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"Partager avec"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"Partager avec <ns1:g id="APPLICATION_NAME">%s</ns1:g>"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"Réduire"</string>
-    <string name="applovin_agree_message">Cliquez sur \"Continuer\" afin d\'utiliser notre application.</string>
-    <string name="applovin_alt_privacy_policy_text"/>
-    <string name="applovin_continue_button_text">Continuer</string>
-    <string name="applovin_pp_and_tos_title">Pour utiliser %s vous devez accepter les termes et conditions et confirmer avoir lu notre politique de confidentialité.</string>
-    <string name="applovin_pp_title">Pour utiliser %s vous devez confirmer avoir lu et accepté notre politique de confidentialité.</string>
-    <string name="applovin_privacy_policy_text">politique de confidentialité</string>
-    <string name="applovin_terms_of_service_text">termes et conditions</string>
-    <string name="applovin_terms_of_use_text">termes et conditions</string>
     <string name="bottomsheet_action_collapse">Réduire la bottom sheet</string>
     <string name="bottomsheet_action_expand">Développer la bottom sheet</string>
     <string name="bottomsheet_action_expand_halfway">Développer en entier</string>

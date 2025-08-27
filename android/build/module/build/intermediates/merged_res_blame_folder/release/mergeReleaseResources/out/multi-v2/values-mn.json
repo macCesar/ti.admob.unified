@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-52:/values-mn/values-mn.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-release-52:/values-mn/values-mn.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/29f6d653128e5e87f71b6be1792d8912/transformed/core-1.13.0/res/values-mn/values-mn.xml",
@@ -127,7 +127,7 @@
             ]
         },
         {
-            "outputFile": "mx.codigomovil.tiadmobunified.module-release-54:/values-mn/values-mn.xml",
+            "outputFile": "mx.codigomovil.tiadmobunified.module-mergeReleaseResources-50:/values-mn/values-mn.xml",
             "map": [
                 {
                     "source": "/Users/cesar/.gradle/caches/8.10.2/transforms/29f6d653128e5e87f71b6be1792d8912/transformed/core-1.13.0/res/values-mn/values-mn.xml",

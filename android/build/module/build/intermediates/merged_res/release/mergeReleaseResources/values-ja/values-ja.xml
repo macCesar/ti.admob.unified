@@ -31,14 +31,6 @@
     <string msgid="8875138169939072951" name="abc_shareactionprovider_share_with">"共有"</string>
     <string msgid="9055268688411532828" name="abc_shareactionprovider_share_with_application">"<ns1:g id="APPLICATION_NAME">%s</ns1:g>と共有"</string>
     <string msgid="1656852541809559762" name="abc_toolbar_collapse_description">"折りたたむ"</string>
-    <string name="applovin_agree_message">アプリを利用するために「次へ」をクリックしてください。</string>
-    <string name="applovin_alt_privacy_policy_text"/>
-    <string name="applovin_continue_button_text">次へ</string>
-    <string name="applovin_pp_and_tos_title">%s を使用するためには利用規約への同意およびプライバシーポリシーの確認が必要です。</string>
-    <string name="applovin_pp_title">%sを使用するためにはプライバシーポリシーを慎重に確認し、承認する必要があります。</string>
-    <string name="applovin_privacy_policy_text">プライバシーポリシー</string>
-    <string name="applovin_terms_of_service_text">利用規約</string>
-    <string name="applovin_terms_of_use_text">利用規約</string>
     <string name="bottomsheet_action_collapse">ボトムシートを閉じる</string>
     <string name="bottomsheet_action_expand">ボトムシートを開く</string>
     <string name="bottomsheet_action_expand_halfway">下半分を展開</string>
