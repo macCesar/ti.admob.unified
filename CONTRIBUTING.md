@@ -99,7 +99,7 @@ ti build -p ios --build-only && ti build -p android --build-only
 Example:
 ```objc
 //
-// MxCodigomovilTiadmobunifiedModule.m
+// TiadmobunifiedModule.m
 //
 
 #pragma mark - Public Methods

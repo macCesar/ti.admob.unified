@@ -8,7 +8,7 @@ TODO: Enter your module description here
 
 To access this module from JavaScript, you would do the following:
 
-    var ti_admob_unified = require("mx.codigomovil.tiadmobunified");
+    var ti_admob_unified = require("ti.admob.unified");
 
 The ti_admob_unified variable is a reference to the Module object.
 

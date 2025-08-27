@@ -27,7 +27,7 @@ A unified AdMob module for Titanium SDK that provides a consistent API across iO
 
 ### 1. Download the Module
 
-Download the latest release from [GitHub Releases](https://github.com/codigomovil/ti.admob.unified/releases)
+Download the latest release from [GitHub Releases](https://github.com/macCesar/ti.admob.unified/releases)
 
 ### 2. Install Globally
 
@@ -647,8 +647,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 📧 Email: [support@codigomovil.mx](mailto:support@codigomovil.mx)
-- 🐛 Issues: [GitHub Issues](https://github.com/codigomovil/ti.admob.unified/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/codigomovil/ti.admob.unified/discussions)
+- 🐛 Issues: [GitHub Issues](https://github.com/macCesar/ti.admob.unified/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/macCesar/ti.admob.unified/discussions)
 
 ## 🔗 Links
 

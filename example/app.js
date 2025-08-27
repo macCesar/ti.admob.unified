@@ -8,7 +8,7 @@
  */
 
 // Import the unified AdMob module
-var Admob = require('mx.codigomovil.tiadmobunified');
+var Admob = require('ti.admob.unified');
 Ti.API.info("AdMob Unified Module loaded: " + Admob);
 
 // Test Ad Unit IDs (Google's official test IDs)
@@ -99,7 +99,7 @@ var initButton = createButton('1. Initialize AdMob', function () {
 
   Admob.initialize({
     applicationId: 'ca-app-pub-3940256099942544~3347511713', // Test app ID
-    testDeviceIds: ['DEVICE-ID-HERE'],
+    testDeviceIds: ['33BE2250B43518CCDA7DE426D04EE231'], // Add your device ID here - check logcat for "This request is sent from a test device"
     debugGeography: Admob.DEBUG_GEOGRAPHY_EEA,
     tagForChildDirectedTreatment: false,
     tagForUnderAgeOfConsent: false,
@@ -212,7 +212,7 @@ var createBannerButton = createButton('7. Create Banner Ad', function () {
   statusLabel.text = 'Creating banner ad...';
 
   bannerAd = Admob.createBanner({
-    adUnitId: getAdUnitId('BANNER'),
+    adUnitId: Admob.TEST_BANNER,
     adSize: Admob.BANNER,
     width: Ti.UI.FILL,
     height: 60

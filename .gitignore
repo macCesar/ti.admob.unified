@@ -24,7 +24,8 @@ tmp/
 bin/
 build/
 dist/
-
+android/dist
+ios/dist
 # ===================================================================
 # iOS SPECIFIC
 # ===================================================================
@@ -48,7 +49,7 @@ DerivedData/
 # iOS build artifacts
 ios/metadata.json
 ios/ti.admob-iphone-*.zip
-ios/mx.codigomovil.tiadmobunified-iphone-*.zip
+ios/ti.admob.unified-iphone-*.zip
 ios/dist/
 ios/build/
 ios/titanium.xcconfig.bak
