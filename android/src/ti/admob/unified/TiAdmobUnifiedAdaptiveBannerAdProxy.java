@@ -13,6 +13,7 @@ import android.util.Log;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiLifecycle;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
@@ -24,6 +25,11 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	private static final String LCAT = "TiAdmobUnifiedAdaptiveBannerAdProxy";
 	
 	private TiAdmobUnifiedAdaptiveBannerAdView bannerView;
+	private TiBaseActivity lifecycleActivity;
+	private boolean isDestroyed;
+	private boolean isPaused;
+	private boolean pendingLoad;
+	private boolean destroyedEventFired;
 
 	public TiAdmobUnifiedAdaptiveBannerAdProxy()
 	{
@@ -34,8 +40,18 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Override
 	public TiUIView createView(Activity activity)
 	{
-		bannerView = new TiAdmobUnifiedAdaptiveBannerAdView(this);
-		return bannerView;
+		TiAdmobUnifiedAdaptiveBannerAdView createdView = new TiAdmobUnifiedAdaptiveBannerAdView(this);
+		bannerView = createdView;
+		if (activity instanceof TiBaseActivity && lifecycleActivity == null) {
+			lifecycleActivity = (TiBaseActivity) activity;
+			lifecycleActivity.addOnLifecycleEventListener(this);
+		}
+		if (isDestroyed) {
+			createdView.destroy();
+		} else if (isPaused) {
+			createdView.pause();
+		}
+		return createdView;
 	}
 	
 	// Handle creation options
@@ -59,9 +75,17 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 		}
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void load()
 	{
+		if (isDestroyed) {
+			fireBannerEvent(TiAdmobUnifiedModule.AD_FAILED_TO_LOAD, "Banner has been destroyed", 1);
+			return;
+		}
+		if (isPaused) {
+			pendingLoad = true;
+			return;
+		}
 		Log.d(LCAT, "Loading adaptive banner ad");
 		if (bannerView == null) {
 			getOrCreateView(); // This will create the view and assign to bannerView
@@ -72,34 +96,56 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	}
 	
 	// Lifecycle methods
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void pause()
 	{
+		if (isDestroyed || isPaused) {
+			return;
+		}
+		isPaused = true;
 		Log.d(LCAT, "Pausing adaptive banner ad");
 		if (bannerView != null) {
 			bannerView.pause();
 		}
 	}
 	
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void resume()
 	{
+		if (isDestroyed || !isPaused) {
+			return;
+		}
+		isPaused = false;
 		Log.d(LCAT, "Resuming adaptive banner ad");
 		if (bannerView != null) {
 			bannerView.resume();
 		}
+		if (pendingLoad) {
+			pendingLoad = false;
+			load();
+		}
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void destroy()
 	{
+		if (isDestroyed) {
+			return;
+		}
+		isDestroyed = true;
+		pendingLoad = false;
 		Log.d(LCAT, "Destroying adaptive banner ad");
 		if (bannerView != null) {
 			bannerView.destroy();
+		} else {
+			fireDestroyedEvent();
 		}
+		detachLifecycleListener();
+		releaseViews();
+		bannerView = null;
 	}
 	
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void destroyAdViewAndCancelRequest()
 	{
 		Log.d(LCAT, "destroyAdViewAndCancelRequest() called, delegating to destroy()");
@@ -107,7 +153,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	}
 
 	// Misspelled legacy name kept as deprecated alias for backwards compatibility.
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void destoyAdViewAndCancelRequest()
 	{
 		Log.w(LCAT, "destoyAdViewAndCancelRequest() is misspelled and deprecated; use destroyAdViewAndCancelRequest() or destroy()");
@@ -117,7 +163,47 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Kroll.method
 	public boolean isLoaded()
 	{
-		return bannerView != null && bannerView.isLoaded();
+		return !isDestroyed && bannerView != null && bannerView.isLoaded();
+	}
+
+	private void fireDestroyedEvent()
+	{
+		if (!destroyedEventFired) {
+			destroyedEventFired = true;
+			fireBannerEvent(TiAdmobUnifiedModule.AD_DESTROYED, null, 0);
+		}
+	}
+
+	private void fireBannerEvent(String eventName, String error, int code)
+	{
+		KrollDict event = new KrollDict();
+		event.put("adUnitId", getAdUnitId() != null ? getAdUnitId() : "");
+		event.put("adType", TiAdmobUnifiedModule.AD_TYPE_BANNER);
+		event.put("isAdaptive", true);
+		if (error != null) {
+			event.put("error", error);
+			event.put("code", code);
+		}
+		fireEvent(eventName, event);
+	}
+
+	private void detachLifecycleListener()
+	{
+		if (lifecycleActivity != null) {
+			lifecycleActivity.removeOnLifecycleEventListener(this);
+			lifecycleActivity = null;
+		}
+	}
+
+	void onBannerViewDestroyed(TiAdmobUnifiedAdaptiveBannerAdView destroyedView)
+	{
+		if (bannerView == destroyedView) {
+			bannerView = null;
+		}
+		isDestroyed = true;
+		pendingLoad = false;
+		destroyedEventFired = true;
+		detachLifecycleListener();
 	}
 
 	@Kroll.getProperty
@@ -228,7 +314,12 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	public void onDestroy(Activity activity)
 	{
 		Log.d(LCAT, "Activity destroyed, cleaning up adaptive banner ad");
+		if (activity instanceof TiBaseActivity) {
+			((TiBaseActivity) activity).removeOnLifecycleEventListener(this);
+			lifecycleActivity = null;
+		}
 		destroy();
+		super.onDestroy(activity);
 	}
 	
 	@Override

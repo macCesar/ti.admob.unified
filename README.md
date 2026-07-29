@@ -27,8 +27,9 @@ Dependency sources and checksums are recorded in [DEPENDENCIES.md](DEPENDENCIES.
 | App Open | Not implemented | Not implemented |
 | Native | Not implemented | Not implemented |
 
-Banner API parity and runtime lifecycle validation continue in phase 2. This
-release does not integrate the module into Cuentas Claras.
+Banner API and lifecycle parity are implemented and covered by contract tests.
+Device lifecycle validation remains part of phase 4. This release does not
+integrate the module into Cuentas Claras.
 
 ## Installation
 
@@ -130,6 +131,34 @@ banner.addEventListener(Admob.AD_FAILED_TO_LOAD, event => {
 banner.load()
 ```
 
+Standard and adaptive banners expose the same lifecycle on iOS and Android:
+
+- `load()` starts one request; a second call is ignored while it is active.
+- `pause()` suspends the native Android banner and hides the iOS banner.
+- `resume()` restores it and runs one load deferred while paused.
+- `isLoaded()` reports whether the current banner loaded successfully.
+- `destroy()` is terminal and safe to repeat.
+- `destroyAdViewAndCancelRequest()` is a compatibility alias.
+- `destoyAdViewAndCancelRequest()` is the deprecated misspelled alias.
+
+Calling `load()` after `destroy()` does not recreate the native view and emits
+`failed_to_load`. Native delegates, listeners, activity lifecycle registrations,
+root controllers, and paid-event handlers are detached during destruction.
+
+Every banner event contains:
+
+```js
+{
+  adUnitId: '...',
+  adType: 'banner',
+  isAdaptive: true // false for a standard banner
+}
+```
+
+Adaptive banners also retain `adaptiveType`. A `failed_to_load` payload adds
+`error` and `code`. Both banner types emit `loaded`, `failed_to_load`,
+`clicked`, `impression`, `opened`, `closed`, and `destroyed`.
+
 Existing standard banner, interstitial, and rewarded constructors remain
 available:
 
@@ -138,8 +167,8 @@ available:
 - `createInterstitial(config)`
 - `createRewarded(config)`
 
-The proxies retain their existing `load()`, `show()` where applicable,
-`isLoaded()`, and `destroy()` APIs. Full banner lifecycle parity is phase 2.
+Full-screen proxies retain their existing `load()`, `show()`, `isLoaded()`,
+and `destroy()` APIs.
 
 ## Compatibility surface
 
@@ -162,8 +191,8 @@ None of these methods downloads or adds an adapter. Mediation can be evaluated
 later as an optional distribution without changing the JavaScript ad API.
 
 The correctly spelled `destroyAdViewAndCancelRequest()` and the deprecated
-`destoyAdViewAndCancelRequest()` alias remain available on Android banner
-proxies.
+`destoyAdViewAndCancelRequest()` alias remain available on both platforms and
+both banner proxies.
 
 ## Events
 

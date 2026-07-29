@@ -24,6 +24,8 @@
 - (void)pause:(id)args;
 - (void)resume:(id)args;
 - (NSNumber *)isLoaded:(id)args;
+- (void)destroyAdViewAndCancelRequest:(id)args;
+- (void)destoyAdViewAndCancelRequest:(id)args;
 
 // Internal methods
 - (void)fireAdEvent:(NSString *)eventName withData:(NSDictionary *)data;

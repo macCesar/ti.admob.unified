@@ -21,6 +21,18 @@ function frameworkVersion(relativePlistPath) {
 const iosModule = read('ios/Classes/TiAdmobUnifiedModule.m')
 const iosHeader = read('ios/Classes/TiAdmobUnifiedModule.h')
 const androidModule = read('android/src/ti/admob/unified/TiAdmobUnifiedModule.java')
+const iosBannerHeader = read('ios/Classes/TiAdmobUnifiedBannerAdProxy.h')
+const iosBanner = read('ios/Classes/TiAdmobUnifiedBannerAdProxy.m')
+const iosAdaptiveBannerHeader = read('ios/Classes/TiAdmobUnifiedAdaptiveBannerAdProxy.h')
+const iosAdaptiveBanner = read('ios/Classes/TiAdmobUnifiedAdaptiveBannerAdProxy.m')
+const androidBannerProxy = read('android/src/ti/admob/unified/TiAdmobUnifiedBannerAdProxy.java')
+const androidBannerView = read('android/src/ti/admob/unified/TiAdmobUnifiedBannerAdView.java')
+const androidAdaptiveBannerProxy = read(
+  'android/src/ti/admob/unified/TiAdmobUnifiedAdaptiveBannerAdProxy.java'
+)
+const androidAdaptiveBannerView = read(
+  'android/src/ti/admob/unified/TiAdmobUnifiedAdaptiveBannerAdView.java'
+)
 
 test('pins the phase 0/1 dependency baseline', () => {
   assert.match(read('ios/manifest'), /version: 1\.2\.0/)
@@ -172,4 +184,100 @@ test('artifact inventory guard accepts the current tree', () => {
     { encoding: 'utf8' }
   )
   assert.match(output, /Artifact inventory and checksums verified/)
+})
+
+test('keeps one public banner lifecycle contract on both platforms', () => {
+  const lifecycleMethods = [
+    'load',
+    'pause',
+    'resume',
+    'destroy',
+    'isLoaded',
+    'destroyAdViewAndCancelRequest',
+    'destoyAdViewAndCancelRequest'
+  ]
+
+  for (const method of lifecycleMethods) {
+    assert.match(iosBannerHeader, new RegExp(`\\b${method}:?`))
+    assert.match(iosAdaptiveBannerHeader, new RegExp(`\\b${method}:?`))
+    assert.match(androidBannerProxy, new RegExp(`\\b${method}\\s*\\(`))
+    assert.match(androidAdaptiveBannerProxy, new RegExp(`\\b${method}\\s*\\(`))
+  }
+})
+
+test('keeps banner event names and payload keys in parity', () => {
+  const bannerSources = [
+    iosBanner,
+    iosAdaptiveBanner,
+    androidBannerView,
+    androidAdaptiveBannerView
+  ]
+  const eventNames = [
+    'loaded',
+    'failed_to_load',
+    'clicked',
+    'impression',
+    'opened',
+    'closed',
+    'destroyed'
+  ]
+
+  for (const source of bannerSources) {
+    for (const eventName of eventNames) {
+      assert.match(source, new RegExp(`["']${eventName}["']|AD_${eventName.toUpperCase()}`))
+    }
+    for (const payloadKey of ['adUnitId', 'adType', 'isAdaptive']) {
+      assert.match(source, new RegExp(`["']${payloadKey}["']`))
+    }
+    assert.match(source, /["']error["']/)
+    assert.match(source, /["']code["']/)
+  }
+
+  for (const source of [iosAdaptiveBanner, androidAdaptiveBannerView]) {
+    assert.match(source, /["']adaptiveType["']/)
+  }
+})
+
+test('guards banner loading and makes destruction terminal and repeatable', () => {
+  for (const source of [
+    iosBanner,
+    iosAdaptiveBanner,
+    androidBannerView,
+    androidAdaptiveBannerView
+  ]) {
+    assert.match(source, /isLoading/)
+    assert.match(source, /isDestroyed/)
+    assert.match(source, /isPaused/)
+    assert.match(source, /pendingLoad/)
+  }
+
+  for (const source of [androidBannerView, androidAdaptiveBannerView]) {
+    assert.match(source, /setAdListener\(null\)/)
+    assert.match(source, /(?:adView|viewToDestroy)\.destroy\(\)/)
+    assert.match(source, /void release\(\)/)
+  }
+
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.match(source, /\.delegate = nil/)
+    assert.match(source, /\.rootViewController = nil/)
+    assert.match(source, /\.paidEventHandler = nil/)
+    assert.match(source, /viewWillDetach/)
+    assert.match(source, /windowWillClose/)
+    assert.match(source, /- \(void\)_destroy/)
+  }
+})
+
+test('connects Android banners to native activity lifecycle without leaks', () => {
+  for (const source of [androidBannerProxy, androidAdaptiveBannerProxy]) {
+    assert.match(source, /addOnLifecycleEventListener\(this\)/)
+    assert.match(source, /removeOnLifecycleEventListener\(this\)/)
+    assert.match(source, /onBannerViewDestroyed/)
+  }
+
+  for (const source of [androidBannerView, androidAdaptiveBannerView]) {
+    assert.match(source, /adView\.pause\(\)/)
+    assert.match(source, /adView\.resume\(\)/)
+    assert.match(source, /(?:adView|viewToDestroy)\.destroy\(\)/)
+    assert.match(source, /onBannerViewDestroyed\(this\)/)
+  }
 })

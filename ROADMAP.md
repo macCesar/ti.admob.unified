@@ -16,15 +16,20 @@ Version 1.2.0 stabilizes the Google-only core:
 Interstitial and rewarded support are preserved, but Cuentas Claras is not
 integrated and production ads must remain disabled.
 
-## Phase 2 — Banner parity
+## Phase 2 — Banner parity (complete)
 
-- Expose the same adaptive banner methods on both platforms.
-- Align event names and payloads.
-- Make repeated `destroy()` safe.
-- Verify iOS delegates, views, and references are released.
-- Verify Android `pause()`, `resume()`, and `destroy()` calls.
-- Prove that each visible screen has at most one active request.
-- Run the same JavaScript lifecycle test on iOS and Android.
+- Standard and adaptive banners expose `load()`, `pause()`, `resume()`,
+  `destroy()`, `isLoaded()`, and both destruction aliases on both platforms.
+- Event names and common payload keys are aligned.
+- `destroy()` is terminal, repeatable, and emits `destroyed` once.
+- iOS delegates, root controllers, paid-event handlers, views, and references
+  are released.
+- Android calls native `pause()`, `resume()`, and `destroy()`, clears ad
+  listeners, and unregisters activity lifecycle listeners.
+- Each proxy accepts at most one active native load and at most one deferred
+  load while paused.
+- Shared source-contract tests and clean iOS/Android module builds verify the
+  lifecycle contract. Device lifecycle scenarios remain in phase 4.
 
 ## Phase 3 — Cuentas Claras integration
 

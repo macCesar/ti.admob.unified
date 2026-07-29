@@ -17,6 +17,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Age treatment constants and `ageRestrictedTreatment` initialization option.
 - Reproducible iOS dependency inventory with official URLs and checksums.
 - Static contract tests and artifact inventory verification.
+- Shared standard/adaptive banner lifecycle contract tests for iOS and Android.
+- `pause()` and `resume()` on the iOS adaptive banner proxy.
+- Both banner destruction aliases on both iOS proxy types.
 
 ### Changed
 
@@ -28,6 +31,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Consent uses UMP's load-and-present-if-required flow.
 - Full-screen iOS presentation uses Titanium's top presented controller.
 - Public privacy documentation is event-based; callback options are deprecated.
+- Standard and adaptive banners now share `load()`, `pause()`, `resume()`,
+  `destroy()`, `isLoaded()`, event names, and common event payload keys.
+- Banner loads are serialized to one active request, with at most one request
+  deferred while paused.
 
 ### Fixed
 
@@ -38,6 +45,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   represents personalization permission; it remains as a deprecated safe
   `false` result.
 - `privacy_options_dismissed` now fires regardless of a callback property.
+- Banner load state now reflects native success and failure on iOS.
+- Repeated banner destruction is safe and terminal on both platforms.
+- iOS banner destruction clears delegates, root controllers, paid-event
+  handlers, and native view references.
+- Android banner destruction clears ad listeners, destroys the native `AdView`,
+  releases Titanium views, and unregisters activity lifecycle listeners.
 
 ### Removed
 

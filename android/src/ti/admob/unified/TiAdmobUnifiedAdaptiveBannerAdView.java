@@ -23,7 +23,6 @@ import com.google.android.gms.ads.LoadAdError;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiApplication;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -34,8 +33,13 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 {
 	private static final String LCAT = "TiAdmobUnifiedAdaptiveBannerAdView";
 	
+	private final TiAdmobUnifiedAdaptiveBannerAdProxy bannerProxy;
 	private AdView adView;
 	private boolean isAdLoaded = false;
+	private boolean isLoading;
+	private boolean isPaused;
+	private boolean isDestroyed;
+	private boolean pendingLoad;
 	private String adUnitId;
 	
 	// Adaptive banner specific properties
@@ -53,15 +57,19 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 	private int propLeft;
 	private int propRight;
 
-	public TiAdmobUnifiedAdaptiveBannerAdView(TiViewProxy proxy)
+	public TiAdmobUnifiedAdaptiveBannerAdView(TiAdmobUnifiedAdaptiveBannerAdProxy proxy)
 	{
 		super(proxy);
+		bannerProxy = proxy;
 		Log.d(LCAT, "Adaptive banner view created");
 		// Don't create AdView immediately - wait for properties
 	}
 
 	private void createAdView()
 	{
+		if (isDestroyed || adView != null) {
+			return;
+		}
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot create adaptive banner - no current activity");
@@ -84,14 +92,22 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		adView.setAdListener(new com.google.android.gms.ads.AdListener() {
 			@Override
 			public void onAdLoaded() {
+				if (isDestroyed) {
+					return;
+				}
 				Log.d(LCAT, "Adaptive banner ad loaded successfully");
+				isLoading = false;
 				isAdLoaded = true;
 				fireAdEvent(TiAdmobUnifiedModule.AD_LOADED, null);
 			}
 
 			@Override
 			public void onAdFailedToLoad(LoadAdError loadAdError) {
+				if (isDestroyed) {
+					return;
+				}
 				Log.e(LCAT, "Adaptive banner ad failed to load: " + loadAdError.getMessage());
+				isLoading = false;
 				isAdLoaded = false;
 				
 				Map<String, Object> event = new HashMap<>();
@@ -180,6 +196,18 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 
 	public void loadAd()
 	{
+		if (isDestroyed) {
+			fireFailure("Banner has been destroyed", 1);
+			return;
+		}
+		if (isPaused) {
+			pendingLoad = true;
+			return;
+		}
+		if (isLoading) {
+			Log.d(LCAT, "Ignoring duplicate adaptive banner load while a request is active");
+			return;
+		}
 		if (adView == null) {
 			Log.d(LCAT, "AdView not created yet, creating now");
 			createAdView();
@@ -187,6 +215,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		
 		if (adView == null) {
 			Log.e(LCAT, "Cannot load ad - AdView creation failed");
+			fireFailure("Banner view could not be created", 2);
 			return;
 		}
 
@@ -226,6 +255,8 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		
 		AdRequest adRequest = adRequestBuilder.build();
 		Log.d(LCAT, "Loading adaptive banner ad with unit ID: " + adUnitId);
+		isLoading = true;
+		isAdLoaded = false;
 		adView.loadAd(adRequest);
 	}
 
@@ -290,11 +321,15 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 
 	public boolean isLoaded()
 	{
-		return isAdLoaded;
+		return !isDestroyed && isAdLoaded;
 	}
 	
 	public void pause()
 	{
+		if (isDestroyed || isPaused) {
+			return;
+		}
+		isPaused = true;
 		if (adView != null) {
 			adView.pause();
 			Log.d(LCAT, "Adaptive banner ad paused");
@@ -303,34 +338,70 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 	
 	public void resume()
 	{
+		if (isDestroyed || !isPaused) {
+			return;
+		}
+		isPaused = false;
 		if (adView != null) {
 			adView.resume();
 			Log.d(LCAT, "Adaptive banner ad resumed");
+		}
+		if (pendingLoad) {
+			pendingLoad = false;
+			loadAd();
 		}
 	}
 	
 	public void destroy()
 	{
-		if (adView != null) {
-			adView.destroy();
-			adView = null;
-			isAdLoaded = false;
-			Log.d(LCAT, "Adaptive banner ad destroyed");
-			fireAdEvent(TiAdmobUnifiedModule.AD_DESTROYED, null);
+		if (isDestroyed) {
+			return;
 		}
+		isDestroyed = true;
+		isLoading = false;
+		isAdLoaded = false;
+		pendingLoad = false;
+		AdView viewToDestroy = adView;
+		adView = null;
+		if (viewToDestroy != null) {
+			viewToDestroy.setAdListener(null);
+			viewToDestroy.destroy();
+		}
+		setNativeView(null);
+		Log.d(LCAT, "Adaptive banner ad destroyed");
+		fireAdEvent(TiAdmobUnifiedModule.AD_DESTROYED, null);
+		bannerProxy.onBannerViewDestroyed(this);
+	}
+
+	@Override
+	public void release()
+	{
+		destroy();
+		super.release();
 	}
 	
 	private void recreateAdView()
 	{
 		if (adView != null) {
-			// Destroy existing view
-			adView.destroy();
+			AdView viewToDestroy = adView;
 			adView = null;
+			viewToDestroy.setAdListener(null);
+			viewToDestroy.destroy();
+			setNativeView(null);
+			isLoading = false;
 			isAdLoaded = false;
 		}
 		
 		// Create new view with updated properties
 		createAdView();
+	}
+
+	private void fireFailure(String message, int code)
+	{
+		Map<String, Object> event = new HashMap<>();
+		event.put("error", message);
+		event.put("code", code);
+		fireAdEvent(TiAdmobUnifiedModule.AD_FAILED_TO_LOAD, event);
 	}
 
 	// Process properties from Titanium proxy
@@ -413,7 +484,9 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		if (data == null) {
 			data = new HashMap<>();
 		}
-		data.put("adUnitId", adUnitId);
+		data.put("adUnitId", adUnitId != null ? adUnitId : "");
+		data.put("adType", TiAdmobUnifiedModule.AD_TYPE_BANNER);
+		data.put("isAdaptive", true);
 		data.put("adaptiveType", adaptiveType);
 		Log.d(LCAT, "Firing event: " + eventName);
 		proxy.fireEvent(eventName, data);
