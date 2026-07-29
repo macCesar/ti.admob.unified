@@ -15,6 +15,10 @@
 @property (nonatomic, strong) GADInterstitialAd *interstitialAd;
 @property (nonatomic, strong) NSString *adUnitId;
 @property (nonatomic, assign) BOOL autoReload;
+@property (nonatomic, assign) BOOL isLoading;
+@property (nonatomic, assign) BOOL isShowing;
+@property (nonatomic, assign) BOOL isDestroyed;
+@property (nonatomic, assign) BOOL destroyedEventFired;
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
 

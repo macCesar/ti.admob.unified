@@ -3,10 +3,10 @@
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads
 and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `1.2.0` focuses on a safe privacy flow, idempotent SDK operations, and a
-shared lifecycle for standard and adaptive banners. The core distribution
-contains only Google Mobile Ads and UMP; third-party mediation adapters are not
-bundled.
+Version `1.2.0` provides a safe privacy flow, idempotent SDK operations, and
+shared lifecycle/event contracts for banners, interstitials, and rewarded ads.
+The core distribution contains only Google Mobile Ads and UMP; third-party
+mediation adapters are not bundled.
 
 ## Requirements
 
@@ -28,15 +28,15 @@ bundled.
 | Anchored adaptive banner | Stable | Stable |
 | Inline adaptive banner | Not implemented | Available |
 | Collapsible banner | Not implemented | Experimental raw option |
-| Interstitial | Preserved API | Preserved API |
-| Rewarded | Preserved API | Preserved API |
+| Interstitial | Stable | Stable |
+| Rewarded | Stable | Stable |
 | App Open | Not implemented | Not implemented |
 | Rewarded interstitial | Not implemented | Not implemented |
 | Native | Not implemented | Not implemented |
 
-“Preserved API” means that the pre-`1.2.0` proxy remains available, but it has
-not received the same cross-platform contract pass as banners. See
-[Fullscreen ads](documentation/fullscreen.md) before using it.
+Standard, adaptive, interstitial, and rewarded proxies use portable lifecycle
+and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md)
+for the single-use and reward rules.
 
 ## Installation
 
@@ -92,24 +92,19 @@ Admob.addEventListener('consent_complete', event => {
     return
   }
 
-  if (OS_IOS) {
-    const onTrackingComplete = () => {
-      Admob.removeEventListener(
-        'tracking_authorization_completed',
-        onTrackingComplete
-      )
-      initializeAdsOnce()
-    }
-
-    Admob.addEventListener(
+  const onTrackingComplete = () => {
+    Admob.removeEventListener(
       'tracking_authorization_completed',
       onTrackingComplete
     )
-    Admob.requestTrackingAuthorization()
-    return
+    initializeAdsOnce()
   }
 
-  initializeAdsOnce()
+  Admob.addEventListener(
+    'tracking_authorization_completed',
+    onTrackingComplete
+  )
+  Admob.requestTrackingAuthorization()
 })
 
 Admob.requestConsent({
@@ -117,8 +112,10 @@ Admob.requestConsent({
 })
 ```
 
-ATT resolution does not replace UMP and is not an additional ad-request gate.
-The app waits for ATT on iOS, then still uses only `canRequestAds()`.
+Tracking authorization resolution does not replace UMP and is not an
+additional ad-request gate. The same call site works on both platforms:
+iOS resolves ATT and Android completes immediately with `applicable: false`.
+The app still uses only `canRequestAds()`.
 
 For the publisher-rendered privacy entry point, check
 `isPrivacyOptionsRequired()` and call `presentPrivacyOptions({})`.
@@ -169,6 +166,29 @@ The public factories are `createBanner()`, `createAdaptiveBanner()`,
 
 See [Banner ads](documentation/banners.md) for layout patterns, payloads,
 lifecycle cleanup, adaptive sizing, and platform-specific options.
+
+## Fullscreen ads
+
+Interstitial and rewarded proxies expose the same API on iOS and Android:
+
+- `load()` serializes requests and ignores duplicate calls while loading,
+  loaded, or showing.
+- `show()` presents the unused native ad or emits `failed_to_show`.
+- `isLoaded()` reports whether an unused ad is ready.
+- `destroy()` is terminal, idempotent, and emits `destroyed` once.
+
+Every fullscreen event includes `adUnitId` and `adType`. Failures consistently
+add `error`, `message`, and `code`. Both platforms emit `opened` and
+`showed_fullscreen_content`; rewarded ads additionally emit `rewarded` with
+`rewardType` and `rewardAmount`.
+
+Native fullscreen ads are single-use. Grant value only from `rewarded`, never
+from `closed`, and remove named JavaScript listeners before destroying the
+proxy. Request `extras` are forwarded through Google's ad-network extras on
+both platforms.
+
+See [Fullscreen ads](documentation/fullscreen.md) for examples, cleanup, and
+the complete event table.
 
 ## Documentation
 

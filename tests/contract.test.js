@@ -33,6 +33,14 @@ const androidAdaptiveBannerProxy = read(
 const androidAdaptiveBannerView = read(
   'android/src/ti/admob/unified/TiAdmobUnifiedAdaptiveBannerAdView.java'
 )
+const iosInterstitial = read('ios/Classes/TiAdmobUnifiedInterstitialAdProxy.m')
+const iosRewarded = read('ios/Classes/TiAdmobUnifiedRewardedAdProxy.m')
+const androidInterstitial = read(
+  'android/src/ti/admob/unified/TiAdmobUnifiedInterstitialAdProxy.java'
+)
+const androidRewarded = read(
+  'android/src/ti/admob/unified/TiAdmobUnifiedRewardedAdProxy.java'
+)
 
 test('pins the phase 0/1 dependency baseline', () => {
   assert.match(read('ios/manifest'), /version: 1\.2\.0/)
@@ -103,6 +111,38 @@ test('guarantees the modern consent terminal contract', () => {
   assert.match(iosHeader, /canRequestAds/)
   assert.doesNotMatch(iosModule, /loadConsentForm/)
   assert.doesNotMatch(androidModule, /loadConsentForm/)
+})
+
+test('keeps tracking authorization portable across platforms', () => {
+  const eventName = /tracking_authorization_completed/
+  for (const source of [iosModule, androidModule]) {
+    assert.match(source, /requestTrackingAuthorization/)
+    assert.match(source, eventName)
+    for (const payloadKey of ['status', 'authorized', 'applicable']) {
+      assert.match(source, new RegExp(`["']${payloadKey}["']`))
+    }
+  }
+
+  assert.match(iosHeader, /requestTrackingAuthorization/)
+  assert.match(
+    androidModule,
+    /requestTrackingAuthorization\(\)[\s\S]*?applicable", false/
+  )
+})
+
+test('preserves global Android request configuration and reports test devices', () => {
+  assert.match(
+    androidModule,
+    /MobileAds\.getRequestConfiguration\(\)\.toBuilder\(\)/
+  )
+  assert.match(
+    androidModule,
+    /isTestDevice\(\)[\s\S]*?new AdRequest\.Builder\(\)[\s\S]*?\.isTestDevice\(TiApplication\.getInstance\(\)\)/
+  )
+  assert.doesNotMatch(
+    androidModule,
+    /isTestDevice\(\)[\s\S]*?For now, return false/
+  )
 })
 
 test('does not infer personalization from TCF storage', () => {
@@ -347,4 +387,55 @@ test('adaptive loaded events expose the real banner height on both platforms', (
     /@"height": @\(bannerView\.adSize\.size\.height\)/
   )
   assert.match(iosAdaptiveBanner, /@"heightUnit": @"dp"/)
+})
+
+test('keeps fullscreen lifecycle terminal and serialized on both platforms', () => {
+  for (const source of [
+    iosInterstitial,
+    iosRewarded,
+    androidInterstitial,
+    androidRewarded
+  ]) {
+    assert.match(source, /isLoading/)
+    assert.match(source, /isShowing/)
+    assert.match(source, /isDestroyed/)
+    assert.match(source, /destroyedEventFired/)
+    assert.match(source, /Ignoring duplicate/)
+    assert.match(source, /showed_fullscreen_content|AD_SHOWED_FULLSCREEN_CONTENT/)
+  }
+
+  for (const source of [iosInterstitial, iosRewarded]) {
+    assert.match(source, /fullScreenContentDelegate = nil/)
+    assert.match(source, /- \(void\)_destroy/)
+    assert.match(source, /\[self destroy:nil\];\s*\[super _destroy\];/)
+  }
+  for (const source of [androidInterstitial, androidRewarded]) {
+    assert.match(source, /setFullScreenContentCallback\(null\)/)
+    assert.match(source, /public void release\(\)/)
+    assert.match(source, /destroy\(\);\s*super\.release\(\);/)
+  }
+})
+
+test('keeps fullscreen event payloads portable', () => {
+  for (const source of [
+    iosInterstitial,
+    iosRewarded,
+    androidInterstitial,
+    androidRewarded
+  ]) {
+    for (const payloadKey of ['adUnitId', 'adType', 'error', 'message', 'code']) {
+      assert.match(source, new RegExp(`["']${payloadKey}["']`))
+    }
+  }
+
+  for (const source of [iosRewarded, androidRewarded]) {
+    assert.match(source, /["']rewardType["']/)
+    assert.match(source, /["']rewardAmount["']/)
+  }
+})
+
+test('forwards fullscreen extras through the Google adapter on Android', () => {
+  for (const source of [androidInterstitial, androidRewarded]) {
+    assert.match(source, /addNetworkExtrasBundle\(AdMobAdapter\.class, extrasBundle\)/)
+  }
 })

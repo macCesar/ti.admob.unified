@@ -9,7 +9,9 @@
 package ti.admob.unified;
 
 import android.app.Activity;
+import android.os.Bundle;
 
+import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.FullScreenContentCallback;
@@ -40,6 +42,9 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 	// Ad instance (Android requires fresh ads)
 	private InterstitialAd interstitialAd;
 	private boolean isLoading = false;
+	private boolean isShowing = false;
+	private boolean isDestroyed = false;
+	private boolean destroyedEventFired = false;
 
 	public TiAdmobUnifiedInterstitialAdProxy(KrollDict config)
 	{
@@ -80,6 +85,11 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 	public void load()
 	{
 		Log.d(LCAT, "Loading interstitial ad");
+
+		if (isDestroyed) {
+			Log.w(LCAT, "Ignoring load after interstitial destruction");
+			return;
+		}
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
@@ -88,8 +98,8 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 			return;
 		}
 		
-		if (isLoading) {
-			Log.w(LCAT, "Ad is already loading");
+		if (isLoading || isShowing || interstitialAd != null) {
+			Log.w(LCAT, "Ignoring duplicate interstitial load");
 			return;
 		}
 		
@@ -110,6 +120,14 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 				adRequestBuilder.addKeyword(keyword);
 			}
 		}
+
+		if (extras != null && !extras.isEmpty()) {
+			Bundle extrasBundle = new Bundle();
+			for (Map.Entry<String, String> entry : extras.entrySet()) {
+				extrasBundle.putString(entry.getKey(), entry.getValue());
+			}
+			adRequestBuilder.addNetworkExtrasBundle(AdMobAdapter.class, extrasBundle);
+		}
 		
 		AdRequest adRequest = adRequestBuilder.build();
 		
@@ -121,6 +139,9 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 			new InterstitialAdLoadCallback() {
 				@Override
 				public void onAdLoaded(InterstitialAd ad) {
+					if (isDestroyed) {
+						return;
+					}
 					Log.d(LCAT, "Interstitial ad loaded successfully");
 					
 					interstitialAd = ad;
@@ -130,13 +151,14 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 					setupAdCallbacks();
 					
 					// Fire loaded event
-					Map<String, Object> event = new HashMap<>();
-					event.put("adUnitId", adUnitId);
-					fireEvent(TiAdmobUnifiedModule.AD_LOADED, event);
+					fireEvent(TiAdmobUnifiedModule.AD_LOADED, baseEvent());
 				}
 				
 				@Override
 				public void onAdFailedToLoad(LoadAdError error) {
+					if (isDestroyed) {
+						return;
+					}
 					Log.e(LCAT, "Interstitial ad failed to load: " + error.getMessage());
 					
 					isLoading = false;
@@ -152,6 +174,13 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 	public void show()
 	{
 		Log.d(LCAT, "Showing interstitial ad");
+
+		if (isDestroyed) {
+			fireFailedToShowEvent(
+				"Interstitial has been destroyed",
+				TiAdmobUnifiedModule.ERROR_CODE_INVALID_REQUEST);
+			return;
+		}
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
@@ -165,33 +194,52 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 			fireFailedToShowEvent("Ad not loaded", TiAdmobUnifiedModule.ERROR_CODE_INVALID_REQUEST);
 			return;
 		}
+
+		if (isShowing) {
+			fireFailedToShowEvent(
+				"Ad is already showing",
+				TiAdmobUnifiedModule.ERROR_CODE_INVALID_REQUEST);
+			return;
+		}
 		
 		// Show interstitial ad
+		isShowing = true;
 		interstitialAd.show(activity);
 	}
 
 	@Kroll.method
 	public boolean isLoaded()
 	{
-		return interstitialAd != null && !isLoading;
+		return !isDestroyed && interstitialAd != null && !isLoading && !isShowing;
 	}
 
 	@Kroll.method
 	public void destroy()
 	{
-		Log.d(LCAT, "Destroying interstitial ad");
-		
-		if (interstitialAd != null) {
-			// Clear ad reference (Android ads are single-use anyway)
-			interstitialAd = null;
+		if (isDestroyed) {
+			return;
 		}
-		
+		Log.d(LCAT, "Destroying interstitial ad");
+
+		isDestroyed = true;
+		if (interstitialAd != null) {
+			interstitialAd.setFullScreenContentCallback(null);
+		}
+		interstitialAd = null;
 		isLoading = false;
-		
-		// Fire destroyed event
-		Map<String, Object> event = new HashMap<>();
-		event.put("adUnitId", adUnitId);
-		fireEvent(TiAdmobUnifiedModule.AD_DESTROYED, event);
+		isShowing = false;
+
+		if (!destroyedEventFired) {
+			destroyedEventFired = true;
+			fireEvent(TiAdmobUnifiedModule.AD_DESTROYED, baseEvent());
+		}
+	}
+
+	@Override
+	public void release()
+	{
+		destroy();
+		super.release();
 	}
 
 	// ===================================================================
@@ -206,73 +254,76 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 		interstitialAd.setFullScreenContentCallback(new FullScreenContentCallback() {
 			@Override
 			public void onAdShowedFullScreenContent() {
+				if (isDestroyed) {
+					return;
+				}
 				Log.d(LCAT, "Interstitial ad showed full screen content");
-				
-				// Fire opened event
-				Map<String, Object> event = new HashMap<>();
-				event.put("adUnitId", adUnitId);
+
+				Map<String, Object> event = baseEvent();
 				fireEvent(TiAdmobUnifiedModule.AD_OPENED, event);
-				
-				// Also fire the fullscreen content event
 				fireEvent(TiAdmobUnifiedModule.AD_SHOWED_FULLSCREEN_CONTENT, event);
 			}
 			
 			@Override
 			public void onAdDismissedFullScreenContent() {
+				if (isDestroyed) {
+					return;
+				}
 				Log.d(LCAT, "Interstitial ad dismissed full screen content");
-				
-				// Fire closed event
-				Map<String, Object> event = new HashMap<>();
-				event.put("adUnitId", adUnitId);
-				fireEvent(TiAdmobUnifiedModule.AD_CLOSED, event);
-				
-				// Android: Clear the ad since it's single-use
+
 				interstitialAd = null;
-				
-				// Auto-reload if enabled (create fresh ad for Android)
+				isShowing = false;
+				fireEvent(TiAdmobUnifiedModule.AD_CLOSED, baseEvent());
+
 				if (autoReload) {
-					Log.d(LCAT, "Auto-reloading interstitial ad (creating fresh instance for Android)");
+					Log.d(LCAT, "Auto-reloading interstitial ad");
 					load();
 				}
 			}
 			
 			@Override
 			public void onAdFailedToShowFullScreenContent(AdError error) {
+				if (isDestroyed) {
+					return;
+				}
 				Log.e(LCAT, "Interstitial ad failed to show: " + error.getMessage());
-				
-				// Fire failed to show event
-				fireFailedToShowEvent(error.getMessage(), error.getCode());
-				
-				// Clear the ad since it failed
+
 				interstitialAd = null;
+				isShowing = false;
+				fireFailedToShowEvent(error.getMessage(), error.getCode());
 			}
 			
 			@Override
 			public void onAdClicked() {
+				if (isDestroyed) {
+					return;
+				}
 				Log.d(LCAT, "Interstitial ad clicked");
-				
-				// Fire clicked event
-				Map<String, Object> event = new HashMap<>();
-				event.put("adUnitId", adUnitId);
-				fireEvent(TiAdmobUnifiedModule.AD_CLICKED, event);
+				fireEvent(TiAdmobUnifiedModule.AD_CLICKED, baseEvent());
 			}
 			
 			@Override
 			public void onAdImpression() {
+				if (isDestroyed) {
+					return;
+				}
 				Log.d(LCAT, "Interstitial ad impression recorded");
-				
-				// Fire impression event
-				Map<String, Object> event = new HashMap<>();
-				event.put("adUnitId", adUnitId);
-				fireEvent(TiAdmobUnifiedModule.AD_IMPRESSION, event);
+				fireEvent(TiAdmobUnifiedModule.AD_IMPRESSION, baseEvent());
 			}
 		});
 	}
 
+	private Map<String, Object> baseEvent()
+	{
+		Map<String, Object> event = new HashMap<>();
+		event.put("adUnitId", adUnitId);
+		event.put("adType", TiAdmobUnifiedModule.AD_TYPE_INTERSTITIAL);
+		return event;
+	}
+
 	private void fireErrorEvent(String errorMessage, int errorCode)
 	{
-		Map<String, Object> errorEvent = new HashMap<>();
-		errorEvent.put("adUnitId", adUnitId);
+		Map<String, Object> errorEvent = baseEvent();
 		errorEvent.put("error", errorMessage);
 		errorEvent.put("message", errorMessage);
 		errorEvent.put("code", errorCode);
@@ -281,8 +332,7 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 
 	private void fireFailedToShowEvent(String errorMessage, int errorCode)
 	{
-		Map<String, Object> errorEvent = new HashMap<>();
-		errorEvent.put("adUnitId", adUnitId);
+		Map<String, Object> errorEvent = baseEvent();
 		errorEvent.put("error", errorMessage);
 		errorEvent.put("message", errorMessage);
 		errorEvent.put("code", errorCode);

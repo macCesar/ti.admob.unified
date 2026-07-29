@@ -135,21 +135,16 @@ function continueAfterPrivacyGate(canRequestAds) {
     return
   }
 
-  if (OS_IOS) {
-    if (trackingRequestStarted) {
-      return
-    }
-
-    trackingRequestStarted = true
-    Admob.addEventListener(
-      'tracking_authorization_completed',
-      onTrackingAuthorizationCompleted
-    )
-    Admob.requestTrackingAuthorization()
+  if (trackingRequestStarted) {
     return
   }
 
-  initializeAdsOnce()
+  trackingRequestStarted = true
+  Admob.addEventListener(
+    'tracking_authorization_completed',
+    onTrackingAuthorizationCompleted
+  )
+  Admob.requestTrackingAuthorization()
 }
 
 function onConsentComplete(event) {

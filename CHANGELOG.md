@@ -26,6 +26,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   fullscreen proxies, every exported method and constant, and migration.
 - Documentation contract tests that validate API coverage, internal links, and
   the executable example's privacy and lifecycle patterns.
+- Portable `requestTrackingAuthorization()` on Android, which completes with
+  `applicable: false` so consumers can use the same UMP → tracking → SDK call
+  sequence on both platforms.
+- Shared interstitial and rewarded lifecycle state: serialized loads, explicit
+  showing state, single-use references, and terminal idempotent destruction.
 
 ### Changed
 
@@ -39,6 +44,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Public privacy documentation is event-based; callback options are deprecated.
 - Standard and adaptive banners now share `load()`, `pause()`, `resume()`,
   `destroy()`, `isLoaded()`, event names, and common event payload keys.
+- Interstitial and rewarded proxies now share the same load/show/destroy
+  semantics and `adUnitId`/`adType` event payload on iOS and Android.
+- Fullscreen error payloads now consistently include `error`, `message`, and
+  `code`; iOS now emits `showed_fullscreen_content` like Android.
+- Android forwards fullscreen `extras` through `AdMobAdapter`, matching the
+  existing iOS request behavior.
 - Banner events now consistently include `adUnitId`, `adType`, and
   `isAdaptive`; adaptive banners also include `adaptiveType`.
 - Adaptive `loaded` events report the measured `height` and `heightUnit`
@@ -49,6 +60,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Android adaptive banners update the Titanium proxy height from the Google
   Mobile Ads size in density-independent units whenever the native size is
   created or loaded.
+- Android request-configuration updates preserve previously configured values
+  through `RequestConfiguration.toBuilder()`.
 - The example application now uses only official test constants, the
   `consent_complete` contract, UMP → ATT → initialization ordering, dynamic
   banner height, and explicit listener cleanup.
@@ -73,6 +86,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   instead of detaching the Titanium native view with `setNativeView(null)`.
 - Adaptive banner height is no longer treated as raw display pixels on Android,
   preventing density-dependent over-allocation of the host view.
+- Android `isTestDevice()` now delegates to the native ad request instead of
+  returning a permanent compatibility `false`.
+- Fullscreen callbacks arriving after destruction are ignored, and native
+  delegates/callbacks are detached during cleanup.
+- Fullscreen proxies also perform terminal native cleanup when Titanium
+  releases the proxy, matching the banner lifecycle safety net.
 
 ### Removed
 

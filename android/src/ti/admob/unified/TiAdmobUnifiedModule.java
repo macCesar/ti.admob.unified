@@ -194,7 +194,8 @@ public class TiAdmobUnifiedModule extends KrollModule
 
 		// Configure request configuration if provided
 		if (config != null) {
-			RequestConfiguration.Builder requestConfigBuilder = new RequestConfiguration.Builder();
+			RequestConfiguration.Builder requestConfigBuilder =
+				MobileAds.getRequestConfiguration().toBuilder();
 			
 			// Test device IDs
 			if (config.containsKey("testDeviceIds")) {
@@ -698,6 +699,21 @@ public class TiAdmobUnifiedModule extends KrollModule
 	}
 
 	// ===================================================================
+	// TRACKING AUTHORIZATION
+	// ===================================================================
+	@Kroll.method
+	public void requestTrackingAuthorization()
+	{
+		// ATT is an Apple platform API. Android completes the same portable
+		// contract immediately so consumer code can use one call site.
+		Map<String, Object> result = new HashMap<>();
+		result.put("status", 3);
+		result.put("authorized", true);
+		result.put("applicable", false);
+		fireEvent("tracking_authorization_completed", result);
+	}
+
+	// ===================================================================
 	// AD CREATION METHODS
 	// ===================================================================
 	@Kroll.method
@@ -755,8 +771,9 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public void setTestDevice(String deviceId)
 	{
-		// Set test device through RequestConfiguration
-		RequestConfiguration requestConfiguration = new RequestConfiguration.Builder()
+		RequestConfiguration requestConfiguration = MobileAds
+			.getRequestConfiguration()
+			.toBuilder()
 			.setTestDeviceIds(Arrays.asList(deviceId))
 			.build();
 		MobileAds.setRequestConfiguration(requestConfiguration);
@@ -767,8 +784,8 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public boolean isTestDevice()
 	{
-		// This would require tracking test device status
-		// For now, return false as default implementation
-		return false;
+		return new AdRequest.Builder()
+			.build()
+			.isTestDevice(TiApplication.getInstance());
 	}
 }

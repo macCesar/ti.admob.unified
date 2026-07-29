@@ -17,13 +17,13 @@ const Admob = require('ti.admob.unified')
 | `isPrivacyOptionsRequired()` | iOS, Android | Supported |
 | `presentPrivacyOptions(config)` | iOS, Android | Supported |
 | `resetConsent()` | iOS, Android | Testing only |
-| `requestTrackingAuthorization()` | iOS | Supported |
+| `requestTrackingAuthorization()` | iOS, Android | Portable |
 | `createBanner(config)` | iOS, Android | Supported |
 | `createAdaptiveBanner(config)` | iOS, Android | Supported |
-| `createInterstitial(config)` | iOS, Android | Preserved |
-| `createRewarded(config)` | iOS, Android | Preserved |
+| `createInterstitial(config)` | iOS, Android | Supported |
+| `createRewarded(config)` | iOS, Android | Supported |
 | `setTestDevice(deviceId)` | iOS, Android | Compatibility utility |
-| `isTestDevice()` | iOS, Android | Platform caveat |
+| `isTestDevice()` | iOS, Android | Supported |
 | `setAppVolume(volume)` | iOS, Android | Platform caveat |
 | `canShowAds()` | iOS, Android | Deprecated alias |
 | `canShowPersonalizedAds()` | iOS, Android | Deprecated; always `false` |
@@ -111,10 +111,10 @@ point, call `presentPrivacyOptions()`.
 
 ### `requestTrackingAuthorization()`
 
-iOS only. Requests or retrieves App Tracking Transparency authorization and
-emits `tracking_authorization_completed`.
-
-The method is not exported on Android. Guard it with `OS_IOS`.
+Completes the portable tracking-authorization step and emits
+`tracking_authorization_completed`. On iOS it requests or retrieves App
+Tracking Transparency authorization. On Android it completes immediately with
+`applicable: false`, so consumers do not need a platform condition.
 
 ### `createBanner(config)`
 
@@ -150,12 +150,12 @@ See [Adaptive banner properties](banners.md#creation-properties).
 ### `createInterstitial(config)`
 
 Returns an interstitial proxy with `load()`, `show()`, `isLoaded()`, and
-`destroy()`.
+terminal `destroy()`.
 
 ### `createRewarded(config)`
 
 Returns a rewarded proxy with `load()`, `show()`, `isLoaded()`, and
-`destroy()`.
+terminal `destroy()`. Grant rewards only from the `rewarded` event.
 
 See [Fullscreen ads](fullscreen.md) for both factories.
 
@@ -172,11 +172,10 @@ supports a list and keeps initialization configuration in one place.
 
 ### `isTestDevice()`
 
-On iOS, returns `true` when at least one test-device identifier is configured
-in the native request configuration.
-
-On Android `1.2.0`, it is a compatibility stub that always returns `false`.
-Do not use this method to decide whether production IDs are safe.
+Returns whether the current device will receive test ads according to the
+native Google Mobile Ads request configuration. Android delegates to
+`AdRequest.isTestDevice(context)`; iOS reports whether test identifiers are
+configured.
 
 ### `setAppVolume(volume)`
 
@@ -262,13 +261,14 @@ Interstitial and rewarded proxies expose:
 | `load()` | `void` | Loads one native fullscreen ad. |
 | `show()` | `void` | Presents it or emits `failed_to_show`. |
 | `isLoaded()` | Boolean | Reports whether a native ad is ready. |
-| `destroy()` | `void` | Clears the proxy's native ad reference. |
+| `destroy()` | `void` | Terminal, idempotent cleanup; emits `destroyed` once. |
 
-Common fullscreen payloads always include `adUnitId`. Failures include
-`error`; native callbacks normally add `code`. Reward payloads add
-`rewardType` and `rewardAmount`.
+Loads are serialized: calls while loading, loaded, or showing are ignored.
+Common fullscreen payloads always include `adUnitId` and `adType`. Failures
+include `error`, `message`, and `code`. Reward payloads add `rewardType` and
+`rewardAmount`.
 
-See [Fullscreen event differences](fullscreen.md#events).
+See [Fullscreen events](fullscreen.md#events).
 
 ## Module events
 
@@ -320,16 +320,17 @@ Deprecated failure-only compatibility event. Use `consent_complete`.
 
 ### `tracking_authorization_completed`
 
-iOS only:
-
 ```js
 {
-  status: Number
+  status: Number,
+  authorized: Boolean,
+  applicable: Boolean
 }
 ```
 
-Status values are `0` not determined, `1` restricted, `2` denied, and `3`
-authorized.
+On iOS, status values are `0` not determined, `1` restricted, `2` denied, and
+`3` authorized. Android reports `3`, `authorized: true`, and
+`applicable: false` because ATT is not an Android API.
 
 ## Constants
 
@@ -338,8 +339,8 @@ authorized.
 | Constant | Value | Factory status |
 |---|---|---|
 | `AD_TYPE_BANNER` | `"banner"` | Implemented |
-| `AD_TYPE_INTERSTITIAL` | `"interstitial"` | Preserved |
-| `AD_TYPE_REWARDED` | `"rewarded"` | Preserved |
+| `AD_TYPE_INTERSTITIAL` | `"interstitial"` | Implemented |
+| `AD_TYPE_REWARDED` | `"rewarded"` | Implemented |
 | `AD_TYPE_REWARDED_INTERSTITIAL` | `"rewarded_interstitial"` | No factory |
 | `AD_TYPE_APP_OPEN` | `"app_open"` | No factory |
 | `AD_TYPE_NATIVE` | `"native"` | No factory |
@@ -379,8 +380,8 @@ raw native string `"top"` or `"bottom"`. Do not pass the two
 | `AD_SHOWED_FULLSCREEN_CONTENT` | `"showed_fullscreen_content"` |
 | `AD_DESTROYED` | `"destroyed"` |
 
-`AD_SHOWED_FULLSCREEN_CONTENT` is currently emitted by Android fullscreen
-proxies, not iOS. Portable consumers should use `AD_OPENED`.
+`AD_SHOWED_FULLSCREEN_CONTENT` and `AD_OPENED` are emitted by both fullscreen
+proxy types on iOS and Android.
 
 ### Consent status
 

@@ -142,6 +142,7 @@ test('provides a modern, safe executable example', () => {
   assert.match(example, /addEventListener\('consent_complete'/)
   assert.match(example, /canRequestAds\(\)/)
   assert.match(example, /requestTrackingAuthorization\(\)/)
+  assert.doesNotMatch(example, /OS_IOS/)
   assert.match(example, /createAdaptiveBanner/)
   assert.match(example, /event\.height/)
   assert.match(example, /removeEventListener/)
@@ -157,7 +158,7 @@ test('provides a modern, safe executable example', () => {
   assert.doesNotMatch(example, /height:\s*(50|90|123)\b/)
 })
 
-test('states the cross-platform adaptive height unit and platform differences', () => {
+test('states portable banner and fullscreen contracts', () => {
   const banners = read('documentation/banners.md')
   const fullscreen = read('documentation/fullscreen.md')
 
@@ -173,9 +174,8 @@ test('states the cross-platform adaptive height unit and platform differences', 
   assert.match(banners, /removeEventListener/)
   assert.match(banners, /Do not add a JavaScript renewal timer/)
 
-  assert.match(
-    fullscreen,
-    /Android emits both `opened` and `showed_fullscreen_content`/
-  )
-  assert.match(fullscreen, /iOS emits `opened` but does not currently emit/)
+  assert.match(fullscreen, /showed_fullscreen_content/)
+  assert.match(fullscreen, /Terminal, idempotent cleanup/)
+  assert.match(fullscreen, /`adUnitId`, `adType`, `error`, `message`, `code`/)
+  assert.doesNotMatch(fullscreen, /iOS emits `opened` but does not currently emit/)
 })

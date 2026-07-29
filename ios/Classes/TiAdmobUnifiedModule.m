@@ -364,7 +364,9 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     if (@available(iOS 14, *)) {
         [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
             NSDictionary *result = @{
-                @"status": @(status)
+                @"status": @(status),
+                @"authorized": @(status == ATTrackingManagerAuthorizationStatusAuthorized),
+                @"applicable": @YES
             };
 
             [self fireEvent:@"tracking_authorization_completed" withObject:result];
@@ -372,14 +374,18 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     } else {
         // iOS < 14, tracking authorization not required
         NSDictionary *result = @{
-            @"status": @(3) // ATTrackingManagerAuthorizationStatusAuthorized equivalent
+            @"status": @(3), // ATTrackingManagerAuthorizationStatusAuthorized equivalent
+            @"authorized": @YES,
+            @"applicable": @NO
         };
         [self fireEvent:@"tracking_authorization_completed" withObject:result];
     }
 #else
     // iOS < 14, tracking authorization not required
     NSDictionary *result = @{
-        @"status": @(3) // ATTrackingManagerAuthorizationStatusAuthorized equivalent
+        @"status": @(3), // ATTrackingManagerAuthorizationStatusAuthorized equivalent
+        @"authorized": @YES,
+        @"applicable": @NO
     };
     [self fireEvent:@"tracking_authorization_completed" withObject:result];
 #endif

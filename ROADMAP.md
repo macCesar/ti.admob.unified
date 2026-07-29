@@ -15,6 +15,8 @@ Version `1.2.0` establishes a Google-only core:
 - idempotent initialization and consent
 - terminal `consent_complete` events
 - one standard/adaptive banner lifecycle on both platforms
+- one interstitial/rewarded lifecycle and event contract on both platforms
+- portable tracking-authorization completion on both platforms
 - no manual TCF personalization inference
 
 ## Complete in 1.2.0
@@ -26,7 +28,8 @@ Version `1.2.0` establishes a Google-only core:
 - `initialize()` and `requestConsent()` serialize concurrent calls.
 - Every accepted consent operation reaches `consent_complete`.
 - Privacy-options dismissal always emits a terminal event.
-- ATT remains an iOS step after UMP and before initialization.
+- `requestTrackingAuthorization()` is portable after UMP: iOS resolves ATT and
+  Android completes immediately with `applicable: false`.
 - Legacy privacy aliases remain documented but are not used by new examples.
 
 ### Banner contract
@@ -39,6 +42,18 @@ Version `1.2.0` establishes a Google-only core:
 - Native delegates, listeners, controllers, views, and activity lifecycle
   registrations are released.
 - Each proxy accepts one active load and at most one deferred load while paused.
+
+### Fullscreen contract
+
+- Interstitial and rewarded proxies expose the same `load()`, `show()`,
+  `isLoaded()`, and terminal `destroy()` lifecycle.
+- Duplicate loads are serialized and native fullscreen references are
+  single-use.
+- Common events include `adUnitId` and `adType`; failures add `error`,
+  `message`, and `code`.
+- Both platforms emit `opened`, `showed_fullscreen_content`, and `destroyed`.
+- Native callbacks/delegates are detached during explicit destruction and
+  Titanium proxy release.
 
 ### Distribution
 
@@ -67,13 +82,11 @@ Before a final release:
 These improvements can be developed without changing the established banner
 and privacy APIs:
 
-- bring interstitial and rewarded payload/lifecycle behavior to the same
-  cross-platform standard as banners;
 - implement iOS inline adaptive and collapsible banners, or formally narrow
   the portable adaptive surface to anchored banners;
 - add a supported public Ad Inspector launcher;
-- replace or remove platform-divergent compatibility utilities such as
-  `setAppVolume()` and `isTestDevice()`;
+- replace or remove the remaining platform-divergent compatibility utility
+  `setAppVolume()`;
 - remove deprecated privacy and destruction aliases in a future major release.
 
 ## Deferred formats

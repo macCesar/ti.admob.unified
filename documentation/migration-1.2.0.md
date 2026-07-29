@@ -1,7 +1,7 @@
 # Migrating to 1.2.0
 
-Version `1.2.0` unifies the supported banner and privacy contracts without
-requiring a production-ad rollout.
+Version `1.2.0` unifies the supported banner, fullscreen, tracking, and privacy
+contracts without requiring a production-ad rollout.
 
 ## Module declaration
 
@@ -68,14 +68,16 @@ Admob.requestConsent({})
 
 Callback properties passed inside the config object are not invoked.
 
-## Request UMP before ATT and initialization
+## Request UMP before tracking authorization and initialization
 
 The recommended order is:
 
 ```text
-UMP -> canRequestAds -> ATT on iOS -> initialize -> load ads
+UMP -> canRequestAds -> requestTrackingAuthorization -> initialize -> load ads
 ```
 
+Use that same sequence on both platforms. iOS resolves ATT; Android emits
+`tracking_authorization_completed` immediately with `applicable: false`.
 Do not initialize before UMP has updated the current session.
 
 ## Adopt adaptive banner sizing
@@ -128,6 +130,26 @@ banner.destroy()
 Delete `setTimeout`/`setInterval` banner renewal loops. Configure refresh in
 AdMob and let the native SDK own it.
 
+## Adopt the fullscreen lifecycle
+
+Interstitial and rewarded proxies now share the same methods and event payloads
+on iOS and Android:
+
+```js
+fullscreen.load()
+fullscreen.show()
+fullscreen.isLoaded()
+fullscreen.destroy()
+```
+
+Calls to `load()` while a request, loaded ad, or presentation is active are
+ignored. Each native fullscreen ad is single-use. `destroy()` is terminal and
+idempotent, and emits `destroyed` once.
+
+Common events include `adUnitId` and `adType`; failures add `error`, `message`,
+and `code`. Both platforms emit `opened` and `showed_fullscreen_content`.
+Rewarded value must be granted only from the `rewarded` event.
+
 ## Mediation
 
 The core `1.2.0` artifacts do not bundle AppLovin, InMobi, Vungle/Liftoff,
@@ -145,6 +167,8 @@ adapter. New code should not call them.
 - Test ATT authorized, denied, and previously resolved on iOS.
 - Test banner load, error collapse, rotation, background/resume, and repeated
   window close.
+- Test interstitial and rewarded duplicate loads, show failures, close,
+  reward delivery, and repeated destruction.
 - Confirm no duplicate banners or retained listeners.
 - Inspect requests with Ad Inspector.
 - Run `npm test` and `./scripts/verify-artifacts.sh`.

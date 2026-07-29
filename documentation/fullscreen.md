@@ -1,10 +1,7 @@
 # Fullscreen ads
 
-Version `1.2.0` preserves the existing interstitial and rewarded proxies. Their
-factories and basic methods work on both platforms, but these proxies have not
-received the strict payload/lifecycle parity pass applied to banners.
-
-Use them only after validating the required behavior on both target platforms.
+Version `1.2.0` gives interstitial and rewarded proxies the same public
+lifecycle and event contract on iOS and Android.
 
 ## Privacy gate
 
@@ -71,7 +68,7 @@ Both factories accept:
 | `adUnitId` | String | `""` | Required before `load()`. |
 | `autoReload` | Boolean | `false` | Loads a fresh ad after a successful close. |
 | `keywords` | String[] | None | Android adds request keywords. iOS encodes them as `GADExtras` parameters. |
-| `extras` | Object | None | iOS registers `GADExtras`. Android accepts the object but does not currently add it to the ad request. |
+| `extras` | Object | None | Forwarded through Google ad-network extras on both platforms. |
 
 Do not use `extras` to bypass UMP or synthesize personalization state.
 
@@ -79,14 +76,17 @@ Do not use `extras` to bypass UMP or synthesize personalization state.
 
 | Method | Description |
 |---|---|
-| `load()` | Starts loading an ad. Duplicate Android loads are ignored while active. |
+| `load()` | Starts one request. Calls while loading, loaded, or showing are ignored. |
 | `show()` | Presents the loaded ad or emits `failed_to_show`. |
-| `isLoaded()` | Returns whether an ad instance is ready. |
-| `destroy()` | Clears the held ad reference. |
+| `isLoaded()` | Returns `true` only while an unused ad is ready. |
+| `destroy()` | Terminal, idempotent cleanup; emits `destroyed` once. |
 
 Google fullscreen ads are single-use. After presentation or a show failure,
 load a fresh instance. `autoReload: true` reloads after `closed`; it does not
 reload after every load/show error.
+
+Late native callbacks are ignored after `destroy()`. A dismissed or
+failed-to-show ad reference is cleared before the terminal event is emitted.
 
 ## Events
 
@@ -94,25 +94,19 @@ reload after every load/show error.
 
 | Event | Interstitial | Rewarded | Common payload |
 |---|---:|---:|---|
-| `loaded` | Yes | Yes | `adUnitId` |
-| `failed_to_load` | Yes | Yes | `adUnitId`, `error`, `code` |
-| `opened` | Yes | Yes | `adUnitId` |
-| `closed` | Yes | Yes | `adUnitId` |
-| `clicked` | Yes | Yes | `adUnitId` |
-| `impression` | Yes | Yes | `adUnitId` |
-| `failed_to_show` | Yes | Yes | `adUnitId`, `error`; `code` when native SDK supplies it |
-| `rewarded` | No | Yes | `adUnitId`, `rewardType`, `rewardAmount` |
+| `loaded` | Yes | Yes | `adUnitId`, `adType` |
+| `failed_to_load` | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
+| `opened` | Yes | Yes | `adUnitId`, `adType` |
+| `showed_fullscreen_content` | Yes | Yes | `adUnitId`, `adType` |
+| `closed` | Yes | Yes | `adUnitId`, `adType` |
+| `clicked` | Yes | Yes | `adUnitId`, `adType` |
+| `impression` | Yes | Yes | `adUnitId`, `adType` |
+| `failed_to_show` | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
+| `destroyed` | Yes | Yes | `adUnitId`, `adType` |
+| `rewarded` | No | Yes | `adUnitId`, `adType`, `rewardType`, `rewardAmount` |
 
-Android `failed_to_load` also includes `message`, duplicating `error`. Do not
-depend on `message` in shared code.
-
-### Known platform difference
-
-Android emits both `opened` and `showed_fullscreen_content` when fullscreen
-content appears. iOS emits `opened` but does not currently emit
-`showed_fullscreen_content`.
-
-Subscribe to `opened` for portable behavior.
+`message` intentionally duplicates `error` for compatibility. New code may use
+`error`; both keys are portable.
 
 ## Cleanup
 
@@ -126,6 +120,9 @@ function disposeInterstitial() {
   interstitial.destroy()
 }
 ```
+
+After disposal, create a new proxy rather than attempting to load the destroyed
+one again.
 
 ## Not implemented
 

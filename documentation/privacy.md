@@ -11,7 +11,8 @@ Use this order on every app launch:
 2. Call `requestConsent({ ... })`.
 3. Wait for the terminal `consent_complete` event.
 4. Check `event.canRequestAds` or `canRequestAds()`.
-5. On iOS, resolve ATT if your app uses it.
+5. Call the portable tracking-authorization step. iOS resolves ATT; Android
+   completes immediately with `applicable: false`.
 6. Call `initialize({ ... })` once.
 7. Create and load ads only after initialization succeeds.
 
@@ -158,15 +159,18 @@ Treat `status` as diagnostic text, not a stable machine-readable value.
 
 ## App Tracking Transparency
 
-`requestTrackingAuthorization()` is available only on iOS and emits:
+`requestTrackingAuthorization()` is available on both platforms and emits:
 
 ```js
 {
-  status: 3
+  status: 3,
+  authorized: true,
+  applicable: true
 }
 ```
 
-The numeric status follows Apple's `ATTrackingManagerAuthorizationStatus`:
+On iOS, the numeric status follows Apple's
+`ATTrackingManagerAuthorizationStatus`:
 
 | Value | Meaning |
 |---:|---|
@@ -174,6 +178,10 @@ The numeric status follows Apple's `ATTrackingManagerAuthorizationStatus`:
 | `1` | Restricted |
 | `2` | Denied |
 | `3` | Authorized |
+
+On Android, ATT does not apply. The method completes synchronously with
+`status: 3`, `authorized: true`, and `applicable: false`, allowing the same
+listener and call site on both platforms.
 
 Always wait for `tracking_authorization_completed`, including when the user
 resolved ATT in an earlier session. ATT denial does not mean

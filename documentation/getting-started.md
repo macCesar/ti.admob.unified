@@ -150,11 +150,6 @@ Admob.addEventListener('consent_complete', event => {
     return
   }
 
-  if (!OS_IOS) {
-    initializeOnce()
-    return
-  }
-
   const onTrackingComplete = trackingEvent => {
     Admob.removeEventListener(
       'tracking_authorization_completed',
