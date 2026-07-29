@@ -162,21 +162,10 @@ public class TiAdmobUnifiedModule extends KrollModule
 				}
 			}
 			
-			// Tag for child directed treatment (COPPA)
-			if (config.containsKey("tagForChildDirectedTreatment")) {
-				boolean childDirected = config.getBoolean("tagForChildDirectedTreatment");
-				requestConfigBuilder.setTagForChildDirectedTreatment(
-					childDirected ? RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE 
-								 : RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_FALSE);
-			}
-			
-			// Tag for under age of consent (GDPR)
-			if (config.containsKey("tagForUnderAgeOfConsent")) {
-				boolean underAge = config.getBoolean("tagForUnderAgeOfConsent");
-				requestConfigBuilder.setTagForUnderAgeOfConsent(
-					underAge ? RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE 
-							 : RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_FALSE);
-			}
+			// COPPA + GDPR <16. Google's docs reference setAgeRestrictedTreatment as the
+			// future replacement but it's not yet shipped in play-services-ads 25.3.0.
+			// Keep deprecated TFCD/TFUA setters until the consolidated API ships.
+			setAgeRestrictionsLegacy(requestConfigBuilder, config);
 			
 			// Max ad content rating
 			if (config.containsKey("maxAdContentRating")) {
@@ -187,8 +176,8 @@ public class TiAdmobUnifiedModule extends KrollModule
 			MobileAds.setRequestConfiguration(requestConfigBuilder.build());
 		}
 
-		// Initialize the SDK with fast initialization
-		Log.d(LCAT, "Starting AdMob SDK initialization...");
+		// Initialize the SDK with FAST initialization (no problematic adapters)
+		Log.d(LCAT, "Starting FAST AdMob SDK initialization...");
 		
 		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
 			@Override
@@ -210,6 +199,184 @@ public class TiAdmobUnifiedModule extends KrollModule
 				fireEvent("module_initialized", event);
 			}
 		});
+	}
+
+	@SuppressWarnings("deprecation") // TFCD/TFUA setters are deprecated in GMA 25.x;
+	// kept in place until setAgeRestrictedTreatment(AgeRestrictedTreatment) ships in a future SDK.
+	private void setAgeRestrictionsLegacy(RequestConfiguration.Builder builder, KrollDict config)
+	{
+		if (config.containsKey("tagForChildDirectedTreatment")) {
+			boolean childDirected = config.getBoolean("tagForChildDirectedTreatment");
+			builder.setTagForChildDirectedTreatment(
+				childDirected ? RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE
+							 : RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_FALSE);
+		}
+		if (config.containsKey("tagForUnderAgeOfConsent")) {
+			boolean underAge = config.getBoolean("tagForUnderAgeOfConsent");
+			builder.setTagForUnderAgeOfConsent(
+				underAge ? RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE
+						 : RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_FALSE);
+		}
+	}
+
+	// ===================================================================
+	// MEDIATION NETWORK CONFIGURATION METHODS
+	// ===================================================================
+	@Kroll.method
+	public void setAppLovinGDPRConsent(KrollDict config)
+	{
+		if (config != null && config.containsKey("enabled")) {
+			boolean isEnabled = config.getBoolean("enabled");
+			Log.d(LCAT, "Setting AppLovin GDPR consent: " + isEnabled);
+			
+			try {
+				// Only initialize AppLovin if the SDK is available
+				Class<?> appLovinPrivacyClass = Class.forName("com.applovin.sdk.AppLovinPrivacySettings");
+				
+				// Use reflection to avoid compile-time dependency
+				java.lang.reflect.Method setHasUserConsentMethod = 
+					appLovinPrivacyClass.getDeclaredMethod("setHasUserConsent", boolean.class, android.content.Context.class);
+				java.lang.reflect.Method setDoNotSellMethod = 
+					appLovinPrivacyClass.getDeclaredMethod("setDoNotSell", boolean.class, android.content.Context.class);
+				
+				Activity activity = TiApplication.getInstance().getCurrentActivity();
+				if (activity != null) {
+					// EU consent and GDPR
+					setHasUserConsentMethod.invoke(null, isEnabled, activity);
+					// CCPA - Do Not Sell is inverse of consent
+					setDoNotSellMethod.invoke(null, !isEnabled, activity);
+					
+					Log.d(LCAT, "AppLovin GDPR consent configured successfully");
+				}
+				
+			} catch (ClassNotFoundException e) {
+				Log.w(LCAT, "AppLovin SDK not available, skipping GDPR configuration");
+			} catch (Exception e) {
+				Log.e(LCAT, "Error configuring AppLovin GDPR consent: " + e.getMessage());
+			}
+		}
+	}
+
+	@Kroll.method
+	public void setInMobiGDPRConsent(KrollDict config)
+	{
+		if (config != null && config.containsKey("enabled")) {
+			boolean isEnabled = config.getBoolean("enabled");
+			Log.d(LCAT, "Setting InMobi GDPR consent: " + isEnabled);
+			
+			try {
+				// Only initialize InMobi if the SDK is available
+				Class<?> inMobiSdkClass = Class.forName("com.inmobi.sdk.InMobiSdk");
+				Class<?> inMobiConsentClass = Class.forName("com.google.ads.mediation.inmobi.InMobiConsent");
+				
+				// Get IM_GDPR_CONSENT_AVAILABLE constant
+				String IM_GDPR_CONSENT_AVAILABLE = (String) inMobiSdkClass.getField("IM_GDPR_CONSENT_AVAILABLE").get(null);
+				
+				// Create consent JSON object
+				org.json.JSONObject consentObject = new org.json.JSONObject();
+				consentObject.put(IM_GDPR_CONSENT_AVAILABLE, true);
+				consentObject.put("gdpr", isEnabled ? "1" : "0");
+				
+				// Update GDPR consent
+				java.lang.reflect.Method updateGDPRConsentMethod = 
+					inMobiConsentClass.getDeclaredMethod("updateGDPRConsent", org.json.JSONObject.class);
+				updateGDPRConsentMethod.invoke(null, consentObject);
+				
+				Log.d(LCAT, "InMobi GDPR consent configured successfully");
+				
+			} catch (ClassNotFoundException e) {
+				Log.w(LCAT, "InMobi SDK not available, skipping GDPR configuration");
+			} catch (Exception e) {
+				Log.e(LCAT, "Error configuring InMobi GDPR consent: " + e.getMessage());
+			}
+		}
+	}
+
+	@Kroll.method
+	public void setVungleGDPRConsent(KrollDict config)
+	{
+		if (config != null && config.containsKey("enabled")) {
+			boolean isEnabled = config.getBoolean("enabled");
+			Log.d(LCAT, "Setting Vungle GDPR consent: " + isEnabled);
+			
+			try {
+				// Only configure Vungle if the SDK is available
+				Class<?> vunglePrivacyClass = Class.forName("com.vungle.warren.VunglePrivacySettings");
+				
+				// Set GDPR consent status
+				java.lang.reflect.Method setGDPRStatusMethod = 
+					vunglePrivacyClass.getDeclaredMethod("setGDPRStatus", boolean.class, String.class);
+				
+				// Set CCPA status  
+				java.lang.reflect.Method setCCPAStatusMethod = 
+					vunglePrivacyClass.getDeclaredMethod("setCCPAStatus", boolean.class);
+				
+				// Configure GDPR
+				setGDPRStatusMethod.invoke(null, true, isEnabled ? "opted_in" : "opted_out");
+				// Configure CCPA (Do Not Sell is inverse of consent)
+				setCCPAStatusMethod.invoke(null, !isEnabled);
+				
+				Log.d(LCAT, "Vungle GDPR consent configured successfully");
+				
+			} catch (ClassNotFoundException e) {
+				Log.w(LCAT, "Vungle SDK not available, skipping GDPR configuration");
+			} catch (Exception e) {
+				Log.e(LCAT, "Error configuring Vungle GDPR consent: " + e.getMessage());
+			}
+		}
+	}
+
+	@Kroll.method
+	public boolean isAppLovinAvailable()
+	{
+		try {
+			Class.forName("com.applovin.sdk.AppLovinSdk");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+
+	@Kroll.method
+	public boolean isVungleAvailable()
+	{
+		try {
+			Class.forName("com.vungle.warren.Vungle");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+
+	@Kroll.method
+	public boolean isInMobiAvailable()
+	{
+		try {
+			Class.forName("com.inmobi.sdk.InMobiSdk");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+
+	// NUEVO: Método para añadir adapters problemáticos SOLO cuando se necesiten
+	@Kroll.method
+	public void enableOptionalMediationNetworks(KrollDict config)
+	{
+		Log.d(LCAT, "Enabling optional mediation networks...");
+		
+		if (config != null) {
+			boolean enableAppLovin = config.optBoolean("appLovin", false);
+			boolean enableVungle = config.optBoolean("vungle", false);
+			
+			if (enableAppLovin) {
+				Log.w(LCAT, "AppLovin adapter not included in build - add 'com.google.ads.mediation:applovin:13.3.1.1' to dependencies");
+			}
+			
+			if (enableVungle) {
+				Log.w(LCAT, "Vungle adapter not included in build - add 'com.google.ads.mediation:vungle:7.5.0.1' to dependencies");
+			}
+		}
 	}
 
 	// ===================================================================
@@ -462,6 +629,17 @@ public class TiAdmobUnifiedModule extends KrollModule
 	{
 		Log.d(LCAT, "Creating banner ad");
 		TiAdmobUnifiedBannerAdProxy proxy = new TiAdmobUnifiedBannerAdProxy();
+		if (config != null) {
+			proxy.handleCreationDict(config);
+		}
+		return proxy;
+	}
+
+	@Kroll.method
+	public TiAdmobUnifiedAdaptiveBannerAdProxy createAdaptiveBanner(KrollDict config)
+	{
+		Log.d(LCAT, "Creating adaptive banner ad");
+		TiAdmobUnifiedAdaptiveBannerAdProxy proxy = new TiAdmobUnifiedAdaptiveBannerAdProxy();
 		if (config != null) {
 			proxy.handleCreationDict(config);
 		}
