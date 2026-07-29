@@ -42,21 +42,47 @@ const androidRewarded = read(
   'android/src/ti/admob/unified/TiAdmobUnifiedRewardedAdProxy.java'
 )
 
-test('pins the phase 0/1 dependency baseline', () => {
+test('pins the unified ads and mediation dependency baseline', () => {
   assert.match(read('ios/manifest'), /version: 1\.2\.0/)
   assert.match(read('android/manifest'), /version: 1\.2\.0/)
 
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.4\.0/)
   assert.match(androidGradle, /user-messaging-platform:4\.0\.0/)
-  assert.doesNotMatch(androidGradle, /com\.google\.ads\.mediation:/)
+  for (const coordinate of [
+    'facebook:6.21.0.4',
+    'inmobi:11.4.0.0',
+    'unity:4.19.0.0',
+    'applovin:13.6.3.0',
+    'vungle:7.7.6.0',
+    'ironsource:9.5.0.0'
+  ]) {
+    assert.match(
+      androidGradle,
+      new RegExp(`com\\.google\\.ads\\.mediation:${coordinate.replaceAll('.', '\\.')}`)
+    )
+  }
 
   const platformEntries = fs.readdirSync(path.join(root, 'ios/platform'))
     .filter(name => name.endsWith('.xcframework'))
     .sort()
   assert.deepEqual(platformEntries, [
+    'AppLovinAdapter.xcframework',
+    'AppLovinSDK.xcframework',
+    'FBAudienceNetwork.xcframework',
     'GoogleMobileAds.xcframework',
-    'UserMessagingPlatform.xcframework'
+    'InMobiAdapter.xcframework',
+    'InMobiSDK.xcframework',
+    'IronSource.xcframework',
+    'IronSourceAdQualitySDK.xcframework',
+    'IronSourceAdapter.xcframework',
+    'LiftoffMonetizeAdapter.xcframework',
+    'MetaAdapter.xcframework',
+    'UnityAdapter.xcframework',
+    'UnityAds.xcframework',
+    'UnityCoherenceLib.xcframework',
+    'UserMessagingPlatform.xcframework',
+    'VungleAdsSDK.xcframework'
   ])
 
   assert.equal(
@@ -70,6 +96,11 @@ test('pins the phase 0/1 dependency baseline', () => {
       'ios/platform/UserMessagingPlatform.xcframework/ios-arm64/UserMessagingPlatform.framework/Info.plist'
     ),
     '3.1.0'
+  )
+
+  assert.equal(
+    read('ios/framework-checksums.sha256').trim().split('\n').length,
+    platformEntries.length
   )
 })
 
@@ -175,8 +206,12 @@ test('avoids keyWindow and preserves compatibility APIs', () => {
 
   const compatibilityMethods = [
     'isAppLovinAvailable',
+    'isMetaAvailable',
     'isInMobiAvailable',
     'isVungleAvailable',
+    'isUnityAvailable',
+    'isIronSourceAvailable',
+    'getMediationStatus',
     'setAppLovinGDPRConsent',
     'setInMobiGDPRConsent',
     'setVungleGDPRConsent',
@@ -193,6 +228,43 @@ test('avoids keyWindow and preserves compatibility APIs', () => {
   ].join('\n')
   assert.match(androidBannerSources, /destroyAdViewAndCancelRequest/)
   assert.match(androidBannerSources, /destoyAdViewAndCancelRequest/)
+})
+
+test('exposes one six-network mediation diagnostic contract', () => {
+  for (const source of [iosModule, androidModule]) {
+    for (const key of [
+      'appLovin',
+      'meta',
+      'inMobi',
+      'unity',
+      'liftoffMonetize',
+      'ironSource'
+    ]) {
+      assert.match(source, new RegExp(`["']${key}["']`))
+    }
+  }
+
+  for (const adapterClass of [
+    'FacebookMediationAdapter',
+    'InMobiMediationAdapter',
+    'UnityMediationAdapter',
+    'AppLovinMediationAdapter',
+    'VungleMediationAdapter',
+    'IronSourceMediationAdapter'
+  ]) {
+    assert.match(androidModule, new RegExp(adapterClass))
+  }
+})
+
+test('does not derive regional mediation consent from one legacy Boolean', () => {
+  for (const source of [iosModule, androidModule]) {
+    assert.doesNotMatch(
+      source,
+      /setDoNotSellMethod|updateGDPRConsentMethod|setCCPAStatusMethod/
+    )
+    assert.match(source, /setAppLovinGDPRConsent/)
+    assert.match(source, /deprecated/)
+  }
 })
 
 test('keeps documentation on the implemented API surface', () => {

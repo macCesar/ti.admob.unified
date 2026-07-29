@@ -31,6 +31,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   sequence on both platforms.
 - Shared interstitial and rewarded lifecycle state: serialized loads, explicit
   showing state, single-use references, and terminal idempotent destruction.
+- Six-network AdMob mediation distribution on both platforms: Meta, InMobi,
+  Unity Ads, AppLovin, Liftoff Monetize/Vungle, and ironSource.
+- Portable mediation diagnostics with `getMediationStatus()` and individual
+  availability methods for all six networks.
+- Reproducible CocoaPods-based iOS framework staging with a verified inventory
+  of all 16 XCFrameworks.
 
 ### Changed
 
@@ -39,6 +45,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Google Mobile Ads iOS: `13.4.0` → `13.7.0`.
 - Google Mobile Ads Android: `25.3.0` → `25.4.0`.
 - UMP remains iOS `3.1.0` and Android `4.0.0`.
+- Mediation adapters and their matching native SDKs were updated as supported
+  pairs for Google Mobile Ads `13.7.0` on iOS and `25.4.0` on Android.
+- Legacy per-network consent setters now behave as portable deprecated no-ops
+  instead of deriving multiple regional privacy choices from one Boolean.
 - Consent uses UMP's load-and-present-if-required flow.
 - Full-screen iOS presentation uses Titanium's top presented controller.
 - Public privacy documentation is event-based; callback options are deprecated.
@@ -95,8 +105,6 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Removed
 
-- Required Meta, InMobi, AppLovin, IronSource, Unity, and Liftoff/Vungle
-  mediation dependencies from both core artifacts.
 - Stale dependency/version claims and unsupported revenue assertions.
 
 ## [1.1.0] — 2026-05-28

@@ -471,39 +471,67 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 
 - (NSNumber *)isAppLovinAvailable:(id)args
 {
-    return @(NSClassFromString(@"ALSdk") != nil);
+    return @(NSClassFromString(@"GADMediationAdapterAppLovin") != nil);
+}
+
+- (NSNumber *)isMetaAvailable:(id)args
+{
+    return @(NSClassFromString(@"GADMediationAdapterFacebook") != nil);
 }
 
 - (NSNumber *)isInMobiAvailable:(id)args
 {
-    return @(NSClassFromString(@"IMSdk") != nil);
+    return @(NSClassFromString(@"GADMediationAdapterInMobi") != nil);
 }
 
 - (NSNumber *)isVungleAvailable:(id)args
 {
-    return @(NSClassFromString(@"VungleAds") != nil);
+    return @(NSClassFromString(@"GADMediationAdapterVungle") != nil);
 }
 
-#pragma mark - Per-network GDPR consent (stubs — iOS GMA already routes UMP consent to adapters)
+- (NSNumber *)isUnityAvailable:(id)args
+{
+    return @(NSClassFromString(@"GADMediationAdapterUnity") != nil);
+}
+
+- (NSNumber *)isIronSourceAvailable:(id)args
+{
+    return @(NSClassFromString(@"GADMediationAdapterIronSource") != nil);
+}
+
+- (NSDictionary *)getMediationStatus:(id)args
+{
+    return @{
+        @"appLovin": [self isAppLovinAvailable:nil],
+        @"meta": [self isMetaAvailable:nil],
+        @"inMobi": [self isInMobiAvailable:nil],
+        @"unity": [self isUnityAvailable:nil],
+        @"liftoffMonetize": [self isVungleAvailable:nil],
+        @"ironSource": [self isIronSourceAvailable:nil]
+    };
+}
+
+#pragma mark - Legacy per-network consent compatibility
 
 - (void)setAppLovinGDPRConsent:(id)args
 {
-    DebugLog(@"[DEBUG] setAppLovinGDPRConsent called; on iOS this is handled by GMA via UMP. No-op.");
+    DebugLog(@"[WARN] setAppLovinGDPRConsent() is deprecated and intentionally does not translate one Boolean into regional privacy choices; use UMP and current provider requirements.");
 }
 
 - (void)setInMobiGDPRConsent:(id)args
 {
-    DebugLog(@"[DEBUG] setInMobiGDPRConsent called; on iOS this is handled by GMA via UMP. No-op.");
+    DebugLog(@"[WARN] setInMobiGDPRConsent() is deprecated and intentionally does not translate one Boolean into regional privacy choices; use UMP and current provider requirements.");
 }
 
 - (void)setVungleGDPRConsent:(id)args
 {
-    DebugLog(@"[DEBUG] setVungleGDPRConsent called; on iOS this is handled by GMA via UMP. No-op.");
+    DebugLog(@"[WARN] setVungleGDPRConsent() is deprecated and intentionally does not translate one Boolean into regional privacy choices; use UMP and current provider requirements.");
 }
 
 - (void)enableOptionalMediationNetworks:(id)args
 {
-    DebugLog(@"[DEBUG] enableOptionalMediationNetworks is a compatibility no-op; core artifact contains no third-party adapters.");
+    DebugLog(@"[DEBUG] Mediation adapters are auto-discovered by Google Mobile Ads: %@",
+             [self getMediationStatus:nil]);
 }
 
 #pragma mark - JS Constants (parity with Android @Kroll.constant)

@@ -87,7 +87,17 @@ missing application ID. See Google's
 Do not pass `applicationId` to `initialize()`; the module does not consume
 that property.
 
-## 3. Configure Privacy & messaging
+## 3. Configure mediation
+
+The module already includes Meta, InMobi, Unity Ads, AppLovin, Liftoff
+Monetize, and ironSource adapters on both platforms. Add only the networks you
+intend to use to the application's AdMob mediation groups and complete their
+account, placement, privacy, and store-disclosure setup.
+
+No platform-specific JavaScript or manual adapter initialization is required.
+See [AdMob mediation](mediation.md).
+
+## 4. Configure Privacy & messaging
 
 Create the required messages in the **Privacy & messaging** section of the
 AdMob console. UMP resolves the message configuration from the application ID
@@ -96,7 +106,7 @@ in the consuming app.
 The application must request a fresh consent-information update on every
 launch. See [Privacy and initialization](privacy.md) before loading any ad.
 
-## 4. Use official test units
+## 5. Use official test units
 
 The `TEST_*` constants resolve to Google's platform-specific demo ad unit IDs:
 
@@ -116,7 +126,7 @@ development. See the official
 [Android test-ad guide](https://developers.google.com/admob/android/test-ads)
 and [iOS test-ad guide](https://developers.google.com/admob/ios/test-ads).
 
-## 5. Request consent, then initialize
+## 6. Request consent, then initialize
 
 Register all listeners first:
 
@@ -175,7 +185,7 @@ Admob.requestConsent({
 Application-level guards are still useful because cached terminal events may
 be emitted again when a caller invokes an already-completed operation.
 
-## 6. Create an ad only after the gate opens
+## 7. Create an ad only after the gate opens
 
 ```js
 if (Admob.canRequestAds()) {

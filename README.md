@@ -5,8 +5,10 @@ and the User Messaging Platform (UMP) on iOS and Android.
 
 Version `1.2.0` provides a safe privacy flow, idempotent SDK operations, and
 shared lifecycle/event contracts for banners, interstitials, and rewarded ads.
-The core distribution contains only Google Mobile Ads and UMP; third-party
-mediation adapters are not bundled.
+The same distribution also bundles current AdMob mediation adapters and native
+SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on
+both platforms. Applications keep one JavaScript ad API; AdMob selects the
+configured ad source.
 
 ## Requirements
 
@@ -19,6 +21,25 @@ mediation adapters are not bundled.
 | UMP iOS | `3.1.0` |
 | Google Mobile Ads Android | `25.4.0` |
 | UMP Android | `4.0.0` |
+
+## Mediation
+
+| Ad source | iOS adapter | Android adapter |
+|---|---:|---:|
+| Meta Audience Network | `6.21.1.1.1` | `6.21.0.4` |
+| InMobi | `11.4.0.0` | `11.4.0.0` |
+| Unity Ads | `4.19.0.0` | `4.19.0.0` |
+| AppLovin | `13.6.3.0` | `13.6.3.0` |
+| Liftoff Monetize (Vungle) | `7.7.5.0` | `7.7.6.0` |
+| ironSource | `9.5.0.0.0` | `9.5.0.0` |
+
+The adapters are discovered automatically by Google Mobile Ads. Do not add
+platform checks or call a different ad factory for a mediated request.
+Publisher accounts, ad-source mappings, privacy declarations, and provider
+credentials are still configured outside the module.
+
+Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level
+validation. See [AdMob mediation](documentation/mediation.md).
 
 ## Supported formats
 
@@ -194,6 +215,8 @@ the complete event table.
 
 - [Getting started](documentation/getting-started.md)
 - [Privacy and initialization](documentation/privacy.md)
+- [AdMob mediation](documentation/mediation.md)
+- [Third-party SDK notices](documentation/third-party-notices.md)
 - [Banner ads](documentation/banners.md)
 - [Fullscreen ads](documentation/fullscreen.md)
 - [Complete API reference](documentation/api-reference.md)

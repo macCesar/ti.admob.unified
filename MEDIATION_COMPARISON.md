@@ -1,24 +1,26 @@
-# Mediation status
+# Mediation parity
 
-The 1.2.0 core artifact intentionally includes only Google Mobile Ads and User
-Messaging Platform.
+Version `1.2.0` distributes six AdMob mediation networks on both platforms:
 
-The previous 1.1.0 bundle included Meta, InMobi, AppLovin, IronSource, Unity,
-and Liftoff/Vungle with different platform versions. No local production
-consumer was found, and the only local test consumer merely displayed adapter
-availability. Those SDKs were therefore removed from the core to reduce binary
-size, privacy declarations, initialization work, and maintenance surface.
+| Ad source | iOS | Android | Shared JavaScript API |
+|---|---|---|---|
+| Meta Audience Network | Included | Included | Yes |
+| InMobi | Included | Included | Yes |
+| Unity Ads | Included | Included | Yes |
+| AppLovin | Included | Included | Yes |
+| Liftoff Monetize (Vungle) | Included | Included | Yes |
+| ironSource | Included | Included | Yes |
 
-Compatibility methods remain. They report unavailable/no-op behavior in the
-core-only distribution. Android's legacy consent setters still use reflection
-when a consumer separately supplies an optional network SDK; the module itself
-does not add one. A future mediation offering should be an optional
-distribution with:
+Applications use the normal `createBanner()`, `createAdaptiveBanner()`,
+`createInterstitial()`, and `createRewarded()` factories. AdMob discovers the
+native adapters; no iOS/Android condition is needed to select a mediated
+network.
 
-- explicit consumer demand;
-- independently current adapters on each platform;
-- documented privacy manifests and SKAdNetwork requirements;
-- device tests and Ad Inspector evidence;
-- no unsupported revenue claims.
+`getMediationStatus()` provides the same six diagnostic keys on both
+platforms. It verifies installation only. Fill behavior still depends on the
+publisher's AdMob mediation groups, provider accounts, placement mappings,
+format support, geography, consent, and inventory.
 
-The JavaScript ad API should remain unchanged if optional mediation is added.
+The module does not promise a revenue uplift or fill rate. Those results are
+application- and market-specific. See
+[AdMob mediation](documentation/mediation.md) for setup and validation.

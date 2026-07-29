@@ -25,6 +25,13 @@ const Admob = require('ti.admob.unified')
 | `setTestDevice(deviceId)` | iOS, Android | Compatibility utility |
 | `isTestDevice()` | iOS, Android | Supported |
 | `setAppVolume(volume)` | iOS, Android | Platform caveat |
+| `getMediationStatus()` | iOS, Android | Supported diagnostic |
+| `isMetaAvailable()` | iOS, Android | Supported diagnostic |
+| `isInMobiAvailable()` | iOS, Android | Supported diagnostic |
+| `isUnityAvailable()` | iOS, Android | Supported diagnostic |
+| `isAppLovinAvailable()` | iOS, Android | Supported diagnostic |
+| `isVungleAvailable()` | iOS, Android | Supported diagnostic |
+| `isIronSourceAvailable()` | iOS, Android | Supported diagnostic |
 | `canShowAds()` | iOS, Android | Deprecated alias |
 | `canShowPersonalizedAds()` | iOS, Android | Deprecated; always `false` |
 | `isGDPR()` | iOS, Android | Deprecated diagnostic |
@@ -455,31 +462,54 @@ The constant names are portable; their string values are platform-specific:
 
 Use the constant rather than copying a platform value into shared code.
 
-## Mediation compatibility surface
+## Mediation diagnostics and compatibility
 
-The following methods remain to keep older `1.1.x` consumers from failing at
-runtime:
+The module bundles Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize
+(Vungle), and ironSource on iOS and Android.
 
-| Method | Core artifact behavior |
+`getMediationStatus()` returns the same object shape on both platforms:
+
+```js
+{
+  appLovin: Boolean,
+  meta: Boolean,
+  inMobi: Boolean,
+  unity: Boolean,
+  liftoffMonetize: Boolean,
+  ironSource: Boolean
+}
+```
+
+Individual methods return the corresponding value:
+
+| Method | Network |
 |---|---|
-| `isAppLovinAvailable()` | Returns whether an AppLovin SDK class is present. |
-| `isInMobiAvailable()` | Returns whether an InMobi SDK class is present. |
-| `isVungleAvailable()` | Returns whether a Vungle/Liftoff SDK class is present. |
-| `setAppLovinGDPRConsent({ enabled })` | iOS no-op; Android reflective setter if SDK is supplied separately. |
-| `setInMobiGDPRConsent({ enabled })` | iOS no-op; Android reflective setter if SDK is supplied separately. |
-| `setVungleGDPRConsent({ enabled })` | iOS no-op; Android reflective setter if SDK is supplied separately. |
-| `enableOptionalMediationNetworks(config)` | Does not download or add adapters. |
+| `isAppLovinAvailable()` | AppLovin |
+| `isMetaAvailable()` | Meta Audience Network |
+| `isInMobiAvailable()` | InMobi |
+| `isUnityAvailable()` | Unity Ads |
+| `isVungleAvailable()` | Liftoff Monetize/Vungle |
+| `isIronSourceAvailable()` | ironSource |
 
-The three legacy consent setters accept `{ enabled: Boolean }`.
-`enableOptionalMediationNetworks()` accepts `{ appLovin: Boolean, vungle:
-Boolean }`; on Android it only logs whether the corresponding classes are
-present, and on iOS it is a no-op. It does not initialize, install, or alter
-the AdMob mediation configuration.
+Availability confirms that the native adapter is installed. It does not prove
+that the provider account, AdMob mapping, consent, or inventory can serve an
+ad.
 
-The core ZIPs include no third-party mediation adapters. Availability returns
-`false` in a core-only app. These methods are compatibility APIs, not a
-recommended consent solution, and they do not replace each network's current
-privacy requirements.
+The following legacy methods remain callable for `1.1.x` compatibility:
+
+| Method | Behavior |
+|---|---|
+| `setAppLovinGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
+| `setInMobiGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
+| `setVungleGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
+| `enableOptionalMediationNetworks(config)` | Logs adapter availability; adapters are auto-discovered. |
+
+New integrations should use UMP, `canRequestAds()`, and each enabled provider's
+current privacy requirements. They should not manually initialize mediation
+networks. See [AdMob mediation](mediation.md).
+
+The legacy setters intentionally do not translate one Boolean into both GDPR
+consent and US-state sale/sharing choices. Those are different legal signals.
 
 ## Reserved and unavailable APIs
 

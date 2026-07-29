@@ -14,6 +14,8 @@ const documentationPages = [
   'documentation/index.md',
   'documentation/getting-started.md',
   'documentation/privacy.md',
+  'documentation/mediation.md',
+  'documentation/third-party-notices.md',
   'documentation/banners.md',
   'documentation/fullscreen.md',
   'documentation/api-reference.md',
@@ -23,6 +25,8 @@ const documentationPages = [
 const auxiliaryDocumentation = [
   'CHANGELOG.md',
   'CONTRIBUTING.md',
+  'DEPENDENCIES.md',
+  'MEDIATION_COMPARISON.md',
   'ROADMAP.md',
   'ios/README.md'
 ]
@@ -74,8 +78,12 @@ test('documents every public module method and compatibility method', () => {
     'setTestDevice',
     'isTestDevice',
     'isAppLovinAvailable',
+    'isMetaAvailable',
     'isInMobiAvailable',
     'isVungleAvailable',
+    'isUnityAvailable',
+    'isIronSourceAvailable',
+    'getMediationStatus',
     'setAppLovinGDPRConsent',
     'setInMobiGDPRConsent',
     'setVungleGDPRConsent',
@@ -142,6 +150,7 @@ test('provides a modern, safe executable example', () => {
   assert.match(example, /addEventListener\('consent_complete'/)
   assert.match(example, /canRequestAds\(\)/)
   assert.match(example, /requestTrackingAuthorization\(\)/)
+  assert.match(example, /getMediationStatus\(\)/)
   assert.doesNotMatch(example, /OS_IOS/)
   assert.match(example, /createAdaptiveBanner/)
   assert.match(example, /event\.height/)
@@ -178,4 +187,28 @@ test('states portable banner and fullscreen contracts', () => {
   assert.match(fullscreen, /Terminal, idempotent cleanup/)
   assert.match(fullscreen, /`adUnitId`, `adType`, `error`, `message`, `code`/)
   assert.doesNotMatch(fullscreen, /iOS emits `opened` but does not currently emit/)
+})
+
+test('documents bundled mediation without revenue promises', () => {
+  const mediation = read('documentation/mediation.md')
+  const readme = read('README.md')
+
+  for (const network of [
+    'Meta',
+    'InMobi',
+    'Unity',
+    'AppLovin',
+    'Liftoff',
+    'ironSource'
+  ]) {
+    assert.match(mediation, new RegExp(network, 'i'))
+    assert.match(readme, new RegExp(network, 'i'))
+  }
+
+  assert.match(mediation, /getMediationStatus/)
+  assert.match(mediation, /Ad Inspector/)
+  assert.doesNotMatch(
+    `${mediation}\n${readme}`,
+    /300.?400%|guaranteed revenue|guaranteed fill/i
+  )
 })

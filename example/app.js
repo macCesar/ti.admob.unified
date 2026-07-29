@@ -116,6 +116,7 @@ function onModuleInitialized(event) {
   }
 
   initializationComplete = true
+  Ti.API.info(`Mediation adapters: ${JSON.stringify(Admob.getMediationStatus())}`)
   setStatus('Google Mobile Ads initialized with official test units')
   loadAdaptiveBanner()
 }

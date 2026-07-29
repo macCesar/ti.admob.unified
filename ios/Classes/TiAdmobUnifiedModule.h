@@ -47,4 +47,19 @@
 - (void)setTestDevice:(id)args;
 - (NSNumber *)isTestDevice:(id)args;
 
+// Mediation diagnostics
+- (NSNumber *)isAppLovinAvailable:(id)args;
+- (NSNumber *)isMetaAvailable:(id)args;
+- (NSNumber *)isInMobiAvailable:(id)args;
+- (NSNumber *)isVungleAvailable:(id)args;
+- (NSNumber *)isUnityAvailable:(id)args;
+- (NSNumber *)isIronSourceAvailable:(id)args;
+- (NSDictionary *)getMediationStatus:(id)args;
+
+// Legacy mediation compatibility
+- (void)setAppLovinGDPRConsent:(id)args;
+- (void)setInMobiGDPRConsent:(id)args;
+- (void)setVungleGDPRConsent:(id)args;
+- (void)enableOptionalMediationNetworks:(id)args;
+
 @end
