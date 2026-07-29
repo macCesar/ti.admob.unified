@@ -1,39 +1,9 @@
-# ti.admob.unified Module
+# ti.admob.unified
 
-## Description
+Unified Google Mobile Ads module for Titanium SDK (iOS + Android).
 
-TODO: Enter your module description here
+For complete documentation, see the [README.md](../README.md) at the module root.
 
-## Accessing the ti.admob.unified Module
+For the development roadmap, see [ROADMAP.md](../ROADMAP.md).
 
-To access this module from JavaScript, you would do the following:
-
-    var ti_admob_unified = require("ti.admob.unified");
-
-The ti_admob_unified variable is a reference to the Module object.
-
-## Reference
-
-TODO: If your module has an API, you should document
-the reference here.
-
-### ti_admob_unified.function
-
-TODO: This is an example of a module function.
-
-### ti_admob_unified.property
-
-TODO: This is an example of a module property.
-
-## Usage
-
-TODO: Enter your usage example here
-
-## Author
-
-TODO: Enter your author name, email and other contact
-details you want to share here.
-
-## License
-
-TODO: Enter your license/legal information here.
+For release history, see [CHANGELOG.md](../CHANGELOG.md).
