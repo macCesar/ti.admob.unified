@@ -45,6 +45,13 @@ var scrollView = Ti.UI.createScrollView({
   showVerticalScrollIndicator: true
 });
 
+var bannerAdContainer = Ti.UI.createView({
+  bottom: 0,
+  height: 50,
+  width: Ti.UI.FILL,
+  backgroundColor: '#FFFFFF'
+});
+
 // Status label
 var statusLabel = Ti.UI.createLabel({
   text: 'AdMob Unified - Initializing...',
@@ -111,15 +118,51 @@ var initButton = createButton('1. Initialize AdMob', function () {
 var consentButton = createButton('2. Request Consent (GDPR)', function () {
   statusLabel.text = 'Requesting consent...';
 
-  Admob.requestConsent({
-    testDeviceIds: ['DEVICE-ID-HERE'],
-    geography: Admob.DEBUG_GEOGRAPHY_EEA,
-    tagForUnderAgeOfConsent: false,
-    callback: function (result) {
-      statusLabel.text = 'Consent: ' + (result.canShowAds ? 'Granted' : 'Denied');
-      Ti.API.info('Consent result: ' + JSON.stringify(result));
-    }
+  // RESET consent first for testing
+  Admob.resetConsent();
+
+  // Wait a moment then request
+  setTimeout(function () {
+    Admob.requestConsent({
+      // Remove testDeviceIds or use actual device ID
+      geography: Admob.DEBUG_GEOGRAPHY_EEA, // Force EEA for testing
+      tagForUnderAgeOfConsent: false
+    });
+  }, 500);
+});
+
+// Listen for consent events globally
+Admob.addEventListener('consent_ready', function (e) {
+  statusLabel.text = 'Consent ready - Can show ads: ' + e.canShowAds + ', Personalized: ' + e.canShowPersonalizedAds;
+  Ti.API.info('✅ Consent ready: ' + JSON.stringify(e));
+});
+
+Admob.addEventListener('consent_error', function (e) {
+  statusLabel.text = '❌ Consent error: ' + e.error;
+  Ti.API.error('Consent error: ' + JSON.stringify(e));
+});
+
+// Debug button to show device info
+var debugButton = createButton('🐛 Debug Info', function () {
+  var deviceInfo = 'Device Info:\n';
+  deviceInfo += 'Model: ' + Ti.Platform.model + '\n';
+  deviceInfo += 'OS: ' + Ti.Platform.osname + ' ' + Ti.Platform.version + '\n';
+  deviceInfo += 'UUID: ' + Ti.Platform.id + '\n';
+
+  // Check which networks are available
+  deviceInfo += '\nNetworks Available:\n';
+  deviceInfo += 'InMobi: ' + Admob.isInMobiAvailable() + '\n';
+  deviceInfo += 'AppLovin: ' + Admob.isAppLovinAvailable() + '\n';
+  deviceInfo += 'Vungle: ' + Admob.isVungleAvailable() + '\n';
+
+  Ti.API.info('🐛 DEBUG INFO:\n' + deviceInfo);
+
+  var dialog = Ti.UI.createAlertDialog({
+    title: 'Debug Info',
+    message: deviceInfo,
+    ok: 'OK'
   });
+  dialog.show();
 });
 
 // Create rewarded ad button
@@ -232,8 +275,8 @@ var createBannerButton = createButton('7. Create Banner Ad', function () {
   });
 
   // Add banner to scroll view
-  scrollView.add(bannerAd);
-  
+  bannerAdContainer.add(bannerAd);
+
   // Load the banner ad
   bannerAd.load();
 });
@@ -257,6 +300,7 @@ Admob.addEventListener('consent_error', function (e) {
 // Add all UI elements
 buttonsContainer.add(initButton);
 buttonsContainer.add(consentButton);
+buttonsContainer.add(debugButton);
 buttonsContainer.add(createRewardedButton);
 buttonsContainer.add(showRewardedButton);
 buttonsContainer.add(createInterstitialButton);
@@ -268,6 +312,7 @@ scrollView.add(infoLabel);
 scrollView.add(buttonsContainer);
 
 win.add(scrollView);
+win.add(bannerAdContainer);
 
 // iOS specific: Request tracking authorization
 if (Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad') {
