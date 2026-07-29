@@ -11,6 +11,8 @@ package ti.admob.unified;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdRequest;
@@ -32,6 +34,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	private static final String LCAT = "TiAdmobUnifiedBannerAdView";
 	
 	private final TiAdmobUnifiedBannerAdProxy bannerProxy;
+	private final FrameLayout nativeContainer;
 	private AdView adView;
 	private boolean isAdLoaded = false;
 	private boolean isLoading;
@@ -52,10 +55,13 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	private int propLeft;
 	private int propRight;
 
+	@SuppressWarnings("this-escape")
 	public TiAdmobUnifiedBannerAdView(TiAdmobUnifiedBannerAdProxy proxy)
 	{
 		super(proxy);
 		bannerProxy = proxy;
+		nativeContainer = new FrameLayout(proxy.getActivity());
+		setNativeView(nativeContainer);
 		Log.d(LCAT, "Banner view created");
 		// Don't create AdView immediately - wait for properties
 	}
@@ -135,7 +141,11 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 
 		// Set positioning properties
 		adView.setPadding(propLeft, propTop, propRight, 0);
-		setNativeView(adView);
+		nativeContainer.addView(
+			adView,
+			new FrameLayout.LayoutParams(
+				ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.WRAP_CONTENT));
 		Log.d(LCAT, "AdView created with unit ID: " + adUnitId);
 	}
 
@@ -296,6 +306,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		adView = null;
 		if (viewToDestroy != null) {
 			viewToDestroy.setAdListener(null);
+			nativeContainer.removeView(viewToDestroy);
 			viewToDestroy.destroy();
 		}
 		Log.d(LCAT, "Banner ad destroyed");
@@ -316,6 +327,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			AdView viewToDestroy = adView;
 			adView = null;
 			viewToDestroy.setAdListener(null);
+			nativeContainer.removeView(viewToDestroy);
 			viewToDestroy.destroy();
 			isLoading = false;
 			isAdLoaded = false;
@@ -364,8 +376,16 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		
 		// Handle customAdSize
 		if (properties.containsKeyAndNotNull("customAdSize")) {
-			KrollDict customSize = (KrollDict) properties.get("customAdSize");
-			setCustomAdSize(customSize);
+			Object customSizeValue = properties.get("customAdSize");
+			if (customSizeValue instanceof KrollDict) {
+				setCustomAdSize((KrollDict) customSizeValue);
+			} else if (customSizeValue instanceof Map) {
+				@SuppressWarnings("unchecked")
+				Map<String, Object> customSizeMap = (Map<String, Object>) customSizeValue;
+				setCustomAdSize(new KrollDict(customSizeMap));
+			} else {
+				Log.w(LCAT, "Ignoring invalid customAdSize value");
+			}
 		}
 		
 		// Handle keywords

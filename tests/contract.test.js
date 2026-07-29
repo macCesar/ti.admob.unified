@@ -305,6 +305,35 @@ test('does not detach Android native banner views with a null view', () => {
   assert.match(androidAdaptiveBannerView, /removeLayoutChangeListener\(viewToDestroy\)/)
 })
 
+test('keeps Android banner proxies attached to permanent native containers', () => {
+  for (const source of [androidBannerView, androidAdaptiveBannerView]) {
+    assert.match(source, /private final FrameLayout nativeContainer/)
+    assert.match(source, /setNativeView\(nativeContainer\)/)
+    assert.match(source, /nativeContainer\.addView\(/)
+    assert.match(source, /nativeContainer\.removeView\(viewToDestroy\)/)
+    assert.doesNotMatch(source, /setNativeView\(adView\)/)
+  }
+})
+
+test('accepts Titanium HashMap values for Android custom banner sizes', () => {
+  assert.match(
+    androidBannerView,
+    /customSizeValue instanceof Map[\s\S]*?new KrollDict\(customSizeMap\)/
+  )
+  assert.match(
+    androidBannerProxy,
+    /customSizeValue instanceof Map[\s\S]*?new KrollDict\(customSizeMap\)/
+  )
+  assert.doesNotMatch(
+    androidBannerView,
+    /KrollDict customSize = \(KrollDict\) properties\.get\("customAdSize"\)/
+  )
+  assert.doesNotMatch(
+    androidBannerProxy,
+    /return \(KrollDict\) getProperty\("customAdSize"\)/
+  )
+})
+
 test('adaptive loaded events expose the real banner height on both platforms', () => {
   assert.match(
     androidAdaptiveBannerView,

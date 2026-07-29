@@ -19,6 +19,8 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
+import java.util.Map;
+
 @Kroll.proxy(creatableInModule = TiAdmobUnifiedModule.class)
 public class TiAdmobUnifiedBannerAdProxy extends TiViewProxy implements TiLifecycle.OnLifecycleEvent
 {
@@ -279,7 +281,16 @@ public class TiAdmobUnifiedBannerAdProxy extends TiViewProxy implements TiLifecy
 	@Kroll.getProperty
 	public KrollDict getCustomAdSize()
 	{
-		return (KrollDict) getProperty("customAdSize");
+		Object customSizeValue = getProperty("customAdSize");
+		if (customSizeValue instanceof KrollDict) {
+			return (KrollDict) customSizeValue;
+		}
+		if (customSizeValue instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> customSizeMap = (Map<String, Object>) customSizeValue;
+			return new KrollDict(customSizeMap);
+		}
+		return null;
 	}
 
 	@Kroll.setProperty
