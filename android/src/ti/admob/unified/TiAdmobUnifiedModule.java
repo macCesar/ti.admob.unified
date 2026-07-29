@@ -300,9 +300,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 			Log.d(LCAT, "Setting Vungle GDPR consent: " + isEnabled);
 			
 			try {
-				// Only configure Vungle if the SDK is available
-				Class<?> vunglePrivacyClass = Class.forName("com.vungle.warren.VunglePrivacySettings");
-				
+				// Only configure Vungle if the SDK is available. Vungle 7.x (Liftoff
+				// Monetize) moved the SDK from com.vungle.warren to com.vungle.ads;
+				// try the current package first and fall back to the legacy one.
+				Class<?> vunglePrivacyClass = findClass(
+					"com.vungle.ads.VunglePrivacySettings",
+					"com.vungle.warren.VunglePrivacySettings");
+
 				// Set GDPR consent status
 				java.lang.reflect.Method setGDPRStatusMethod = 
 					vunglePrivacyClass.getDeclaredMethod("setGDPRStatus", boolean.class, String.class);
@@ -326,56 +330,70 @@ public class TiAdmobUnifiedModule extends KrollModule
 		}
 	}
 
-	@Kroll.method
-	public boolean isAppLovinAvailable()
+	// Returns the first of the given class names that is present on the classpath,
+	// or throws ClassNotFoundException if none of them are.
+	private static Class<?> findClass(String... classNames) throws ClassNotFoundException
+	{
+		for (String className : classNames) {
+			try {
+				return Class.forName(className);
+			} catch (ClassNotFoundException ignored) {
+				// try the next candidate
+			}
+		}
+		throw new ClassNotFoundException(java.util.Arrays.toString(classNames));
+	}
+
+	private static boolean isClassAvailable(String... classNames)
 	{
 		try {
-			Class.forName("com.applovin.sdk.AppLovinSdk");
+			findClass(classNames);
 			return true;
 		} catch (ClassNotFoundException e) {
 			return false;
 		}
+	}
+
+	@Kroll.method
+	public boolean isAppLovinAvailable()
+	{
+		return isClassAvailable("com.applovin.sdk.AppLovinSdk");
 	}
 
 	@Kroll.method
 	public boolean isVungleAvailable()
 	{
-		try {
-			Class.forName("com.vungle.warren.Vungle");
-			return true;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
+		// Vungle 7.x (Liftoff Monetize) renamed the package from com.vungle.warren
+		// to com.vungle.ads. Probe both so detection works with either adapter.
+		return isClassAvailable("com.vungle.ads.VungleAds", "com.vungle.warren.Vungle");
 	}
 
 	@Kroll.method
 	public boolean isInMobiAvailable()
 	{
-		try {
-			Class.forName("com.inmobi.sdk.InMobiSdk");
-			return true;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
+		return isClassAvailable("com.inmobi.sdk.InMobiSdk");
 	}
 
-	// NUEVO: Método para añadir adapters problemáticos SOLO cuando se necesiten
+	// AppLovin and Vungle ship with the module since 1.1.0, and GMA 25.x initializes
+	// adapters lazily, so there is nothing to turn on at runtime. This method only
+	// reports whether the requested adapter actually made it into the build.
 	@Kroll.method
 	public void enableOptionalMediationNetworks(KrollDict config)
 	{
-		Log.d(LCAT, "Enabling optional mediation networks...");
-		
-		if (config != null) {
-			boolean enableAppLovin = config.optBoolean("appLovin", false);
-			boolean enableVungle = config.optBoolean("vungle", false);
-			
-			if (enableAppLovin) {
-				Log.w(LCAT, "AppLovin adapter not included in build - add 'com.google.ads.mediation:applovin:13.3.1.1' to dependencies");
-			}
-			
-			if (enableVungle) {
-				Log.w(LCAT, "Vungle adapter not included in build - add 'com.google.ads.mediation:vungle:7.5.0.1' to dependencies");
-			}
+		if (config == null) {
+			return;
+		}
+
+		if (config.optBoolean("appLovin", false)) {
+			Log.d(LCAT, isAppLovinAvailable()
+				? "AppLovin adapter is bundled; mediation will use it when AdMob serves it"
+				: "AppLovin adapter missing - add 'com.google.ads.mediation:applovin' to android/build.gradle");
+		}
+
+		if (config.optBoolean("vungle", false)) {
+			Log.d(LCAT, isVungleAvailable()
+				? "Vungle adapter is bundled; mediation will use it when AdMob serves it"
+				: "Vungle adapter missing - add 'com.google.ads.mediation:vungle' to android/build.gradle");
 		}
 	}
 
