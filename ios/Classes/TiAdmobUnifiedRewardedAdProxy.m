@@ -8,6 +8,7 @@
  */
 
 #import "TiAdmobUnifiedRewardedAdProxy.h"
+#import "TiApp.h"
 #import "TiUtils.h"
 
 @implementation TiAdmobUnifiedRewardedAdProxy
@@ -141,8 +142,8 @@
         return;
     }
     
-    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    
+    UIViewController *rootViewController = [[[TiApp app] controller] topPresentedController];
+
     [self.rewardedAd presentFromRootViewController:rootViewController
                               userDidEarnRewardHandler:^{
         DebugLog(@"[DEBUG] User earned reward");

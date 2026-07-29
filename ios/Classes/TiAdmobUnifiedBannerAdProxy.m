@@ -19,6 +19,10 @@
 {
     GADBannerView *bannerView;
     BOOL isAdLoaded;
+    BOOL isLoading;
+    BOOL isPaused;
+    BOOL isDestroyed;
+    BOOL pendingLoad;
 }
 
 @property (nonatomic, weak) TiAdmobUnifiedBannerAdProxy *proxy;
@@ -29,6 +33,8 @@
 - (void)pauseAd;
 - (void)resumeAd;
 - (BOOL)isAdLoaded;
+- (void)adDidLoad;
+- (void)adDidFailToLoad;
 - (void)setAdUnitId:(NSString *)adUnitId;
 - (void)setAdSize:(NSString *)adSize;
 
@@ -37,6 +43,9 @@
 @interface TiAdmobUnifiedBannerAdProxy ()
 // Set when load() is called before the view exists; newView will fire loadAd once ready.
 @property (nonatomic, assign) BOOL pendingLoad;
+@property (nonatomic, assign) BOOL isPaused;
+@property (nonatomic, assign) BOOL isDestroyed;
+@property (nonatomic, assign) BOOL destroyedEventFired;
 @end
 
 @implementation TiAdmobUnifiedBannerAdProxy
@@ -66,6 +75,24 @@
     DebugLog(@"[DEBUG] Banner ad proxy deallocated");
 }
 
+- (void)windowWillClose
+{
+    [self destroy:nil];
+    [super windowWillClose];
+}
+
+- (void)viewWillDetach
+{
+    [self destroy:nil];
+    [super viewWillDetach];
+}
+
+- (void)_destroy
+{
+    [self destroy:nil];
+    [super _destroy];
+}
+
 #pragma mark - TiViewProxy overrides
 
 - (TiUIView *)newView
@@ -73,13 +100,24 @@
     DebugLog(@"[DEBUG] Creating banner view (adUnitId: %@, adSize: %@)", self.adUnitId, self.adSize);
     TiAdmobUnifiedBannerAdView *bannerAdView = [[TiAdmobUnifiedBannerAdView alloc] init];
     bannerAdView.proxy = self;
+    if (self.isDestroyed) {
+        [bannerAdView destroyAd];
+        return bannerAdView;
+    }
     // createBannerView must run here, not in the view's init, where proxy is still nil.
     [bannerAdView createBannerView];
+    if (self.isPaused) {
+        [bannerAdView pauseAd];
+    }
     if (self.pendingLoad) {
         self.pendingLoad = NO;
         DebugLog(@"[DEBUG] Firing deferred banner load");
         dispatch_async(dispatch_get_main_queue(), ^{
-            [bannerAdView loadAd];
+            if (!self.isDestroyed && !self.isPaused) {
+                [bannerAdView loadAd];
+            } else if (!self.isDestroyed) {
+                self.pendingLoad = YES;
+            }
         });
     }
     return bannerAdView;
@@ -89,60 +127,120 @@
 
 - (void)load:(id)args
 {
-    DebugLog(@"[DEBUG] Loading banner ad (adUnitId: %@)", self.adUnitId);
-    TiUIView *tiView = [self view];
-    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
-        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
-        [bannerAdView loadAd];
-    } else {
-        // The real view does not exist yet (JS called load() in the same tick as
-        // the add()). newView will fire the load once it has been created.
-        self.pendingLoad = YES;
-        DebugLog(@"[DEBUG] Banner view not ready, deferring load");
+    if (self.isDestroyed) {
+        [self fireAdEvent:@"failed_to_load"
+                 withData:@{
+                     @"error": @"Banner has been destroyed",
+                     @"code": @(1)
+                 }];
+        return;
     }
+    if (self.isPaused) {
+        self.pendingLoad = YES;
+        return;
+    }
+
+    DebugLog(@"[DEBUG] Loading banner ad (adUnitId: %@)", self.adUnitId);
+    TiThreadPerformOnMainThread(^{
+        TiUIView *tiView = [self view];
+        if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+            [(TiAdmobUnifiedBannerAdView *)tiView loadAd];
+        } else {
+            self.pendingLoad = YES;
+            DebugLog(@"[DEBUG] Banner view not ready, deferring load");
+        }
+    }, NO);
 }
 
 - (void)destroy:(id)args
 {
+    if (self.isDestroyed) {
+        return;
+    }
+    self.isDestroyed = YES;
+    self.pendingLoad = NO;
     DebugLog(@"[DEBUG] Destroying banner ad");
-    
-    TiUIView *tiView = [self view];
-    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
-        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
-        [bannerAdView destroyAd];
+
+    TiThreadPerformOnMainThread(^{
+        if ([self viewInitialized]) {
+            TiUIView *tiView = [self view];
+            if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+                [(TiAdmobUnifiedBannerAdView *)tiView destroyAd];
+            }
+        }
+    }, YES);
+
+    if (!self.destroyedEventFired) {
+        self.destroyedEventFired = YES;
+        [self fireAdEvent:@"destroyed" withData:nil];
     }
 }
 
 - (void)pause:(id)args
 {
-    DebugLog(@"[DEBUG] Pausing banner ad");
-    
-    TiUIView *tiView = [self view];
-    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
-        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
-        [bannerAdView pauseAd];
+    if (self.isDestroyed || self.isPaused) {
+        return;
     }
+    self.isPaused = YES;
+    DebugLog(@"[DEBUG] Pausing banner ad");
+
+    TiThreadPerformOnMainThread(^{
+        if ([self viewInitialized]) {
+            TiUIView *tiView = [self view];
+            if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+                [(TiAdmobUnifiedBannerAdView *)tiView pauseAd];
+            }
+        }
+    }, NO);
 }
 
 - (void)resume:(id)args
 {
-    DebugLog(@"[DEBUG] Resuming banner ad");
-    
-    TiUIView *tiView = [self view];
-    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
-        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
-        [bannerAdView resumeAd];
+    if (self.isDestroyed || !self.isPaused) {
+        return;
     }
+    self.isPaused = NO;
+    DebugLog(@"[DEBUG] Resuming banner ad");
+
+    TiThreadPerformOnMainThread(^{
+        if ([self viewInitialized]) {
+            TiUIView *tiView = [self view];
+            if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+                [(TiAdmobUnifiedBannerAdView *)tiView resumeAd];
+            }
+        }
+        if (self.pendingLoad) {
+            self.pendingLoad = NO;
+            [self load:nil];
+        }
+    }, NO);
 }
 
 - (NSNumber *)isLoaded:(id)args
 {
-    TiUIView *tiView = [self view];
-    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
-        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
-        return @([bannerAdView isAdLoaded]);
+    if (self.isDestroyed || ![self viewInitialized]) {
+        return @(NO);
     }
-    return @(NO);
+
+    __block BOOL loaded = NO;
+    TiThreadPerformOnMainThread(^{
+        TiUIView *tiView = [self view];
+        if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+            loaded = [(TiAdmobUnifiedBannerAdView *)tiView isAdLoaded];
+        }
+    }, YES);
+    return @(loaded);
+}
+
+- (void)destroyAdViewAndCancelRequest:(id)args
+{
+    [self destroy:args];
+}
+
+- (void)destoyAdViewAndCancelRequest:(id)args
+{
+    NSLog(@"[WARN] destoyAdViewAndCancelRequest() is deprecated; use destroyAdViewAndCancelRequest() or destroy()");
+    [self destroy:args];
 }
 
 #pragma mark - Property Setters
@@ -168,12 +266,16 @@
 
 - (void)bannerViewDidReceiveAd:(GADBannerView *)bannerView
 {
+    if (self.isDestroyed) {
+        return;
+    }
     DebugLog(@"[DEBUG] Banner ad loaded successfully");
     
     // Force layout refresh to make banner visible
     TiUIView *tiView = [self view];
     if (tiView && [tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
         TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
+        [bannerAdView adDidLoad];
         dispatch_async(dispatch_get_main_queue(), ^{
             [bannerAdView setNeedsLayout];
             [bannerAdView layoutIfNeeded];
@@ -188,7 +290,17 @@
 
 - (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error
 {
+    if (self.isDestroyed) {
+        return;
+    }
     NSLog(@"[ERROR] Banner ad failed to load: %@ (code: %ld)", error.localizedDescription, (long)error.code);
+
+    if ([self viewInitialized]) {
+        TiUIView *tiView = [self view];
+        if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+            [(TiAdmobUnifiedBannerAdView *)tiView adDidFailToLoad];
+        }
+    }
     
     NSDictionary *event = @{
         @"error": error.localizedDescription,
@@ -247,8 +359,16 @@
 
 - (void)fireAdEvent:(NSString *)eventName withData:(NSDictionary *)data
 {
+    NSMutableDictionary *payload = [@{
+        @"adUnitId": self.adUnitId ?: @"",
+        @"adType": @"banner",
+        @"isAdaptive": @NO
+    } mutableCopy];
+    if (data != nil) {
+        [payload addEntriesFromDictionary:data];
+    }
     if ([self _hasListeners:eventName]) {
-        [self fireEvent:eventName withObject:data];
+        [self fireEvent:eventName withObject:payload];
     }
 }
 
@@ -288,6 +408,10 @@
 {
     if (self = [super init]) {
         isAdLoaded = NO;
+        isLoading = NO;
+        isPaused = NO;
+        isDestroyed = NO;
+        pendingLoad = NO;
         DebugLog(@"[DEBUG] Banner ad view initialized");
         // createBannerView NOT called here — self.proxy is nil at init time.
         // The proxy calls createBannerView from its own newView after wiring proxy.
@@ -303,6 +427,9 @@
 
 - (void)createBannerView
 {
+    if (isDestroyed || bannerView != nil) {
+        return;
+    }
     DebugLog(@"[DEBUG] Creating GADBannerView (adUnitId: %@)", self.proxy.adUnitId);
     if (!self.proxy.adUnitId) {
         NSLog(@"[ERROR] Cannot create banner view - no ad unit ID specified");
@@ -335,8 +462,24 @@
 
 - (void)loadAd
 {
+    if (isDestroyed) {
+        return;
+    }
+    if (isPaused) {
+        pendingLoad = YES;
+        return;
+    }
+    if (isLoading) {
+        DebugLog(@"[DEBUG] Banner load ignored; a request is already active");
+        return;
+    }
     if (!bannerView) {
         NSLog(@"[ERROR] Cannot load ad - banner view not initialized");
+        [self.proxy fireAdEvent:@"failed_to_load"
+                      withData:@{
+                          @"error": @"Banner view is not initialized",
+                          @"code": @(1)
+                      }];
         return;
     }
     
@@ -349,38 +492,78 @@
         DebugLog(@"[DEBUG] Keywords specified but not applied (not supported in current GAD version)");
     }
     
+    isLoading = YES;
+    isAdLoaded = NO;
     [bannerView loadRequest:request];
     DebugLog(@"[DEBUG] Ad request sent for banner ad: %@", bannerView.adUnitID);
 }
 
 - (void)destroyAd
 {
+    if (isDestroyed) {
+        return;
+    }
+    isDestroyed = YES;
+    pendingLoad = NO;
+    isLoading = NO;
+    isAdLoaded = NO;
     if (bannerView) {
         bannerView.delegate = nil;
+        bannerView.adSizeDelegate = nil;
+        bannerView.rootViewController = nil;
+        bannerView.paidEventHandler = nil;
+        bannerView.autoloadEnabled = NO;
         [bannerView removeFromSuperview];
         bannerView = nil;
-        isAdLoaded = NO;
         DebugLog(@"[DEBUG] Banner ad destroyed");
     }
 }
 
 - (void)pauseAd
 {
-    // GADBannerView lifecycle is handled by iOS/GMA automatically (view visibility +
-    // app lifecycle notifications). This method is a no-op kept for paridad with the
-    // Android API surface.
-    DebugLog(@"[DEBUG] Banner pauseAd() is a no-op on iOS (handled by GADBannerView lifecycle)");
+    if (isDestroyed || isPaused) {
+        return;
+    }
+    isPaused = YES;
+    bannerView.hidden = YES;
+    bannerView.autoloadEnabled = NO;
+    DebugLog(@"[DEBUG] Banner paused");
 }
 
 - (void)resumeAd
 {
-    // Companion no-op to pauseAd above.
-    DebugLog(@"[DEBUG] Banner resumeAd() is a no-op on iOS (handled by GADBannerView lifecycle)");
+    if (isDestroyed || !isPaused) {
+        return;
+    }
+    isPaused = NO;
+    bannerView.hidden = NO;
+    if (pendingLoad) {
+        pendingLoad = NO;
+        [self loadAd];
+    }
+    DebugLog(@"[DEBUG] Banner resumed");
 }
 
 - (BOOL)isAdLoaded
 {
     return isAdLoaded;
+}
+
+- (void)adDidLoad
+{
+    if (!isDestroyed) {
+        isLoading = NO;
+        isAdLoaded = YES;
+        bannerView.hidden = isPaused;
+    }
+}
+
+- (void)adDidFailToLoad
+{
+    if (!isDestroyed) {
+        isLoading = NO;
+        isAdLoaded = NO;
+    }
 }
 
 - (void)setAdUnitId:(NSString *)adUnitId

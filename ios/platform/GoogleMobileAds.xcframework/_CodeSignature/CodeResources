@@ -6,7 +6,7 @@
 	<dict>
 		<key>ios-arm64/GoogleMobileAds.framework/GoogleMobileAds</key>
 		<data>
-		O1Kd6RL1QzpSwiqgRAI3uUC5XbU=
+		oAhM8d3uvs8Pt7e47APFXQNEWS4=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAdChoicesPosition.h</key>
 		<data>
@@ -67,10 +67,6 @@
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAppOpenAd.h</key>
 		<data>
 		ycad1+sKoIQ0cJMTMQrAfzHxyhQ=
-		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAppOpenAdPreloader_Beta.h</key>
-		<data>
-		/5UuOSpDzytYTmkmvOrgxi+BdxQ=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAudioVideoManager.h</key>
 		<data>
@@ -156,10 +152,6 @@
 		<data>
 		ix9jWOIA23Kw7iQ2TVwNXRoTrvk=
 		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADInterstitialAdPreloader_Beta.h</key>
-		<data>
-		gKPMFbR6R6aiD5mgAd9ODXoCz90=
-		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMediaAspectRatio.h</key>
 		<data>
 		5RplZzDrsCmh20g27GynNi8facI=
@@ -175,10 +167,6 @@
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMobileAds.h</key>
 		<data>
 		WRYbqBaY7hSX4L5hVnExxHGkf9s=
-		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMobileAds_Beta.h</key>
-		<data>
-		8XFvC7wn8Zm3mU2iPwOYbloNURs=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMultipleAdsAdLoaderOptions.h</key>
 		<data>
@@ -240,14 +228,6 @@
 		<data>
 		h1r81Ma4kkeglTr9FfiA0UjmF64=
 		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADPreloadConfigurationV2_Beta.h</key>
-		<data>
-		F0SOmXnXlYFXYP22xBQpssxF5uQ=
-		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADPreloadDelegate_Beta.h</key>
-		<data>
-		PiWWVO72p35K/nGZZY4oK+uyAFE=
-		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADPresentationError.h</key>
 		<data>
 		nqKVG/ZE+WiFlctZUk3EYPdOYWo=
@@ -264,10 +244,6 @@
 		<data>
 		sT9HROeDriDuTk6OBMvU6tKlcHk=
 		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRequest_Beta.h</key>
-		<data>
-		xSc+8LNsZUL/Y0Vlocp66ErWx4o=
-		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADResponseInfo.h</key>
 		<data>
 		8cfb+tYVpJZ+QM41hmTz/KYW26s=
@@ -276,17 +252,9 @@
 		<data>
 		nBhdN8OZ4IUxWXR79mXjETpPobg=
 		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRewardedAdPreloader_Beta.h</key>
-		<data>
-		uK3zldhWuN4pxkEosHdYnvobR0o=
-		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAd.h</key>
 		<data>
 		yx+9HeKcTpFZDlB8bVHQacH1ZtQ=
-		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAdPreloader_Beta.h</key>
-		<data>
-		vs8r0H7Osf6nOpZphGbygmvDlhg=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADServerSideVerificationOptions.h</key>
 		<data>
@@ -327,10 +295,6 @@
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GoogleMobileAdsDefines.h</key>
 		<data>
 		Tz3u9UuK0US7dUsrsIAruDpv+eo=
-		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GoogleMobileAds_Beta.h</key>
-		<data>
-		rrJSfgzxbOMfjL2/h9Kp+RzQdMI=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMAdNetworkAdapterProtocol.h</key>
 		<data>
@@ -383,10 +347,6 @@
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMediationBannerAd.h</key>
 		<data>
 		da4hOwHO63+ZiRSuKFAzCRDRwlY=
-		</data>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
-		<data>
-		4BKzipgqyNTFjeadCrQcCP9JQNU=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMediationInterstitialAd.h</key>
 		<data>
@@ -450,7 +410,7 @@
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Info.plist</key>
 		<data>
-		DkuJW8By3R1VknmFSMcPyRRimUU=
+		ge14vwJ02MRzF6Lhi7m50wzZ7bo=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Modules/module.modulemap</key>
 		<data>
@@ -458,15 +418,67 @@
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/Modules/module.private.modulemap</key>
 		<data>
-		/NwjiBGrYBhPu/LSxQC3Vu93pj8=
+		nzCObjF2dol2hxJmndwMPXUR0as=
 		</data>
 		<key>ios-arm64/GoogleMobileAds.framework/PrivacyInfo.xcprivacy</key>
 		<data>
 		VWCA3MeaiPMoOAS1uOteTSLX8js=
 		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADAppOpenAdPreloader_Beta.h</key>
+		<data>
+		spph8AmBDSWciQKq5xczlO+Fo9g=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADInterstitialAdPreloader_Beta.h</key>
+		<data>
+		YLycN2RB40NKD96Z47U5f+IdSrI=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADMobileAds_Beta.h</key>
+		<data>
+		8XFvC7wn8Zm3mU2iPwOYbloNURs=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADPreloadConfigurationV2_Beta.h</key>
+		<data>
+		F0SOmXnXlYFXYP22xBQpssxF5uQ=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADPreloadDelegate_Beta.h</key>
+		<data>
+		PiWWVO72p35K/nGZZY4oK+uyAFE=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADRequest_Beta.h</key>
+		<data>
+		xSc+8LNsZUL/Y0Vlocp66ErWx4o=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADRewardedAdPreloader_Beta.h</key>
+		<data>
+		EScbCi7NURFfqeoKbU0vclD/aVU=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADRewardedInterstitialAdPreloader_Beta.h</key>
+		<data>
+		rJM6pyNuFDhy31zVgjZV0yAW/Og=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdDelegate_Beta.h</key>
+		<data>
+		0esoq0M8xCZtTf6YXici9Tzeh2s=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdOptions_Beta.h</key>
+		<data>
+		MRAD0jkF6dH08FWzQlKJrTmVnFM=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAd_Beta.h</key>
+		<data>
+		nXIo8P1ACsIawSv4PicYim4+upU=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GoogleMobileAds_Beta.h</key>
+		<data>
+		at53kRzvb82C0+/iF6SJCSuU5HI=
+		</data>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
+		<data>
+		4BKzipgqyNTFjeadCrQcCP9JQNU=
+		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/GoogleMobileAds</key>
 		<data>
-		c8V3daMXjYCIUe1NtlpHzC2x4Ow=
+		/3h6P8va0A2HUDOnnKKdsHkSGNs=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAdChoicesPosition.h</key>
 		<data>
@@ -527,10 +539,6 @@
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAppOpenAd.h</key>
 		<data>
 		ycad1+sKoIQ0cJMTMQrAfzHxyhQ=
-		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAppOpenAdPreloader_Beta.h</key>
-		<data>
-		/5UuOSpDzytYTmkmvOrgxi+BdxQ=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAudioVideoManager.h</key>
 		<data>
@@ -616,10 +624,6 @@
 		<data>
 		ix9jWOIA23Kw7iQ2TVwNXRoTrvk=
 		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADInterstitialAdPreloader_Beta.h</key>
-		<data>
-		gKPMFbR6R6aiD5mgAd9ODXoCz90=
-		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMediaAspectRatio.h</key>
 		<data>
 		5RplZzDrsCmh20g27GynNi8facI=
@@ -635,10 +639,6 @@
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMobileAds.h</key>
 		<data>
 		WRYbqBaY7hSX4L5hVnExxHGkf9s=
-		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMobileAds_Beta.h</key>
-		<data>
-		8XFvC7wn8Zm3mU2iPwOYbloNURs=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMultipleAdsAdLoaderOptions.h</key>
 		<data>
@@ -700,14 +700,6 @@
 		<data>
 		h1r81Ma4kkeglTr9FfiA0UjmF64=
 		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADPreloadConfigurationV2_Beta.h</key>
-		<data>
-		F0SOmXnXlYFXYP22xBQpssxF5uQ=
-		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADPreloadDelegate_Beta.h</key>
-		<data>
-		PiWWVO72p35K/nGZZY4oK+uyAFE=
-		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADPresentationError.h</key>
 		<data>
 		nqKVG/ZE+WiFlctZUk3EYPdOYWo=
@@ -724,10 +716,6 @@
 		<data>
 		sT9HROeDriDuTk6OBMvU6tKlcHk=
 		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRequest_Beta.h</key>
-		<data>
-		xSc+8LNsZUL/Y0Vlocp66ErWx4o=
-		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADResponseInfo.h</key>
 		<data>
 		8cfb+tYVpJZ+QM41hmTz/KYW26s=
@@ -736,17 +724,9 @@
 		<data>
 		nBhdN8OZ4IUxWXR79mXjETpPobg=
 		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRewardedAdPreloader_Beta.h</key>
-		<data>
-		uK3zldhWuN4pxkEosHdYnvobR0o=
-		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAd.h</key>
 		<data>
 		yx+9HeKcTpFZDlB8bVHQacH1ZtQ=
-		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAdPreloader_Beta.h</key>
-		<data>
-		vs8r0H7Osf6nOpZphGbygmvDlhg=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADServerSideVerificationOptions.h</key>
 		<data>
@@ -787,10 +767,6 @@
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GoogleMobileAdsDefines.h</key>
 		<data>
 		Tz3u9UuK0US7dUsrsIAruDpv+eo=
-		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GoogleMobileAds_Beta.h</key>
-		<data>
-		rrJSfgzxbOMfjL2/h9Kp+RzQdMI=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMAdNetworkAdapterProtocol.h</key>
 		<data>
@@ -843,10 +819,6 @@
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMediationBannerAd.h</key>
 		<data>
 		da4hOwHO63+ZiRSuKFAzCRDRwlY=
-		</data>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
-		<data>
-		4BKzipgqyNTFjeadCrQcCP9JQNU=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMediationInterstitialAd.h</key>
 		<data>
@@ -910,7 +882,7 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Info.plist</key>
 		<data>
-		ZIS+vt5COM3hTCVsvsoKGTw7UyM=
+		WOKYePhGNveu9600EiqXtHviayI=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Modules/module.modulemap</key>
 		<data>
@@ -918,11 +890,63 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Modules/module.private.modulemap</key>
 		<data>
-		/NwjiBGrYBhPu/LSxQC3Vu93pj8=
+		nzCObjF2dol2hxJmndwMPXUR0as=
 		</data>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivacyInfo.xcprivacy</key>
 		<data>
 		VWCA3MeaiPMoOAS1uOteTSLX8js=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADAppOpenAdPreloader_Beta.h</key>
+		<data>
+		spph8AmBDSWciQKq5xczlO+Fo9g=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADInterstitialAdPreloader_Beta.h</key>
+		<data>
+		YLycN2RB40NKD96Z47U5f+IdSrI=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADMobileAds_Beta.h</key>
+		<data>
+		8XFvC7wn8Zm3mU2iPwOYbloNURs=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADPreloadConfigurationV2_Beta.h</key>
+		<data>
+		F0SOmXnXlYFXYP22xBQpssxF5uQ=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADPreloadDelegate_Beta.h</key>
+		<data>
+		PiWWVO72p35K/nGZZY4oK+uyAFE=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADRequest_Beta.h</key>
+		<data>
+		xSc+8LNsZUL/Y0Vlocp66ErWx4o=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADRewardedAdPreloader_Beta.h</key>
+		<data>
+		EScbCi7NURFfqeoKbU0vclD/aVU=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADRewardedInterstitialAdPreloader_Beta.h</key>
+		<data>
+		rJM6pyNuFDhy31zVgjZV0yAW/Og=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdDelegate_Beta.h</key>
+		<data>
+		0esoq0M8xCZtTf6YXici9Tzeh2s=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdOptions_Beta.h</key>
+		<data>
+		MRAD0jkF6dH08FWzQlKJrTmVnFM=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAd_Beta.h</key>
+		<data>
+		nXIo8P1ACsIawSv4PicYim4+upU=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GoogleMobileAds_Beta.h</key>
+		<data>
+		at53kRzvb82C0+/iF6SJCSuU5HI=
+		</data>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
+		<data>
+		4BKzipgqyNTFjeadCrQcCP9JQNU=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -931,11 +955,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			O1Kd6RL1QzpSwiqgRAI3uUC5XbU=
+			oAhM8d3uvs8Pt7e47APFXQNEWS4=
 			</data>
 			<key>hash2</key>
 			<data>
-			2lnYHt9x60eYJU0FT1s+V2E3eL36kvLao1/AnYqAmWA=
+			OAmmUs4dATiDkKmSkGgskfj2cF12E+aQGtiMyeU1s50=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAdChoicesPosition.h</key>
@@ -1101,17 +1125,6 @@
 			<key>hash2</key>
 			<data>
 			oAjhPD08UWtZCMt/i2866yGjf2oYCgH9nyfzrY0lyGo=
-			</data>
-		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAppOpenAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			/5UuOSpDzytYTmkmvOrgxi+BdxQ=
-			</data>
-			<key>hash2</key>
-			<data>
-			yg+YrD1DIm+eG81zW7mPQ2DI3DISTeKRrjwtu25VpWY=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADAudioVideoManager.h</key>
@@ -1345,17 +1358,6 @@
 			BvcuuNfp0mrYUGe6TMV0UFHkFMSAJnvWZTIpGX1Q3Ro=
 			</data>
 		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADInterstitialAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			gKPMFbR6R6aiD5mgAd9ODXoCz90=
-			</data>
-			<key>hash2</key>
-			<data>
-			mw5eetr9xERGw38/j1TvXS0n4QXrOpvlVYMhr3l7ES4=
-			</data>
-		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMediaAspectRatio.h</key>
 		<dict>
 			<key>hash</key>
@@ -1398,17 +1400,6 @@
 			<key>hash2</key>
 			<data>
 			iAk9eKOfHOs/1crm9YsptxJ5kq2heSr0JN7ljI/uxBY=
-			</data>
-		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMobileAds_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			8XFvC7wn8Zm3mU2iPwOYbloNURs=
-			</data>
-			<key>hash2</key>
-			<data>
-			kVAW40i0qw25ieoIzPY/G61n6PgacIow53Ublo/Swj8=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADMultipleAdsAdLoaderOptions.h</key>
@@ -1576,28 +1567,6 @@
 			5PbBiboNFB2C6GNvVGAzpOYnA7TBf12aE8IVXuzna1A=
 			</data>
 		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADPreloadConfigurationV2_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			F0SOmXnXlYFXYP22xBQpssxF5uQ=
-			</data>
-			<key>hash2</key>
-			<data>
-			DMHM7Is+eo0yZibesv+B2cMBVPOLBcx04ouqGKSxyN8=
-			</data>
-		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADPreloadDelegate_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			PiWWVO72p35K/nGZZY4oK+uyAFE=
-			</data>
-			<key>hash2</key>
-			<data>
-			tZOjPilSGd/LefCj48W7ewOu09fx8fUV6LCQMYX/Jr0=
-			</data>
-		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADPresentationError.h</key>
 		<dict>
 			<key>hash</key>
@@ -1642,17 +1611,6 @@
 			NW9cvfdsI1ae2mplzAAYSAKwPWtGRN9mWbYkqEUslZ0=
 			</data>
 		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRequest_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			xSc+8LNsZUL/Y0Vlocp66ErWx4o=
-			</data>
-			<key>hash2</key>
-			<data>
-			gNd/FnCv4YAO5vxyEiNHu6uRUQRos8nx1yJ/KmnARzA=
-			</data>
-		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADResponseInfo.h</key>
 		<dict>
 			<key>hash</key>
@@ -1675,17 +1633,6 @@
 			Q6LFbZwBA9/PtZaHLuAWYBSmojvxsjaqkkkl31tL0io=
 			</data>
 		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRewardedAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			uK3zldhWuN4pxkEosHdYnvobR0o=
-			</data>
-			<key>hash2</key>
-			<data>
-			Vsd63Ey2geYoGRFGzHdYoIj2dGRdabFCboCmAv1ZRic=
-			</data>
-		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAd.h</key>
 		<dict>
 			<key>hash</key>
@@ -1695,17 +1642,6 @@
 			<key>hash2</key>
 			<data>
 			8q707iBC6uJtT4REQX4qwvFpU3AjzB3/TbOP774TQBk=
-			</data>
-		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			vs8r0H7Osf6nOpZphGbygmvDlhg=
-			</data>
-			<key>hash2</key>
-			<data>
-			5s5aFTdErqXKiHA4f41O8tgzPNaX+ub8r+x9HvBhcwQ=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/GADServerSideVerificationOptions.h</key>
@@ -1816,17 +1752,6 @@
 			<key>hash2</key>
 			<data>
 			vU0Fthe85QdbuNiPqCH011jO4kfKyVksC6EFghjiSKw=
-			</data>
-		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/GoogleMobileAds_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			rrJSfgzxbOMfjL2/h9Kp+RzQdMI=
-			</data>
-			<key>hash2</key>
-			<data>
-			ROgjpTYz+yq7xpXPV6/0LiWjr/EViLY5ALckUT67CHU=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMAdNetworkAdapterProtocol.h</key>
@@ -1970,17 +1895,6 @@
 			<key>hash2</key>
 			<data>
 			/CUr3mbk5X74XJjy+g3esNogG3PiTdzoo2R5cMaO9GI=
-			</data>
-		</dict>
-		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			4BKzipgqyNTFjeadCrQcCP9JQNU=
-			</data>
-			<key>hash2</key>
-			<data>
-			I4XI/n3bH/V5KzOvi8G8lP+VUe7JGzYwUt1zatH3EjE=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Headers/Mediation/GADMediationInterstitialAd.h</key>
@@ -2152,11 +2066,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			DkuJW8By3R1VknmFSMcPyRRimUU=
+			ge14vwJ02MRzF6Lhi7m50wzZ7bo=
 			</data>
 			<key>hash2</key>
 			<data>
-			UiVA/pwAPDhDXzCtynTrojfdKiAmXPRg1v8WjcozNRM=
+			W3HaZoXH39KHzmIR7s5mdg8iF1lbdCKIgNyZOdj3xXc=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/Modules/module.modulemap</key>
@@ -2174,11 +2088,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			/NwjiBGrYBhPu/LSxQC3Vu93pj8=
+			nzCObjF2dol2hxJmndwMPXUR0as=
 			</data>
 			<key>hash2</key>
 			<data>
-			7FF9Hdrxg6CoeaeHiAOGZVe6hLvBCRXkFJGNF0fqfO0=
+			VwUceFOUcuu/sFQPXJbmhq+BjburoxmHiYG6eTuVFdQ=
 			</data>
 		</dict>
 		<key>ios-arm64/GoogleMobileAds.framework/PrivacyInfo.xcprivacy</key>
@@ -2192,15 +2106,158 @@
 			afsRJYL8I/wGxjXJYdJio/e0tWVNKEeHSR3jAA2t+dI=
 			</data>
 		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADAppOpenAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			spph8AmBDSWciQKq5xczlO+Fo9g=
+			</data>
+			<key>hash2</key>
+			<data>
+			AZCQhDjU1XX0G5Gebtpme4mvWMOKULTA7YTkuHHCz6Y=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADInterstitialAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			YLycN2RB40NKD96Z47U5f+IdSrI=
+			</data>
+			<key>hash2</key>
+			<data>
+			gUOD9S0eKzwwoeMJTodO0rITYS5FjTX0l54L6OnERUo=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADMobileAds_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			8XFvC7wn8Zm3mU2iPwOYbloNURs=
+			</data>
+			<key>hash2</key>
+			<data>
+			kVAW40i0qw25ieoIzPY/G61n6PgacIow53Ublo/Swj8=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADPreloadConfigurationV2_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			F0SOmXnXlYFXYP22xBQpssxF5uQ=
+			</data>
+			<key>hash2</key>
+			<data>
+			DMHM7Is+eo0yZibesv+B2cMBVPOLBcx04ouqGKSxyN8=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADPreloadDelegate_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			PiWWVO72p35K/nGZZY4oK+uyAFE=
+			</data>
+			<key>hash2</key>
+			<data>
+			tZOjPilSGd/LefCj48W7ewOu09fx8fUV6LCQMYX/Jr0=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADRequest_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			xSc+8LNsZUL/Y0Vlocp66ErWx4o=
+			</data>
+			<key>hash2</key>
+			<data>
+			gNd/FnCv4YAO5vxyEiNHu6uRUQRos8nx1yJ/KmnARzA=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADRewardedAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			EScbCi7NURFfqeoKbU0vclD/aVU=
+			</data>
+			<key>hash2</key>
+			<data>
+			slPqoaRA/mEPH1E5fY/M6+fzM3y8gr7MIN6A/H9fs3I=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADRewardedInterstitialAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			rJM6pyNuFDhy31zVgjZV0yAW/Og=
+			</data>
+			<key>hash2</key>
+			<data>
+			tuWn6B7V1vVq8QXM7fHtfMeiBQ90i4qdxQ1QJMO1t14=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdDelegate_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			0esoq0M8xCZtTf6YXici9Tzeh2s=
+			</data>
+			<key>hash2</key>
+			<data>
+			UN+D0pJ/q1s13l5HP07WyJMAHTSBwkXw9lZf94scgcM=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdOptions_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			MRAD0jkF6dH08FWzQlKJrTmVnFM=
+			</data>
+			<key>hash2</key>
+			<data>
+			4YKAAOMmuoxcy/fk1LcqKIWGuYFMduTdhiAmdJ4fPTI=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAd_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			nXIo8P1ACsIawSv4PicYim4+upU=
+			</data>
+			<key>hash2</key>
+			<data>
+			V/ISe6oMrUCPGgiLjZwbkus5Jy8rsAPxn1r2TDwkiRw=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/GoogleMobileAds_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			at53kRzvb82C0+/iF6SJCSuU5HI=
+			</data>
+			<key>hash2</key>
+			<data>
+			Pot4x0msQaY84z2YTb41+DdN/RTYw7H5HRa+zRx6o7s=
+			</data>
+		</dict>
+		<key>ios-arm64/GoogleMobileAds.framework/PrivateHeaders/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			4BKzipgqyNTFjeadCrQcCP9JQNU=
+			</data>
+			<key>hash2</key>
+			<data>
+			I4XI/n3bH/V5KzOvi8G8lP+VUe7JGzYwUt1zatH3EjE=
+			</data>
+		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/GoogleMobileAds</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			c8V3daMXjYCIUe1NtlpHzC2x4Ow=
+			/3h6P8va0A2HUDOnnKKdsHkSGNs=
 			</data>
 			<key>hash2</key>
 			<data>
-			szqGkOM4uolRFNVW6EtrAXWBiNNmFCymR25gRt3hcuA=
+			2FJFCGuPj5gV5wGzZvLLp/V4AMP84cUX7rN81j/KzvE=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAdChoicesPosition.h</key>
@@ -2366,17 +2423,6 @@
 			<key>hash2</key>
 			<data>
 			oAjhPD08UWtZCMt/i2866yGjf2oYCgH9nyfzrY0lyGo=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAppOpenAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			/5UuOSpDzytYTmkmvOrgxi+BdxQ=
-			</data>
-			<key>hash2</key>
-			<data>
-			yg+YrD1DIm+eG81zW7mPQ2DI3DISTeKRrjwtu25VpWY=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADAudioVideoManager.h</key>
@@ -2610,17 +2656,6 @@
 			BvcuuNfp0mrYUGe6TMV0UFHkFMSAJnvWZTIpGX1Q3Ro=
 			</data>
 		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADInterstitialAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			gKPMFbR6R6aiD5mgAd9ODXoCz90=
-			</data>
-			<key>hash2</key>
-			<data>
-			mw5eetr9xERGw38/j1TvXS0n4QXrOpvlVYMhr3l7ES4=
-			</data>
-		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMediaAspectRatio.h</key>
 		<dict>
 			<key>hash</key>
@@ -2663,17 +2698,6 @@
 			<key>hash2</key>
 			<data>
 			iAk9eKOfHOs/1crm9YsptxJ5kq2heSr0JN7ljI/uxBY=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMobileAds_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			8XFvC7wn8Zm3mU2iPwOYbloNURs=
-			</data>
-			<key>hash2</key>
-			<data>
-			kVAW40i0qw25ieoIzPY/G61n6PgacIow53Ublo/Swj8=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADMultipleAdsAdLoaderOptions.h</key>
@@ -2841,28 +2865,6 @@
 			5PbBiboNFB2C6GNvVGAzpOYnA7TBf12aE8IVXuzna1A=
 			</data>
 		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADPreloadConfigurationV2_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			F0SOmXnXlYFXYP22xBQpssxF5uQ=
-			</data>
-			<key>hash2</key>
-			<data>
-			DMHM7Is+eo0yZibesv+B2cMBVPOLBcx04ouqGKSxyN8=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADPreloadDelegate_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			PiWWVO72p35K/nGZZY4oK+uyAFE=
-			</data>
-			<key>hash2</key>
-			<data>
-			tZOjPilSGd/LefCj48W7ewOu09fx8fUV6LCQMYX/Jr0=
-			</data>
-		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADPresentationError.h</key>
 		<dict>
 			<key>hash</key>
@@ -2907,17 +2909,6 @@
 			NW9cvfdsI1ae2mplzAAYSAKwPWtGRN9mWbYkqEUslZ0=
 			</data>
 		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRequest_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			xSc+8LNsZUL/Y0Vlocp66ErWx4o=
-			</data>
-			<key>hash2</key>
-			<data>
-			gNd/FnCv4YAO5vxyEiNHu6uRUQRos8nx1yJ/KmnARzA=
-			</data>
-		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADResponseInfo.h</key>
 		<dict>
 			<key>hash</key>
@@ -2940,17 +2931,6 @@
 			Q6LFbZwBA9/PtZaHLuAWYBSmojvxsjaqkkkl31tL0io=
 			</data>
 		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRewardedAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			uK3zldhWuN4pxkEosHdYnvobR0o=
-			</data>
-			<key>hash2</key>
-			<data>
-			Vsd63Ey2geYoGRFGzHdYoIj2dGRdabFCboCmAv1ZRic=
-			</data>
-		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAd.h</key>
 		<dict>
 			<key>hash</key>
@@ -2960,17 +2940,6 @@
 			<key>hash2</key>
 			<data>
 			8q707iBC6uJtT4REQX4qwvFpU3AjzB3/TbOP774TQBk=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADRewardedInterstitialAdPreloader_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			vs8r0H7Osf6nOpZphGbygmvDlhg=
-			</data>
-			<key>hash2</key>
-			<data>
-			5s5aFTdErqXKiHA4f41O8tgzPNaX+ub8r+x9HvBhcwQ=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GADServerSideVerificationOptions.h</key>
@@ -3081,17 +3050,6 @@
 			<key>hash2</key>
 			<data>
 			vU0Fthe85QdbuNiPqCH011jO4kfKyVksC6EFghjiSKw=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/GoogleMobileAds_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			rrJSfgzxbOMfjL2/h9Kp+RzQdMI=
-			</data>
-			<key>hash2</key>
-			<data>
-			ROgjpTYz+yq7xpXPV6/0LiWjr/EViLY5ALckUT67CHU=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMAdNetworkAdapterProtocol.h</key>
@@ -3235,17 +3193,6 @@
 			<key>hash2</key>
 			<data>
 			/CUr3mbk5X74XJjy+g3esNogG3PiTdzoo2R5cMaO9GI=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			4BKzipgqyNTFjeadCrQcCP9JQNU=
-			</data>
-			<key>hash2</key>
-			<data>
-			I4XI/n3bH/V5KzOvi8G8lP+VUe7JGzYwUt1zatH3EjE=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Headers/Mediation/GADMediationInterstitialAd.h</key>
@@ -3417,11 +3364,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			ZIS+vt5COM3hTCVsvsoKGTw7UyM=
+			WOKYePhGNveu9600EiqXtHviayI=
 			</data>
 			<key>hash2</key>
 			<data>
-			WebaE8ZfhqK/I5CMAuvxTj/Uix/bFi2apA4GSMK3sgI=
+			3R85zXe27y3Mq091nNOc0dKvF7ZF6IVpIedsQ8aiYH4=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/Modules/module.modulemap</key>
@@ -3439,11 +3386,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			/NwjiBGrYBhPu/LSxQC3Vu93pj8=
+			nzCObjF2dol2hxJmndwMPXUR0as=
 			</data>
 			<key>hash2</key>
 			<data>
-			7FF9Hdrxg6CoeaeHiAOGZVe6hLvBCRXkFJGNF0fqfO0=
+			VwUceFOUcuu/sFQPXJbmhq+BjburoxmHiYG6eTuVFdQ=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivacyInfo.xcprivacy</key>
@@ -3455,6 +3402,149 @@
 			<key>hash2</key>
 			<data>
 			afsRJYL8I/wGxjXJYdJio/e0tWVNKEeHSR3jAA2t+dI=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADAppOpenAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			spph8AmBDSWciQKq5xczlO+Fo9g=
+			</data>
+			<key>hash2</key>
+			<data>
+			AZCQhDjU1XX0G5Gebtpme4mvWMOKULTA7YTkuHHCz6Y=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADInterstitialAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			YLycN2RB40NKD96Z47U5f+IdSrI=
+			</data>
+			<key>hash2</key>
+			<data>
+			gUOD9S0eKzwwoeMJTodO0rITYS5FjTX0l54L6OnERUo=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADMobileAds_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			8XFvC7wn8Zm3mU2iPwOYbloNURs=
+			</data>
+			<key>hash2</key>
+			<data>
+			kVAW40i0qw25ieoIzPY/G61n6PgacIow53Ublo/Swj8=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADPreloadConfigurationV2_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			F0SOmXnXlYFXYP22xBQpssxF5uQ=
+			</data>
+			<key>hash2</key>
+			<data>
+			DMHM7Is+eo0yZibesv+B2cMBVPOLBcx04ouqGKSxyN8=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADPreloadDelegate_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			PiWWVO72p35K/nGZZY4oK+uyAFE=
+			</data>
+			<key>hash2</key>
+			<data>
+			tZOjPilSGd/LefCj48W7ewOu09fx8fUV6LCQMYX/Jr0=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADRequest_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			xSc+8LNsZUL/Y0Vlocp66ErWx4o=
+			</data>
+			<key>hash2</key>
+			<data>
+			gNd/FnCv4YAO5vxyEiNHu6uRUQRos8nx1yJ/KmnARzA=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADRewardedAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			EScbCi7NURFfqeoKbU0vclD/aVU=
+			</data>
+			<key>hash2</key>
+			<data>
+			slPqoaRA/mEPH1E5fY/M6+fzM3y8gr7MIN6A/H9fs3I=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADRewardedInterstitialAdPreloader_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			rJM6pyNuFDhy31zVgjZV0yAW/Og=
+			</data>
+			<key>hash2</key>
+			<data>
+			tuWn6B7V1vVq8QXM7fHtfMeiBQ90i4qdxQ1QJMO1t14=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdDelegate_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			0esoq0M8xCZtTf6YXici9Tzeh2s=
+			</data>
+			<key>hash2</key>
+			<data>
+			UN+D0pJ/q1s13l5HP07WyJMAHTSBwkXw9lZf94scgcM=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAdOptions_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			MRAD0jkF6dH08FWzQlKJrTmVnFM=
+			</data>
+			<key>hash2</key>
+			<data>
+			4YKAAOMmuoxcy/fk1LcqKIWGuYFMduTdhiAmdJ4fPTI=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GADSwipeableInterstitialAd_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			nXIo8P1ACsIawSv4PicYim4+upU=
+			</data>
+			<key>hash2</key>
+			<data>
+			V/ISe6oMrUCPGgiLjZwbkus5Jy8rsAPxn1r2TDwkiRw=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/GoogleMobileAds_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			at53kRzvb82C0+/iF6SJCSuU5HI=
+			</data>
+			<key>hash2</key>
+			<data>
+			Pot4x0msQaY84z2YTb41+DdN/RTYw7H5HRa+zRx6o7s=
+			</data>
+		</dict>
+		<key>ios-arm64_x86_64-simulator/GoogleMobileAds.framework/PrivateHeaders/Mediation/GADMediationInitializationConfiguration_Beta.h</key>
+		<dict>
+			<key>hash</key>
+			<data>
+			4BKzipgqyNTFjeadCrQcCP9JQNU=
+			</data>
+			<key>hash2</key>
+			<data>
+			I4XI/n3bH/V5KzOvi8G8lP+VUe7JGzYwUt1zatH3EjE=
 			</data>
 		</dict>
 	</dict>

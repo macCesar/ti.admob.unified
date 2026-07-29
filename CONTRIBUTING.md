@@ -1,315 +1,147 @@
 # Contributing to ti.admob.unified
 
-We welcome contributions to the ti.admob.unified project! This document provides guidelines for contributing to the project.
+Contributions are welcome. This module is a cross-platform native bridge, so a
+change is complete only when its JavaScript contract, native behavior,
+cleanup, tests, and documentation agree.
 
-## 🤝 How to Contribute
+## Before opening an issue
 
-### Reporting Issues
+Include enough information to reproduce the problem:
 
-Before creating an issue, please:
+- Titanium SDK version
+- module version
+- platform and OS version
+- device or simulator/emulator model
+- minimal JavaScript example
+- expected and actual behavior
+- complete module and native ad error payloads
+- relevant Xcode or logcat output with secrets removed
 
-1. **Search existing issues** to avoid duplicates
-2. **Use the issue template** when creating new issues
-3. **Provide detailed information** including:
-   - Titanium SDK version
-   - Platform (iOS/Android) and version
-   - Module version
-   - Steps to reproduce the issue
-   - Expected vs actual behavior
-   - Code samples if applicable
+For layout issues, include the Titanium proxy, host, and parent dimensions plus
+device density/orientation.
 
-### Suggesting Features
+## Development baseline
 
-We're always interested in feature suggestions! Please:
+- Titanium SDK `13.4.0.GA`
+- iOS `15.0+`
+- Android API `23+`
+- Node.js with the built-in `node:test` runner
 
-1. **Check existing feature requests** to avoid duplicates
-2. **Describe the use case** and why the feature would be valuable
-3. **Provide examples** of how the feature would be used
-4. **Consider backwards compatibility** implications
+Dependency versions are pinned in [DEPENDENCIES.md](DEPENDENCIES.md).
 
-## 🔧 Development Setup
+## Workflow
 
-### Prerequisites
+Create a focused branch and keep unrelated local changes intact. Before
+editing a native dependency, establish a recoverable Git baseline and record
+the upstream source and checksum.
 
-- **Titanium SDK**: 12.8.0 or higher
-- **Xcode**: 14+ (for iOS development)
-- **Android SDK**: API Level 21+ (for Android development)
-- **Node.js**: Latest LTS version
-- **Git**: Latest version
+Run the static checks from the module root:
 
-### Getting Started
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork** locally:
-   ```bash
-   git clone https://github.com/YOUR-USERNAME/ti.admob.unified.git
-   cd ti.admob.unified
-   ```
-3. **Create a new branch** for your feature/fix:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-### Building the Module
-
-```bash
-# Build for iOS
-ti build -p ios --build-only
-
-# Build for Android
-ti build -p android --build-only
-
-# Build for both platforms
-ti build -p ios --build-only && ti build -p android --build-only
+```sh
+npm test
+./scripts/verify-artifacts.sh
+node --check example/app.js
 ```
 
-### Testing Your Changes
+Build both native modules for API or native changes:
 
-1. **Test with the example app**:
-   ```bash
-   cd example
-   ti build -p [ios|android]
-   ```
-
-2. **Test on both platforms** (iOS and Android)
-
-3. **Test different ad types** (banner, interstitial, rewarded, app open)
-
-4. **Test consent flow** with different debug geographies
-
-## 📝 Code Style Guidelines
-
-### General Principles
-
-- **Follow existing code style** and conventions
-- **Write clean, readable code** with meaningful variable names
-- **Add comments** for complex logic
-- **Keep functions focused** and single-purpose
-- **Use consistent formatting** throughout
-
-
-### Objective-C (iOS)
-
-- Use **4 spaces** for indentation
-- Follow **Apple's Objective-C Style Guidelines**
-- Use **explicit types** when clarity is improved
-- Add **section comments** using `#pragma mark`
-- Use **early returns** and **validation** for error prevention
-
-Example:
-```objc
-//
-// TiadmobunifiedModule.m
-//
-
-#pragma mark - Public Methods
-
-- (RewardedAdProxy *)createRewarded:(NSDictionary *)config {
-    if (![config isKindOfClass:[NSDictionary class]]) {
-      config = @{};
-    }
-    return [[RewardedAdProxy alloc] initWithModule:self config:config];
-}
+```sh
+./scripts/prepare-build.sh
+ti build -p ios --build-only --project-dir ios --no-prompt
+ti build -p android --build-only --project-dir android --no-prompt
 ```
 
-### Java (Android)
+The `example/app.js` file is the module test-harness entry point. It is not a
+standalone Titanium project.
 
-- Use **4 spaces** for indentation
-- Follow **Java coding conventions**
-- Use **explicit types** for public APIs
-- Add **Javadoc comments** for public methods
-- Use **null checks** appropriately
+## Public API changes
 
-Example:
-```java
-/**
- * Creates a rewarded ad proxy instance
- * @param config Configuration for the rewarded ad
- * @return RewardedAdProxy instance
- */
-@Kroll.method
-public RewardedAdProxy createRewarded(KrollDict config) {
-  if (config == null) {
-    config = new KrollDict();
-  }
-  return new RewardedAdProxy(this, config);
-}
-```
+For a new or changed method, property, event, payload key, or constant:
 
-### JavaScript (Examples and Tests)
+1. Define the portable JavaScript contract first.
+2. Implement it on iOS and Android, or document the platform limitation
+   explicitly.
+3. Preserve existing supported use cases.
+4. Make cleanup and repeated lifecycle calls deterministic.
+5. Add contract tests for both native sources.
+6. Update the API reference and the relevant task guide.
+7. Update `CHANGELOG.md`.
 
-- Use **2 spaces** for indentation
-- Use **const/let** instead of var
-- Add **JSDoc comments** for functions
-- Use **meaningful variable names**
-- Follow **ES6+ conventions**
+Do not export a format constant as evidence that a format is implemented. A
+new ad format needs a working factory and proxy on both platforms before it is
+listed as supported.
 
-Example:
-```javascript
-/**
- * Creates and configures a rewarded ad
- * @param {string} adUnitId - The AdMob ad unit ID
- * @returns {Object} Configured rewarded ad instance
- */
-function createRewardedAd(adUnitId) {
-  const rewardedAd = Admob.createRewarded({
-    autoReload: true,
-    adUnitId: adUnitId,
-  });
+## Privacy changes
 
-  return rewardedAd;
-}
-```
+Privacy changes require extra care:
 
-## 🧪 Testing Guidelines
+- `canRequestAds()` remains the only ad-request gate.
+- Do not parse TCF storage or infer a personalization Boolean.
+- Do not replace UMP with ATT; the iOS order is UMP, gate, ATT, initialize.
+- Every accepted asynchronous operation must emit one modern terminal event.
+- Errors must remain non-blocking to the host application.
+- Debug geography and consent reset belong only in controlled testing.
 
-### Required Tests
+Review [Privacy and initialization](documentation/privacy.md) before changing
+this surface.
 
-All contributions should include appropriate tests:
+## Banner changes
 
-1. **Unit tests** for new functionality
-2. **Integration tests** for API changes
-3. **Platform-specific tests** for both iOS and Android
-4. **Consent flow tests** for compliance features
+Standard and adaptive banners must preserve:
 
-### Test Categories
+- `load()`, `pause()`, `resume()`, `isLoaded()`, and terminal `destroy()`;
+- one active request and at most one deferred request;
+- repeatable destruction and one `destroyed` event;
+- removal of native delegates, listeners, controllers, views, and activity
+  lifecycle registrations;
+- common event names and payload keys;
+- real adaptive height in density-independent units;
+- no hardcoded device height and no `setNativeView(null)`.
 
-- **Basic functionality**: Ad loading, showing, and events
-- **Error handling**: Network errors, invalid configurations
-- **Consent management**: GDPR, CCPA, ATT flows
-- **Platform differences**: Fresh ads, event mapping
-- **Edge cases**: App lifecycle, memory management
-
-### Testing Checklist
-
-Before submitting a PR, ensure:
-
-- [ ] Code builds successfully on both platforms
-- [ ] Example app runs without errors
-- [ ] All ad types work correctly
-- [ ] Consent flow works in different geographies
-- [ ] No memory leaks or crashes
-- [ ] Performance is acceptable
-- [ ] Documentation is updated
-
-## 📚 Documentation Requirements
-
-### Code Documentation
-
-- **Add JSDoc/KDoc comments** for all public APIs
-- **Document parameters** and return values
-- **Include usage examples** in comments
-- **Explain complex logic** with inline comments
-
-### README Updates
-
-When adding new features:
-
-- **Update the API reference** section
-- **Add new constants** to the constants section
-- **Include usage examples**
-- **Update the quick start** if applicable
-
-### Changelog
-
-- **Add entries** to CHANGELOG.md for all changes
-- **Follow semantic versioning** principles
-- **Include migration notes** for breaking changes
-
-## 🔄 Pull Request Process
-
-### Before Submitting
-
-1. **Ensure your branch is up to date**:
-   ```bash
-   git checkout main
-   git pull upstream main
-   git checkout your-feature-branch
-   git rebase main
-   ```
-
-2. **Run all tests** and ensure they pass
-
-3. **Update documentation** as needed
-
-4. **Add changelog entries** for your changes
-
-### PR Description
-
-Your pull request should include:
-
-- **Clear description** of what the PR does
-- **Related issue numbers** (if applicable)
-- **Testing performed** and on which platforms
-- **Breaking changes** (if any)
-- **Screenshots** (for UI changes)
-
-### PR Template
-
-```markdown
-## Description
-Brief description of changes
-
-## Related Issues
-Fixes #123
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
+Review [Banner ads](documentation/banners.md).
 
 ## Testing
-- [ ] Tested on iOS
-- [ ] Tested on Android
-- [ ] Added/updated tests
-- [ ] Updated documentation
 
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Tests pass
-- [ ] Documentation updated
-```
+Static tests are necessary but not sufficient for native UI and SDK behavior.
+For relevant changes, validate physical devices on both platforms:
 
-### Review Process
+- consent required/not required, accepted/rejected, and previous-session state;
+- ATT authorized, denied, and previously resolved;
+- privacy-options reopening;
+- load, failure, click, impression, show, close, and reward events;
+- background/resume and repeated window lifecycle;
+- orientation, density, safe areas, keyboard, lists, navigation, and snackbars;
+- absence of duplicate ads and retained listeners;
+- official test IDs and Ad Inspector request evidence.
 
-1. **Automated checks** must pass (CI/CD)
-2. **Code review** by maintainers
-3. **Testing** on multiple devices/simulators
-4. **Documentation review**
-5. **Final approval** and merge
+Never click production ads while developing.
 
-## 🚀 Release Process
+## Documentation
 
-### Version Numbering
+Documentation is part of the API. Keep it in English and:
 
-We follow [Semantic Versioning](https://semver.org/):
+- describe only behavior implemented by the referenced version;
+- include argument types, return values, events, and payloads;
+- separate portable behavior from platform-specific behavior;
+- mark deprecated aliases and non-working reserved APIs;
+- use official test constants in executable examples;
+- link to primary Google or Apple documentation for upstream requirements.
 
-- **MAJOR**: Breaking changes
-- **MINOR**: New features (backwards compatible)
-- **PATCH**: Bug fixes (backwards compatible)
+`tests/documentation.test.js` checks method/constant coverage, internal links,
+and unsafe example regressions.
 
-### Release Workflow
+## Pull requests
 
-1. **Update version numbers** in manifests
-2. **Update CHANGELOG.md** with release notes
-3. **Create release tag** and GitHub release
-4. **Build and distribute** module packages
-5. **Update documentation** if needed
+A pull request should state:
 
-## 🤔 Questions?
+- the problem and intended contract;
+- iOS and Android implementation impact;
+- compatibility or migration impact;
+- tests and builds executed;
+- devices and scenarios validated;
+- documentation updated.
 
-If you have questions about contributing:
+Do not publish artifacts or create a release tag from a contribution branch.
+Release signing, tags, and distribution remain maintainer actions.
 
-- **Check existing issues** and discussions
-- **Join the discussion** on GitHub Discussions
-- **Contact maintainers** via email
-
-## 📄 License
-
-By contributing to ti.admob.unified, you agree that your contributions will be licensed under the [MIT License](LICENSE).
-
-## 🙏 Recognition
-
-All contributors will be recognized in the project README and release notes. Thank you for helping make ti.admob.unified better!
+Contributions are licensed under the [MIT License](LICENSE).

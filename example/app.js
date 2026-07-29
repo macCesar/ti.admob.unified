@@ -1,338 +1,420 @@
 /**
- * ti.admob.unified - Example App
- * Unified AdMob Module for Titanium SDK
- * Copyright (c) 2025 César Estrada
- * 
- * This example demonstrates how to use the ti.admob.unified module
- * with all supported ad types and compliance features.
+ * ti.admob.unified 1.2.0 example
+ *
+ * This app uses only Google's official demo ad unit IDs. It demonstrates:
+ * - UMP -> canRequestAds -> ATT (iOS) -> initialization
+ * - a real, collapsible adaptive-banner host
+ * - explicit listener and proxy cleanup
+ * - preserved interstitial and rewarded proxies
+ *
+ * It intentionally contains no production ad unit IDs, mediation, or manual
+ * banner refresh timers.
  */
 
-// Import the unified AdMob module
-var Admob = require('ti.admob.unified');
-Ti.API.info("AdMob Unified Module loaded: " + Admob);
+const Admob = require('ti.admob.unified')
 
-// Test Ad Unit IDs (Google's official test IDs)
-var TEST_IDS = {
-  BANNER: 'ca-app-pub-3940256099942544/6300978111',
-  INTERSTITIAL: 'ca-app-pub-3940256099942544/1033173712',
-  REWARDED: 'ca-app-pub-3940256099942544/5224354917',
-  APP_OPEN: 'ca-app-pub-3940256099942544/9257395921'
-};
+let initializationStarted = false
+let initializationComplete = false
+let trackingRequestStarted = false
+let windowClosed = false
+let banner = null
+let interstitial = null
+let rewarded = null
 
-// Helper function to get ad unit ID based on environment
-function getAdUnitId(adType) {
-  // Always use test IDs in this example
-  return TEST_IDS[adType];
-}
+const win = Ti.UI.createWindow({
+  backgroundColor: '#f5f5f5',
+  title: 'ti.admob.unified 1.2.0',
+  layout: 'composite'
+})
 
-// Global ad references
-var rewardedAd;
-var interstitialAd;
-var bannerAd;
-
-// Create main window
-var win = Ti.UI.createWindow({
-  backgroundColor: '#f0f0f0',
-  title: 'AdMob Unified Example'
-});
-
-// Create UI elements
-var scrollView = Ti.UI.createScrollView({
-  layout: 'vertical',
+const content = Ti.UI.createScrollView({
   top: 0,
-  width: Ti.UI.FILL,
-  height: Ti.UI.FILL,
-  showVerticalScrollIndicator: true
-});
-
-var bannerAdContainer = Ti.UI.createView({
+  left: 0,
+  right: 0,
   bottom: 0,
-  height: 50,
-  width: Ti.UI.FILL,
-  backgroundColor: '#FFFFFF'
-});
-
-// Status label
-var statusLabel = Ti.UI.createLabel({
-  text: 'AdMob Unified - Initializing...',
-  top: 20,
-  left: 20,
-  right: 20,
-  height: Ti.UI.SIZE,
-  color: '#333',
-  font: { fontSize: 16 },
-  textAlign: 'center'
-});
-
-// Info label about mediation
-var infoLabel = Ti.UI.createLabel({
-  text: '💡 This module includes mediation adapters for Facebook, InMobi, Unity, AppLovin, and more to maximize your ad revenue!',
-  top: 10,
-  left: 20,
-  right: 20,
-  height: Ti.UI.SIZE,
-  color: '#666',
-  font: { fontSize: 12 },
-  textAlign: 'center'
-});
-
-// Buttons container
-var buttonsContainer = Ti.UI.createView({
   layout: 'vertical',
-  top: 20,
+  showVerticalScrollIndicator: true
+})
+
+const bannerHost = Ti.UI.createView({
+  left: 0,
+  right: 0,
+  bottom: 0,
+  height: 0,
+  backgroundColor: '#ffffff'
+})
+
+const statusLabel = Ti.UI.createLabel({
+  top: 24,
   left: 20,
   right: 20,
-  height: Ti.UI.SIZE
-});
+  height: Ti.UI.SIZE,
+  color: '#222222',
+  textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
+  text: 'Requesting privacy information…'
+})
 
-// Helper function to create buttons
-function createButton(title, handler) {
-  var button = Ti.UI.createButton({
-    title: title,
-    top: 10,
-    height: 50,
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    font: { fontSize: 16, fontWeight: 'bold' },
-    borderRadius: 8
-  });
-  button.addEventListener('click', handler);
-  return button;
+const detailLabel = Ti.UI.createLabel({
+  top: 12,
+  left: 20,
+  right: 20,
+  height: Ti.UI.SIZE,
+  color: '#666666',
+  textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
+  text: 'Core Google Mobile Ads + UMP. No mediation adapters are bundled.'
+})
+
+function createButton(title, onClick) {
+  const button = Ti.UI.createButton({
+    title,
+    top: 12,
+    left: 20,
+    right: 20,
+    height: 48
+  })
+
+  button.addEventListener('click', onClick)
+  content.add(button)
+  return button
 }
 
-// Initialize button
-var initButton = createButton('1. Initialize AdMob', function () {
-  statusLabel.text = 'Initializing Google Mobile Ads SDK...';
+function setStatus(message) {
+  statusLabel.text = message
+  Ti.API.info(`[ti.admob.unified example] ${message}`)
+}
+
+function setBannerHeight(value) {
+  const height = Math.max(0, Number(value) || 0)
+  const dimension = `${height}dp`
+
+  bannerHost.height = dimension
+  content.bottom = dimension
+}
+
+function initializeAdsOnce() {
+  if (
+    windowClosed ||
+    initializationStarted ||
+    !Admob.canRequestAds()
+  ) {
+    return
+  }
+
+  initializationStarted = true
+  setStatus('Initializing Google Mobile Ads…')
 
   Admob.initialize({
-    applicationId: 'ca-app-pub-3940256099942544~3347511713', // Test app ID
-    testDeviceIds: ['33BE2250B43518CCDA7DE426D04EE231'], // Add your device ID here - check logcat for "This request is sent from a test device"
-    debugGeography: Admob.DEBUG_GEOGRAPHY_EEA,
-    tagForChildDirectedTreatment: false,
-    tagForUnderAgeOfConsent: false,
+    ageRestrictedTreatment: Admob.AGE_RESTRICTED_TREATMENT_UNSPECIFIED,
     maxAdContentRating: Admob.MAX_AD_CONTENT_RATING_GENERAL
-  });
-});
-
-// Request consent button
-var consentButton = createButton('2. Request Consent (GDPR)', function () {
-  statusLabel.text = 'Requesting consent...';
-
-  // RESET consent first for testing
-  Admob.resetConsent();
-
-  // Wait a moment then request
-  setTimeout(function () {
-    Admob.requestConsent({
-      // Remove testDeviceIds or use actual device ID
-      geography: Admob.DEBUG_GEOGRAPHY_EEA, // Force EEA for testing
-      tagForUnderAgeOfConsent: false
-    });
-  }, 500);
-});
-
-// Listen for consent events globally
-Admob.addEventListener('consent_ready', function (e) {
-  statusLabel.text = 'Consent ready - Can show ads: ' + e.canShowAds + ', Personalized: ' + e.canShowPersonalizedAds;
-  Ti.API.info('✅ Consent ready: ' + JSON.stringify(e));
-});
-
-Admob.addEventListener('consent_error', function (e) {
-  statusLabel.text = '❌ Consent error: ' + e.error;
-  Ti.API.error('Consent error: ' + JSON.stringify(e));
-});
-
-// Debug button to show device info
-var debugButton = createButton('🐛 Debug Info', function () {
-  var deviceInfo = 'Device Info:\n';
-  deviceInfo += 'Model: ' + Ti.Platform.model + '\n';
-  deviceInfo += 'OS: ' + Ti.Platform.osname + ' ' + Ti.Platform.version + '\n';
-  deviceInfo += 'UUID: ' + Ti.Platform.id + '\n';
-
-  // Check which networks are available
-  deviceInfo += '\nNetworks Available:\n';
-  deviceInfo += 'InMobi: ' + Admob.isInMobiAvailable() + '\n';
-  deviceInfo += 'AppLovin: ' + Admob.isAppLovinAvailable() + '\n';
-  deviceInfo += 'Vungle: ' + Admob.isVungleAvailable() + '\n';
-
-  Ti.API.info('🐛 DEBUG INFO:\n' + deviceInfo);
-
-  var dialog = Ti.UI.createAlertDialog({
-    title: 'Debug Info',
-    message: deviceInfo,
-    ok: 'OK'
-  });
-  dialog.show();
-});
-
-// Create rewarded ad button
-var createRewardedButton = createButton('3. Create Rewarded Ad', function () {
-  statusLabel.text = 'Creating rewarded ad...';
-
-  rewardedAd = Admob.createRewarded({
-    adUnitId: getAdUnitId('REWARDED'),
-    autoReload: true
-  });
-
-  // Set up event listeners
-  rewardedAd.addEventListener(Admob.AD_LOADED, function (e) {
-    statusLabel.text = 'Rewarded ad loaded successfully!';
-    Ti.API.info('Rewarded ad loaded: ' + e.adUnitId);
-  });
-
-  rewardedAd.addEventListener(Admob.AD_FAILED_TO_LOAD, function (e) {
-    statusLabel.text = 'Rewarded ad failed to load: ' + e.error;
-    Ti.API.error('Rewarded ad error: ' + e.error);
-  });
-
-  rewardedAd.addEventListener(Admob.AD_REWARDED, function (e) {
-    statusLabel.text = 'User earned reward: ' + e.rewardAmount + ' ' + e.rewardType;
-    Ti.API.info('User rewarded: ' + JSON.stringify(e));
-  });
-
-  rewardedAd.addEventListener(Admob.AD_CLOSED, function (e) {
-    statusLabel.text = 'Rewarded ad closed';
-    Ti.API.info('Rewarded ad closed');
-  });
-
-  // Load the ad
-  rewardedAd.load();
-});
-
-// Show rewarded ad button
-var showRewardedButton = createButton('4. Show Rewarded Ad', function () {
-  if (rewardedAd && rewardedAd.isLoaded()) {
-    statusLabel.text = 'Showing rewarded ad...';
-    rewardedAd.show();
-  } else {
-    statusLabel.text = 'Rewarded ad not ready. Create and load first.';
-  }
-});
-
-// Create interstitial ad button
-var createInterstitialButton = createButton('5. Create Interstitial Ad', function () {
-  statusLabel.text = 'Creating interstitial ad...';
-
-  interstitialAd = Admob.createInterstitial({
-    adUnitId: getAdUnitId('INTERSTITIAL'),
-    autoReload: true
-  });
-
-  // Set up event listeners
-  interstitialAd.addEventListener(Admob.AD_LOADED, function (e) {
-    statusLabel.text = 'Interstitial ad loaded successfully!';
-  });
-
-  interstitialAd.addEventListener(Admob.AD_FAILED_TO_LOAD, function (e) {
-    statusLabel.text = 'Interstitial ad failed to load: ' + e.error;
-  });
-
-  interstitialAd.addEventListener(Admob.AD_CLOSED, function (e) {
-    statusLabel.text = 'Interstitial ad closed';
-  });
-
-  // Load the ad
-  interstitialAd.load();
-});
-
-// Show interstitial ad button
-var showInterstitialButton = createButton('6. Show Interstitial Ad', function () {
-  if (interstitialAd && interstitialAd.isLoaded()) {
-    statusLabel.text = 'Showing interstitial ad...';
-    interstitialAd.show();
-  } else {
-    statusLabel.text = 'Interstitial ad not ready. Create and load first.';
-  }
-});
-
-// Create banner ad button
-var createBannerButton = createButton('7. Create Banner Ad', function () {
-  if (bannerAd) {
-    // Remove existing banner
-    scrollView.remove(bannerAd);
-  }
-
-  statusLabel.text = 'Creating banner ad...';
-
-  bannerAd = Admob.createBanner({
-    adUnitId: Admob.TEST_BANNER,
-    adSize: Admob.BANNER,
-    width: Ti.UI.FILL,
-    height: 60
-  });
-
-  // Set up event listeners
-  bannerAd.addEventListener(Admob.AD_LOADED, function (e) {
-    statusLabel.text = 'Banner ad loaded successfully!';
-  });
-
-  bannerAd.addEventListener(Admob.AD_FAILED_TO_LOAD, function (e) {
-    statusLabel.text = 'Banner ad failed to load: ' + e.error;
-  });
-
-  bannerAd.addEventListener(Admob.AD_CLICKED, function (e) {
-    statusLabel.text = 'Banner ad clicked!';
-  });
-
-  // Add banner to scroll view
-  bannerAdContainer.add(bannerAd);
-
-  // Load the banner ad
-  bannerAd.load();
-});
-
-// Module event listeners
-Admob.addEventListener('module_initialized', function (e) {
-  statusLabel.text = 'AdMob SDK initialized successfully!';
-  Ti.API.info('AdMob SDK initialized');
-});
-
-Admob.addEventListener('consent_ready', function (e) {
-  statusLabel.text = 'Consent ready - Can show ads: ' + e.canShowAds;
-  Ti.API.info('Consent ready: ' + JSON.stringify(e));
-});
-
-Admob.addEventListener('consent_error', function (e) {
-  statusLabel.text = 'Consent error: ' + e.error;
-  Ti.API.error('Consent error: ' + e.error);
-});
-
-// Add all UI elements
-buttonsContainer.add(initButton);
-buttonsContainer.add(consentButton);
-buttonsContainer.add(debugButton);
-buttonsContainer.add(createRewardedButton);
-buttonsContainer.add(showRewardedButton);
-buttonsContainer.add(createInterstitialButton);
-buttonsContainer.add(showInterstitialButton);
-buttonsContainer.add(createBannerButton);
-
-scrollView.add(statusLabel);
-scrollView.add(infoLabel);
-scrollView.add(buttonsContainer);
-
-win.add(scrollView);
-win.add(bannerAdContainer);
-
-// iOS specific: Request tracking authorization
-if (Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad') {
-  Admob.requestTrackingAuthorization({
-    callback: function (result) {
-      Ti.API.info('Tracking authorization: ' + result.status);
-    }
-  });
+  })
 }
 
-// Handle app lifecycle for better ad management
-Ti.App.addEventListener('resumed', function () {
-  Ti.API.info('App resumed - checking ad readiness');
-  if (rewardedAd && !rewardedAd.isLoaded()) {
-    rewardedAd.load();
+function onModuleInitialized(event) {
+  if (!event.success) {
+    setStatus(`Initialization failed: ${event.error}`)
+    return
   }
-  if (interstitialAd && !interstitialAd.isLoaded()) {
-    interstitialAd.load();
-  }
-});
 
-// Open the window
-win.open();
+  initializationComplete = true
+  setStatus('Google Mobile Ads initialized with official test units')
+  loadAdaptiveBanner()
+}
+
+function onTrackingAuthorizationCompleted(event) {
+  trackingRequestStarted = false
+  Admob.removeEventListener(
+    'tracking_authorization_completed',
+    onTrackingAuthorizationCompleted
+  )
+  Ti.API.info(`ATT status: ${event.status}`)
+  initializeAdsOnce()
+}
+
+function continueAfterPrivacyGate(canRequestAds) {
+  if (!canRequestAds || initializationStarted || windowClosed) {
+    return
+  }
+
+  if (OS_IOS) {
+    if (trackingRequestStarted) {
+      return
+    }
+
+    trackingRequestStarted = true
+    Admob.addEventListener(
+      'tracking_authorization_completed',
+      onTrackingAuthorizationCompleted
+    )
+    Admob.requestTrackingAuthorization()
+    return
+  }
+
+  initializeAdsOnce()
+}
+
+function onConsentComplete(event) {
+  privacyButton.visible = event.privacyOptionsRequired
+  privacyButton.touchEnabled = event.privacyOptionsRequired
+
+  if (!event.success) {
+    Ti.API.warn(`UMP completed with an error: ${event.error} (${event.code})`)
+  }
+
+  if (!event.canRequestAds) {
+    setStatus('UMP does not currently allow ad requests')
+    return
+  }
+
+  continueAfterPrivacyGate(event.canRequestAds)
+}
+
+function onPrivacyOptionsDismissed(event) {
+  privacyButton.visible = event.privacyOptionsRequired
+  privacyButton.touchEnabled = event.privacyOptionsRequired
+
+  if (!event.success) {
+    setStatus(`Privacy options failed: ${event.error}`)
+    return
+  }
+
+  setStatus(`Privacy options closed; canRequestAds=${event.canRequestAds}`)
+  continueAfterPrivacyGate(event.canRequestAds)
+}
+
+function onBannerLoaded(event) {
+  setBannerHeight(event.height)
+  setStatus(`Adaptive banner loaded at ${event.height}${event.heightUnit}`)
+}
+
+function onBannerFailed(event) {
+  setBannerHeight(0)
+  setStatus(`Banner failed: ${event.error} (${event.code})`)
+}
+
+function onBannerDestroyed() {
+  setBannerHeight(0)
+}
+
+function loadAdaptiveBanner() {
+  if (
+    banner ||
+    !initializationComplete ||
+    !Admob.canRequestAds()
+  ) {
+    return
+  }
+
+  banner = Admob.createAdaptiveBanner({
+    adUnitId: Admob.TEST_ADAPTIVE_BANNER,
+    adaptiveType: Admob.ADAPTIVE_ANCHORED,
+    width: Ti.UI.FILL
+  })
+
+  banner.addEventListener(Admob.AD_LOADED, onBannerLoaded)
+  banner.addEventListener(Admob.AD_FAILED_TO_LOAD, onBannerFailed)
+  banner.addEventListener(Admob.AD_DESTROYED, onBannerDestroyed)
+
+  bannerHost.add(banner)
+  banner.load()
+}
+
+function destroyBanner() {
+  if (!banner) {
+    setBannerHeight(0)
+    return
+  }
+
+  banner.removeEventListener(Admob.AD_LOADED, onBannerLoaded)
+  banner.removeEventListener(Admob.AD_FAILED_TO_LOAD, onBannerFailed)
+  banner.removeEventListener(Admob.AD_DESTROYED, onBannerDestroyed)
+  banner.destroy()
+
+  try {
+    bannerHost.remove(banner)
+  } catch (error) {
+    Ti.API.debug(`Banner was already detached: ${error.message}`)
+  }
+
+  banner = null
+  setBannerHeight(0)
+}
+
+function destroyInterstitial() {
+  if (!interstitial) {
+    return
+  }
+
+  interstitial.removeEventListener(Admob.AD_LOADED, onInterstitialLoaded)
+  interstitial.removeEventListener(
+    Admob.AD_FAILED_TO_LOAD,
+    onInterstitialFailed
+  )
+  interstitial.removeEventListener(Admob.AD_CLOSED, onInterstitialClosed)
+  interstitial.destroy()
+  interstitial = null
+}
+
+function destroyRewarded() {
+  if (!rewarded) {
+    return
+  }
+
+  rewarded.removeEventListener(Admob.AD_LOADED, onRewardedLoaded)
+  rewarded.removeEventListener(Admob.AD_FAILED_TO_LOAD, onRewardedFailed)
+  rewarded.removeEventListener(Admob.AD_REWARDED, onRewardEarned)
+  rewarded.removeEventListener(Admob.AD_CLOSED, onRewardedClosed)
+  rewarded.destroy()
+  rewarded = null
+}
+
+function onInterstitialLoaded() {
+  setStatus('Interstitial loaded; tap Show interstitial')
+}
+
+function onInterstitialFailed(event) {
+  setStatus(`Interstitial failed: ${event.error} (${event.code})`)
+}
+
+function onInterstitialClosed() {
+  setStatus('Interstitial closed')
+}
+
+function onRewardedLoaded() {
+  setStatus('Rewarded ad loaded; tap Show rewarded')
+}
+
+function onRewardedFailed(event) {
+  setStatus(`Rewarded ad failed: ${event.error} (${event.code})`)
+}
+
+function onRewardEarned(event) {
+  setStatus(`Reward earned: ${event.rewardAmount} ${event.rewardType}`)
+}
+
+function onRewardedClosed() {
+  setStatus('Rewarded ad closed')
+}
+
+function onAppPause() {
+  if (banner) {
+    banner.pause()
+  }
+}
+
+function onAppResume() {
+  if (banner) {
+    banner.resume()
+  }
+}
+
+content.add(statusLabel)
+content.add(detailLabel)
+
+const privacyButton = createButton('Advertising privacy options', () => {
+  Admob.presentPrivacyOptions({})
+})
+privacyButton.visible = false
+privacyButton.touchEnabled = false
+
+createButton('Load adaptive test banner', () => {
+  loadAdaptiveBanner()
+})
+
+createButton('Destroy banner', () => {
+  destroyBanner()
+  setStatus('Banner destroyed and host collapsed')
+})
+
+createButton('Load interstitial test ad', () => {
+  if (!initializationComplete || !Admob.canRequestAds()) {
+    setStatus('Interstitial blocked until privacy and initialization complete')
+    return
+  }
+
+  destroyInterstitial()
+  interstitial = Admob.createInterstitial({
+    adUnitId: Admob.TEST_INTERSTITIAL,
+    autoReload: false
+  })
+
+  interstitial.addEventListener(Admob.AD_LOADED, onInterstitialLoaded)
+  interstitial.addEventListener(
+    Admob.AD_FAILED_TO_LOAD,
+    onInterstitialFailed
+  )
+  interstitial.addEventListener(Admob.AD_CLOSED, onInterstitialClosed)
+  interstitial.load()
+})
+
+createButton('Show interstitial', () => {
+  if (interstitial && interstitial.isLoaded()) {
+    interstitial.show()
+  } else {
+    setStatus('Interstitial is not loaded')
+  }
+})
+
+createButton('Load rewarded test ad', () => {
+  if (!initializationComplete || !Admob.canRequestAds()) {
+    setStatus('Rewarded ad blocked until privacy and initialization complete')
+    return
+  }
+
+  destroyRewarded()
+  rewarded = Admob.createRewarded({
+    adUnitId: Admob.TEST_REWARDED,
+    autoReload: false
+  })
+
+  rewarded.addEventListener(Admob.AD_LOADED, onRewardedLoaded)
+  rewarded.addEventListener(Admob.AD_FAILED_TO_LOAD, onRewardedFailed)
+  rewarded.addEventListener(Admob.AD_REWARDED, onRewardEarned)
+  rewarded.addEventListener(Admob.AD_CLOSED, onRewardedClosed)
+  rewarded.load()
+})
+
+createButton('Show rewarded', () => {
+  if (rewarded && rewarded.isLoaded()) {
+    rewarded.show()
+  } else {
+    setStatus('Rewarded ad is not loaded')
+  }
+})
+
+Admob.addEventListener('module_initialized', onModuleInitialized)
+Admob.addEventListener('consent_complete', onConsentComplete)
+Admob.addEventListener(
+  'privacy_options_dismissed',
+  onPrivacyOptionsDismissed
+)
+
+win.add(content)
+win.add(bannerHost)
+
+Ti.App.addEventListener('pause', onAppPause)
+Ti.App.addEventListener('resume', onAppResume)
+
+win.addEventListener('close', () => {
+  windowClosed = true
+
+  Ti.App.removeEventListener('pause', onAppPause)
+  Ti.App.removeEventListener('resume', onAppResume)
+  Admob.removeEventListener('module_initialized', onModuleInitialized)
+  Admob.removeEventListener('consent_complete', onConsentComplete)
+  Admob.removeEventListener(
+    'privacy_options_dismissed',
+    onPrivacyOptionsDismissed
+  )
+  Admob.removeEventListener(
+    'tracking_authorization_completed',
+    onTrackingAuthorizationCompleted
+  )
+  trackingRequestStarted = false
+
+  destroyBanner()
+  destroyInterstitial()
+  destroyRewarded()
+})
+
+win.open()
+Admob.requestConsent({})

@@ -19,8 +19,8 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.LoadAdError;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiApplication;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -31,8 +31,13 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 {
 	private static final String LCAT = "TiAdmobUnifiedBannerAdView";
 	
+	private final TiAdmobUnifiedBannerAdProxy bannerProxy;
 	private AdView adView;
 	private boolean isAdLoaded = false;
+	private boolean isLoading;
+	private boolean isPaused;
+	private boolean isDestroyed;
+	private boolean pendingLoad;
 	private String adUnitId;
 	private AdSize adSize = AdSize.BANNER;
 	
@@ -47,15 +52,19 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	private int propLeft;
 	private int propRight;
 
-	public TiAdmobUnifiedBannerAdView(TiViewProxy proxy)
+	public TiAdmobUnifiedBannerAdView(TiAdmobUnifiedBannerAdProxy proxy)
 	{
 		super(proxy);
+		bannerProxy = proxy;
 		Log.d(LCAT, "Banner view created");
 		// Don't create AdView immediately - wait for properties
 	}
 
 	private void createAdView()
 	{
+		if (isDestroyed || adView != null) {
+			return;
+		}
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot create banner - no current activity");
@@ -69,19 +78,28 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 
 		adView = new AdView(activity);
 		adView.setAdSize(adSize);
+		bannerProxy.setProperty(TiC.PROPERTY_HEIGHT, adSize.getHeight());
 		adView.setAdUnitId(adUnitId);
 		
 		adView.setAdListener(new com.google.android.gms.ads.AdListener() {
 			@Override
 			public void onAdLoaded() {
+				if (isDestroyed) {
+					return;
+				}
 				Log.d(LCAT, "Banner ad loaded successfully");
+				isLoading = false;
 				isAdLoaded = true;
 				fireAdEvent(TiAdmobUnifiedModule.AD_LOADED, null);
 			}
 
 			@Override
 			public void onAdFailedToLoad(LoadAdError loadAdError) {
+				if (isDestroyed) {
+					return;
+				}
 				Log.e(LCAT, "Banner ad failed to load: " + loadAdError.getMessage());
+				isLoading = false;
 				isAdLoaded = false;
 				
 				Map<String, Object> event = new HashMap<>();
@@ -123,6 +141,18 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 
 	public void loadAd()
 	{
+		if (isDestroyed) {
+			fireFailure("Banner has been destroyed", 1);
+			return;
+		}
+		if (isPaused) {
+			pendingLoad = true;
+			return;
+		}
+		if (isLoading) {
+			Log.d(LCAT, "Ignoring duplicate banner load while a request is active");
+			return;
+		}
 		if (adView == null) {
 			Log.d(LCAT, "AdView not created yet, creating now");
 			createAdView();
@@ -130,6 +160,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		
 		if (adView == null) {
 			Log.e(LCAT, "Cannot load ad - AdView creation failed");
+			fireFailure("Banner view could not be created", 2);
 			return;
 		}
 
@@ -158,6 +189,8 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		
 		AdRequest adRequest = adRequestBuilder.build();
 		Log.d(LCAT, "Loading banner ad with unit ID: " + adUnitId);
+		isLoading = true;
+		isAdLoaded = false;
 		adView.loadAd(adRequest);
 	}
 
@@ -166,9 +199,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		this.adUnitId = unitId;
 		Log.d(LCAT, "Ad unit ID set to: " + unitId);
 		
-		if (adView == null && unitId != null) {
-			createAdView();
-		} else if (adView != null) {
+		if (adView != null) {
 			adView.setAdUnitId(unitId);
 		}
 	}
@@ -221,11 +252,15 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 
 	public boolean isLoaded()
 	{
-		return isAdLoaded;
+		return !isDestroyed && isAdLoaded;
 	}
 
 	public void pause()
 	{
+		if (isDestroyed || isPaused) {
+			return;
+		}
+		isPaused = true;
 		if (adView != null) {
 			adView.pause();
 			Log.d(LCAT, "Banner ad paused");
@@ -234,29 +269,55 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	
 	public void resume()
 	{
+		if (isDestroyed || !isPaused) {
+			return;
+		}
+		isPaused = false;
 		if (adView != null) {
 			adView.resume();
 			Log.d(LCAT, "Banner ad resumed");
+		}
+		if (pendingLoad) {
+			pendingLoad = false;
+			loadAd();
 		}
 	}
 	
 	public void destroy()
 	{
-		if (adView != null) {
-			adView.destroy();
-			adView = null;
-			isAdLoaded = false;
-			Log.d(LCAT, "Banner ad destroyed");
-			fireAdEvent(TiAdmobUnifiedModule.AD_DESTROYED, null);
+		if (isDestroyed) {
+			return;
 		}
+		isDestroyed = true;
+		isLoading = false;
+		isAdLoaded = false;
+		pendingLoad = false;
+		AdView viewToDestroy = adView;
+		adView = null;
+		if (viewToDestroy != null) {
+			viewToDestroy.setAdListener(null);
+			viewToDestroy.destroy();
+		}
+		Log.d(LCAT, "Banner ad destroyed");
+		fireAdEvent(TiAdmobUnifiedModule.AD_DESTROYED, null);
+		bannerProxy.onBannerViewDestroyed(this);
+	}
+
+	@Override
+	public void release()
+	{
+		destroy();
+		super.release();
 	}
 	
 	private void recreateAdView()
 	{
 		if (adView != null) {
-			// Destroy existing view
-			adView.destroy();
+			AdView viewToDestroy = adView;
 			adView = null;
+			viewToDestroy.setAdListener(null);
+			viewToDestroy.destroy();
+			isLoading = false;
 			isAdLoaded = false;
 		}
 		
@@ -264,12 +325,22 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		createAdView();
 	}
 
+	private void fireFailure(String message, int code)
+	{
+		Map<String, Object> event = new HashMap<>();
+		event.put("error", message);
+		event.put("code", code);
+		fireAdEvent(TiAdmobUnifiedModule.AD_FAILED_TO_LOAD, event);
+	}
+
 	private void fireAdEvent(String eventName, Map<String, Object> data)
 	{
 		if (data == null) {
 			data = new HashMap<>();
 		}
-		data.put("adUnitId", adUnitId);
+		data.put("adUnitId", adUnitId != null ? adUnitId : "");
+		data.put("adType", TiAdmobUnifiedModule.AD_TYPE_BANNER);
+		data.put("isAdaptive", false);
 		Log.d(LCAT, "Firing event: " + eventName);
 		proxy.fireEvent(eventName, data);
 	}

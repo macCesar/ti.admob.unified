@@ -21,7 +21,11 @@
 
 - (void)load:(id)args;
 - (void)destroy:(id)args;
+- (void)pause:(id)args;
+- (void)resume:(id)args;
 - (NSNumber *)isLoaded:(id)args;
+- (void)destroyAdViewAndCancelRequest:(id)args;
+- (void)destoyAdViewAndCancelRequest:(id)args;
 
 - (void)fireAdEvent:(NSString *)eventName withData:(NSDictionary *)data;
 

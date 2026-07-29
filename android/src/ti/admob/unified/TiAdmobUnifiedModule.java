@@ -37,6 +37,20 @@ public class TiAdmobUnifiedModule extends KrollModule
 	private static final String LCAT = "TiAdmobUnifiedModule";
 	private static final boolean DBG = TiConfig.LOGD;
 
+	private enum OperationState {
+		NOT_STARTED,
+		IN_FLIGHT,
+		COMPLETE,
+		FAILED
+	}
+
+	private final Object initializationLock = new Object();
+	private OperationState initializationState = OperationState.NOT_STARTED;
+	private Map<String, Object> initializationResult;
+	private final Object consentLock = new Object();
+	private OperationState consentState = OperationState.NOT_STARTED;
+	private Map<String, Object> consentResult;
+
 	// ===================================================================
 	// AD TYPE CONSTANTS
 	// ===================================================================
@@ -97,6 +111,9 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.constant public static final String MAX_AD_CONTENT_RATING_PARENTAL_GUIDANCE = "PG";
 	@Kroll.constant public static final String MAX_AD_CONTENT_RATING_TEEN = "T";
 	@Kroll.constant public static final String MAX_AD_CONTENT_RATING_MATURE_AUDIENCE = "MA";
+	@Kroll.constant public static final String AGE_RESTRICTED_TREATMENT_CHILD = "child";
+	@Kroll.constant public static final String AGE_RESTRICTED_TREATMENT_TEEN = "teen";
+	@Kroll.constant public static final String AGE_RESTRICTED_TREATMENT_UNSPECIFIED = "unspecified";
 
 	// ===================================================================
 	// ERROR CODE CONSTANTS
@@ -141,11 +158,37 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public void initialize(KrollDict config)
 	{
+		Map<String, Object> cachedResult = null;
+		synchronized (initializationLock) {
+			if (initializationState == OperationState.COMPLETE) {
+				cachedResult = initializationResult;
+			} else if (initializationState == OperationState.IN_FLIGHT) {
+				Log.d(LCAT, "Google Mobile Ads SDK initialization already in flight");
+				return;
+			} else {
+				initializationState = OperationState.IN_FLIGHT;
+			}
+		}
+
+		if (cachedResult != null) {
+			fireEvent("module_initialized", cachedResult);
+			return;
+		}
+
 		Log.d(LCAT, "Initializing Google Mobile Ads SDK");
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot initialize - no current activity");
+			Map<String, Object> errorEvent = new HashMap<>();
+			errorEvent.put("success", false);
+			errorEvent.put("error", "No current activity");
+			errorEvent.put("code", -1);
+			synchronized (initializationLock) {
+				initializationState = OperationState.FAILED;
+				initializationResult = errorEvent;
+			}
+			fireEvent("module_initialized", errorEvent);
 			return;
 		}
 
@@ -162,10 +205,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 				}
 			}
 			
-			// COPPA + GDPR <16. Google's docs reference setAgeRestrictedTreatment as the
-			// future replacement but it's not yet shipped in play-services-ads 25.3.0.
-			// Keep deprecated TFCD/TFUA setters until the consolidated API ships.
-			setAgeRestrictionsLegacy(requestConfigBuilder, config);
+			setAgeRestrictedTreatment(requestConfigBuilder, config);
 			
 			// Max ad content rating
 			if (config.containsKey("maxAdContentRating")) {
@@ -176,8 +216,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			MobileAds.setRequestConfiguration(requestConfigBuilder.build());
 		}
 
-		// Initialize the SDK with FAST initialization (no problematic adapters)
-		Log.d(LCAT, "Starting FAST AdMob SDK initialization...");
+		Log.d(LCAT, "Starting AdMob SDK initialization...");
 		
 		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
 			@Override
@@ -192,30 +231,45 @@ public class TiAdmobUnifiedModule extends KrollModule
 					Log.d(LCAT, String.format("Adapter %s: %s", adapterClass, status.getDescription()));
 				}
 				
-				// Fire module initialization event
 				Map<String, Object> event = new HashMap<>();
 				event.put("success", true);
 				event.put("status", initializationStatus.toString());
+				synchronized (initializationLock) {
+					initializationState = OperationState.COMPLETE;
+					initializationResult = event;
+				}
 				fireEvent("module_initialized", event);
 			}
 		});
 	}
 
-	@SuppressWarnings("deprecation") // TFCD/TFUA setters are deprecated in GMA 25.x;
-	// kept in place until setAgeRestrictedTreatment(AgeRestrictedTreatment) ships in a future SDK.
-	private void setAgeRestrictionsLegacy(RequestConfiguration.Builder builder, KrollDict config)
+	private void setAgeRestrictedTreatment(RequestConfiguration.Builder builder, KrollDict config)
 	{
-		if (config.containsKey("tagForChildDirectedTreatment")) {
-			boolean childDirected = config.getBoolean("tagForChildDirectedTreatment");
-			builder.setTagForChildDirectedTreatment(
-				childDirected ? RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_TRUE
-							 : RequestConfiguration.TAG_FOR_CHILD_DIRECTED_TREATMENT_FALSE);
+		String treatment = null;
+		if (config.containsKey("ageRestrictedTreatment")) {
+			treatment = config.getString("ageRestrictedTreatment");
 		}
-		if (config.containsKey("tagForUnderAgeOfConsent")) {
-			boolean underAge = config.getBoolean("tagForUnderAgeOfConsent");
-			builder.setTagForUnderAgeOfConsent(
-				underAge ? RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_TRUE
-						 : RequestConfiguration.TAG_FOR_UNDER_AGE_OF_CONSENT_FALSE);
+
+		if (treatment == null) {
+			boolean legacyChild = config.containsKey("tagForChildDirectedTreatment")
+				&& config.getBoolean("tagForChildDirectedTreatment");
+			boolean legacyUnderAge = config.containsKey("tagForUnderAgeOfConsent")
+				&& config.getBoolean("tagForUnderAgeOfConsent");
+			treatment = legacyChild || legacyUnderAge
+				? AGE_RESTRICTED_TREATMENT_CHILD
+				: AGE_RESTRICTED_TREATMENT_UNSPECIFIED;
+		}
+
+		switch (treatment) {
+			case AGE_RESTRICTED_TREATMENT_CHILD:
+				builder.setAgeRestrictedTreatment(AgeRestrictedTreatment.CHILD);
+				break;
+			case AGE_RESTRICTED_TREATMENT_TEEN:
+				builder.setAgeRestrictedTreatment(AgeRestrictedTreatment.TEEN);
+				break;
+			default:
+				builder.setAgeRestrictedTreatment(AgeRestrictedTreatment.UNSPECIFIED);
+				break;
 		}
 	}
 
@@ -374,9 +428,8 @@ public class TiAdmobUnifiedModule extends KrollModule
 		return isClassAvailable("com.inmobi.sdk.InMobiSdk");
 	}
 
-	// AppLovin and Vungle ship with the module since 1.1.0, and GMA 25.x initializes
-	// adapters lazily, so there is nothing to turn on at runtime. This method only
-	// reports whether the requested adapter actually made it into the build.
+	// Compatibility method. The core artifact intentionally does not bundle
+	// third-party mediation adapters.
 	@Kroll.method
 	public void enableOptionalMediationNetworks(KrollDict config)
 	{
@@ -403,11 +456,29 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public void requestConsent(KrollDict config)
 	{
+		Map<String, Object> cachedResult = null;
+		synchronized (consentLock) {
+			if (consentState == OperationState.COMPLETE) {
+				cachedResult = consentResult;
+			} else if (consentState == OperationState.IN_FLIGHT) {
+				Log.d(LCAT, "Consent request already in flight");
+				return;
+			} else {
+				consentState = OperationState.IN_FLIGHT;
+			}
+		}
+
+		if (cachedResult != null) {
+			fireEvent("consent_complete", cachedResult);
+			return;
+		}
+
 		Log.d(LCAT, "Requesting consent");
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot request consent - no current activity");
+			completeConsent(null, "No current activity", -1);
 			return;
 		}
 
@@ -450,80 +521,68 @@ public class TiAdmobUnifiedModule extends KrollModule
 				@Override
 				public void onConsentInfoUpdateSuccess() {
 					Log.d(LCAT, "Consent info update successful");
-					
-					// Check if consent form is available
-					if (consentInformation.isConsentFormAvailable()) {
-						loadConsentForm(activity);
-					} else {
-						// No consent form needed, fire ready event
-						fireConsentReadyEvent();
-					}
+
+					UserMessagingPlatform.loadAndShowConsentFormIfRequired(
+						activity,
+						new ConsentForm.OnConsentFormDismissedListener() {
+							@Override
+							public void onConsentFormDismissed(FormError error) {
+								if (error == null) {
+									completeConsent(activity, null, 0);
+								} else {
+									completeConsent(activity, error.getMessage(), error.getErrorCode());
+								}
+							}
+						}
+					);
 				}
 			},
 			new ConsentInformation.OnConsentInfoUpdateFailureListener() {
 				@Override
 				public void onConsentInfoUpdateFailure(FormError error) {
 					Log.e(LCAT, "Consent info update failed: " + error.getMessage());
-					
-					Map<String, Object> errorEvent = new HashMap<>();
-					errorEvent.put("error", error.getMessage());
-					errorEvent.put("code", error.getErrorCode());
-					fireEvent("consent_error", errorEvent);
+					completeConsent(activity, error.getMessage(), error.getErrorCode());
 				}
 			}
 		);
 	}
 
-	private void loadConsentForm(Activity activity)
+	private void completeConsent(Activity activity, String errorMessage, int errorCode)
 	{
-		UserMessagingPlatform.loadConsentForm(
-			activity,
-			new UserMessagingPlatform.OnConsentFormLoadSuccessListener() {
-				@Override
-				public void onConsentFormLoadSuccess(ConsentForm consentForm) {
-					Log.d(LCAT, "Consent form loaded successfully");
-					
-					// Present consent form
-					consentForm.show(activity, new ConsentForm.OnConsentFormDismissedListener() {
-						@Override
-						public void onConsentFormDismissed(FormError error) {
-							if (error != null) {
-								Log.e(LCAT, "Consent form error: " + error.getMessage());
-								
-								Map<String, Object> errorEvent = new HashMap<>();
-								errorEvent.put("error", error.getMessage());
-								errorEvent.put("code", error.getErrorCode());
-								fireEvent("consent_error", errorEvent);
-							} else {
-								Log.d(LCAT, "Consent form dismissed successfully");
-								fireConsentReadyEvent();
-							}
-						}
-					});
-				}
-			},
-			new UserMessagingPlatform.OnConsentFormLoadFailureListener() {
-				@Override
-				public void onConsentFormLoadFailure(FormError error) {
-					Log.e(LCAT, "Consent form load failed: " + error.getMessage());
-					
-					Map<String, Object> errorEvent = new HashMap<>();
-					errorEvent.put("error", error.getMessage());
-					errorEvent.put("code", error.getErrorCode());
-					fireEvent("consent_error", errorEvent);
-				}
-			}
-		);
-	}
+		boolean canRequestAds = false;
+		boolean privacyOptionsRequired = false;
+		if (activity != null) {
+			ConsentInformation information = UserMessagingPlatform.getConsentInformation(activity);
+			canRequestAds = information.canRequestAds();
+			privacyOptionsRequired = information.getPrivacyOptionsRequirementStatus()
+				== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
+		}
 
-	private void fireConsentReadyEvent()
-	{
-		Map<String, Object> consentEvent = new HashMap<>();
-		consentEvent.put("canShowAds", canShowAds());
-		consentEvent.put("canShowPersonalizedAds", canShowPersonalizedAds());
-		consentEvent.put("isGDPR", isGDPR());
-		consentEvent.put("isPrivacyOptionsRequired", isPrivacyOptionsRequired());
-		fireEvent("consent_ready", consentEvent);
+		Map<String, Object> result = new HashMap<>();
+		result.put("success", errorMessage == null);
+		result.put("canRequestAds", canRequestAds);
+		result.put("privacyOptionsRequired", privacyOptionsRequired);
+		// Compatibility payload keys retained for one transition release.
+		result.put("canShowAds", canRequestAds);
+		result.put("canShowPersonalizedAds", false);
+		result.put("isGDPR", isGDPR());
+		result.put("isPrivacyOptionsRequired", privacyOptionsRequired);
+		if (errorMessage != null) {
+			result.put("error", errorMessage);
+			result.put("code", errorCode);
+		}
+
+		synchronized (consentLock) {
+			consentState = OperationState.COMPLETE;
+			consentResult = result;
+		}
+
+		if (errorMessage == null) {
+			fireEvent("consent_ready", result);
+		} else {
+			fireEvent("consent_error", result);
+		}
+		fireEvent("consent_complete", result);
 	}
 
 	// ===================================================================
@@ -531,6 +590,12 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// ===================================================================
 	@Kroll.method
 	public boolean canShowAds()
+	{
+		return canRequestAds();
+	}
+
+	@Kroll.method
+	public boolean canRequestAds()
 	{
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
@@ -544,17 +609,9 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public boolean canShowPersonalizedAds()
 	{
-		Activity activity = TiApplication.getInstance().getCurrentActivity();
-		if (activity == null) {
-			return false;
-		}
-		
-		// Check TCF string for personalized ads consent
-		SharedPreferences sharedPrefs = activity.getSharedPreferences("IABTCF", 0);
-		String tcString = sharedPrefs.getString("IABTCF_TCString", "");
-		
-		// Simplified check - in real implementation, you'd parse the TC string properly
-		return !tcString.isEmpty() && tcString.contains("1");
+		// Deprecated: UMP deliberately does not expose a publisher-facing
+		// "personalized" boolean. GMA applies the collected privacy signals.
+		return false;
 	}
 
 	@Kroll.method
@@ -588,6 +645,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot present privacy options - no current activity");
+			Map<String, Object> result = new HashMap<>();
+			result.put("success", false);
+			result.put("error", "No current activity");
+			result.put("code", -1);
+			result.put("canRequestAds", false);
+			result.put("privacyOptionsRequired", false);
+			fireEvent("privacy_options_dismissed", result);
 			return;
 		}
 		
@@ -598,14 +662,18 @@ public class TiAdmobUnifiedModule extends KrollModule
 				if (error != null) {
 					result.put("success", false);
 					result.put("error", error.getMessage());
+					result.put("code", error.getErrorCode());
 				} else {
 					result.put("success", true);
 				}
-				
-				if (config != null && config.containsKey("callback")) {
-					// Invoke callback if provided
-					fireEvent("privacy_options_dismissed", result);
-				}
+
+				ConsentInformation information = UserMessagingPlatform.getConsentInformation(activity);
+				result.put("canRequestAds", information.canRequestAds());
+				result.put(
+					"privacyOptionsRequired",
+					information.getPrivacyOptionsRequirementStatus()
+						== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED);
+				fireEvent("privacy_options_dismissed", result);
 			}
 		});
 	}
@@ -621,6 +689,10 @@ public class TiAdmobUnifiedModule extends KrollModule
 		
 		ConsentInformation consentInformation = UserMessagingPlatform.getConsentInformation(activity);
 		consentInformation.reset();
+		synchronized (consentLock) {
+			consentState = OperationState.NOT_STARTED;
+			consentResult = null;
+		}
 		
 		Log.d(LCAT, "Consent information has been reset");
 	}

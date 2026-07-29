@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Ensures bundled iOS xcframeworks are writable before zipping.
 #
-# Why: vendors (Google AdMob, AppLovin, Meta, etc.) ship some xcframework files
+# Why: vendor XCFramework archives can contain files
 # with read-only mode (r--r--r-- on Info.plist or r-xr-xr-x on binaries).
 # Once the module ZIP is extracted into a consumer app, the next ZIP update
 # fails with EACCES because the existing files cannot be overwritten.
@@ -31,3 +31,5 @@ else
   echo "WARN: $REMAINING files still read-only. Investigate before building." >&2
   exit 1
 fi
+
+"$MODULE_ROOT/scripts/verify-artifacts.sh"

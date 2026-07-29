@@ -10,11 +10,27 @@
 #import "TiAdmobUnifiedModule.h"
 #import "TiBase.h"
 #import "TiHost.h"
+#import "TiApp.h"
 #import "TiUtils.h"
 #import "TiAdmobUnifiedRewardedAdProxy.h"
 #import "TiAdmobUnifiedAdaptiveBannerAdProxy.h"
 #import "TiAdmobUnifiedInterstitialAdProxy.h"
 #import "TiAdmobUnifiedBannerAdProxy.h"
+
+typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
+    TiAdmobUnifiedOperationStateNotStarted = 0,
+    TiAdmobUnifiedOperationStateInFlight,
+    TiAdmobUnifiedOperationStateComplete
+};
+
+@interface TiAdmobUnifiedModule ()
+
+@property(nonatomic, assign) TiAdmobUnifiedOperationState initializationState;
+@property(nonatomic, copy) NSDictionary *initializationResult;
+@property(nonatomic, assign) TiAdmobUnifiedOperationState consentState;
+@property(nonatomic, copy) NSDictionary *consentResult;
+
+@end
 
 @implementation TiAdmobUnifiedModule
 
@@ -85,23 +101,45 @@
 {
     ENSURE_ARG_COUNT(args, 1);
     NSDictionary *config = [args objectAtIndex:0];
-    
+
+    NSDictionary *cachedResult = nil;
+    @synchronized(self) {
+        if (self.initializationState == TiAdmobUnifiedOperationStateComplete) {
+            cachedResult = self.initializationResult;
+        } else if (self.initializationState == TiAdmobUnifiedOperationStateInFlight) {
+            DebugLog(@"[DEBUG] Google Mobile Ads SDK initialization already in flight");
+            return;
+        } else {
+            self.initializationState = TiAdmobUnifiedOperationStateInFlight;
+        }
+    }
+
+    if (cachedResult != nil) {
+        [self fireEvent:@"module_initialized" withObject:cachedResult];
+        return;
+    }
+
     DebugLog(@"[DEBUG] Initializing Google Mobile Ads SDK");
-    
+
     // Configure request configuration if provided
     if (config != nil) {
-        [GADMobileAds.sharedInstance.requestConfiguration setTestDeviceIdentifiers:[self buildRequestConfiguration:config].testDeviceIdentifiers];
+        [self buildRequestConfiguration:config];
     }
-    
+
     // Initialize the SDK
     [[GADMobileAds sharedInstance] startWithCompletionHandler:^(GADInitializationStatus *status) {
         DebugLog(@"[DEBUG] AdMob SDK initialization completed successfully");
-        
-        // Fire module initialization event
+
         NSDictionary *event = @{
             @"success": @YES,
             @"status": status.description
         };
+
+        @synchronized(self) {
+            self.initializationResult = event;
+            self.initializationState = TiAdmobUnifiedOperationStateComplete;
+        }
+
         [self fireEvent:@"module_initialized" withObject:event];
     }];
 }
@@ -118,18 +156,23 @@
         }
     }
     
-    // Tag for child directed treatment (COPPA)
-    if ([config objectForKey:@"tagForChildDirectedTreatment"]) {
-        BOOL childDirected = [TiUtils boolValue:[config objectForKey:@"tagForChildDirectedTreatment"]];
-        requestConfig.tagForChildDirectedTreatment = childDirected ? @YES : @NO;
+    NSString *ageTreatment = [TiUtils stringValue:[config objectForKey:@"ageRestrictedTreatment"]];
+    if (ageTreatment == nil) {
+        BOOL legacyChild = [config objectForKey:@"tagForChildDirectedTreatment"] != nil
+            && [TiUtils boolValue:[config objectForKey:@"tagForChildDirectedTreatment"]];
+        BOOL legacyUnderAge = [config objectForKey:@"tagForUnderAgeOfConsent"] != nil
+            && [TiUtils boolValue:[config objectForKey:@"tagForUnderAgeOfConsent"]];
+        ageTreatment = (legacyChild || legacyUnderAge) ? @"child" : @"unspecified";
     }
-    
-    // Tag for under age of consent (GDPR)
-    if ([config objectForKey:@"tagForUnderAgeOfConsent"]) {
-        BOOL underAge = [TiUtils boolValue:[config objectForKey:@"tagForUnderAgeOfConsent"]];
-        requestConfig.tagForUnderAgeOfConsent = underAge ? @YES : @NO;
+
+    if ([ageTreatment isEqualToString:@"child"]) {
+        requestConfig.ageRestrictedTreatment = GADAgeRestrictedTreatmentChild;
+    } else if ([ageTreatment isEqualToString:@"teen"]) {
+        requestConfig.ageRestrictedTreatment = GADAgeRestrictedTreatmentTeen;
+    } else {
+        requestConfig.ageRestrictedTreatment = GADAgeRestrictedTreatmentUnspecified;
     }
-    
+
     // Max ad content rating
     if ([config objectForKey:@"maxAdContentRating"]) {
         NSString *rating = [TiUtils stringValue:[config objectForKey:@"maxAdContentRating"]];
@@ -146,17 +189,34 @@
 {
     ENSURE_ARG_COUNT(args, 1);
     NSDictionary *config = [args objectAtIndex:0];
-    
+
+    NSDictionary *cachedResult = nil;
+    @synchronized(self) {
+        if (self.consentState == TiAdmobUnifiedOperationStateComplete) {
+            cachedResult = self.consentResult;
+        } else if (self.consentState == TiAdmobUnifiedOperationStateInFlight) {
+            DebugLog(@"[DEBUG] Consent request already in flight");
+            return;
+        } else {
+            self.consentState = TiAdmobUnifiedOperationStateInFlight;
+        }
+    }
+
+    if (cachedResult != nil) {
+        [self fireEvent:@"consent_complete" withObject:cachedResult];
+        return;
+    }
+
     DebugLog(@"[DEBUG] Requesting consent");
-    
+
     UMPRequestParameters *parameters = [[UMPRequestParameters alloc] init];
-    
+
     // Handle debug geography and test devices
     if ([config objectForKey:@"geography"]) {
         NSInteger geography = [TiUtils intValue:[config objectForKey:@"geography"]];
         UMPDebugSettings *debugSettings = [[UMPDebugSettings alloc] init];
         debugSettings.geography = geography;
-        
+
         // Handle test device IDs for consent testing
         if ([config objectForKey:@"testDeviceIds"]) {
             NSArray *testDeviceIds = [config objectForKey:@"testDeviceIds"];
@@ -164,89 +224,72 @@
                 debugSettings.testDeviceIdentifiers = testDeviceIds;
             }
         }
-        
+
         parameters.debugSettings = debugSettings;
     }
-    
+
     // Tag for under age of consent
     if ([config objectForKey:@"tagForUnderAgeOfConsent"]) {
         BOOL underAge = [TiUtils boolValue:[config objectForKey:@"tagForUnderAgeOfConsent"]];
         parameters.tagForUnderAgeOfConsent = underAge;
     }
-    
+
     // Request consent info update
-    [UMPConsentInformation.sharedInstance 
+    [UMPConsentInformation.sharedInstance
         requestConsentInfoUpdateWithParameters:parameters
         completionHandler:^(NSError *_Nullable error) {
             if (error) {
                 DebugLog(@"[ERROR] Consent info update failed: %@", error.localizedDescription);
-                
-                NSDictionary *errorEvent = @{
-                    @"error": error.localizedDescription,
-                    @"code": @(error.code)
-                };
-                [self fireEvent:@"consent_error" withObject:errorEvent];
+                [self completeConsentWithError:error];
                 return;
             }
-            
+
             DebugLog(@"[DEBUG] Consent info update successful");
-            
-            // Check if consent form is available
-            if (UMPConsentInformation.sharedInstance.formStatus == UMPFormStatusAvailable) {
-                [self loadConsentForm];
-            } else {
-                // No consent form needed, fire ready event
-                [self fireConsentReadyEvent];
-            }
+
+            [UMPConsentForm loadAndPresentIfRequiredFromViewController:nil
+                                                   completionHandler:^(NSError *_Nullable formError) {
+                if (formError != nil) {
+                    DebugLog(@"[ERROR] Consent form failed: %@", formError.localizedDescription);
+                }
+                [self completeConsentWithError:formError];
+            }];
         }];
 }
 
-- (void)loadConsentForm
+- (void)completeConsentWithError:(NSError *)error
 {
-    [UMPConsentForm loadWithCompletionHandler:^(UMPConsentForm *form, NSError *error) {
-        if (error) {
-            DebugLog(@"[ERROR] Consent form load failed: %@", error.localizedDescription);
-            
-            NSDictionary *errorEvent = @{
-                @"error": error.localizedDescription,
-                @"code": @(error.code)
-            };
-            [self fireEvent:@"consent_error" withObject:errorEvent];
-            return;
-        }
-        
-        if (form) {
-            DebugLog(@"[DEBUG] Consent form loaded successfully");
-            
-            UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-            [form presentFromViewController:rootViewController
-                          completionHandler:^(NSError *_Nullable error) {
-                if (error) {
-                    DebugLog(@"[ERROR] Consent form error: %@", error.localizedDescription);
-                    
-                    NSDictionary *errorEvent = @{
-                        @"error": error.localizedDescription,
-                        @"code": @(error.code)
-                    };
-                    [self fireEvent:@"consent_error" withObject:errorEvent];
-                } else {
-                    DebugLog(@"[DEBUG] Consent form dismissed successfully");
-                    [self fireConsentReadyEvent];
-                }
-            }];
-        }
-    }];
-}
+    BOOL canRequestAds = UMPConsentInformation.sharedInstance.canRequestAds;
+    BOOL privacyOptionsRequired =
+        UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus
+        == UMPPrivacyOptionsRequirementStatusRequired;
 
-- (void)fireConsentReadyEvent
-{
-    NSDictionary *consentEvent = @{
-        @"canShowAds": [self canShowAds:nil],
-        @"canShowPersonalizedAds": [self canShowPersonalizedAds:nil],
+    NSMutableDictionary *result = [@{
+        @"success": @(error == nil),
+        @"canRequestAds": @(canRequestAds),
+        @"privacyOptionsRequired": @(privacyOptionsRequired),
+        // Compatibility payload keys retained for one transition release.
+        @"canShowAds": @(canRequestAds),
+        @"canShowPersonalizedAds": @NO,
         @"isGDPR": [self isGDPR:nil],
-        @"isPrivacyOptionsRequired": [self isPrivacyOptionsRequired:nil]
-    };
-    [self fireEvent:@"consent_ready" withObject:consentEvent];
+        @"isPrivacyOptionsRequired": @(privacyOptionsRequired)
+    } mutableCopy];
+
+    if (error != nil) {
+        result[@"error"] = error.localizedDescription ?: @"Unknown consent error";
+        result[@"code"] = @(error.code);
+    }
+
+    @synchronized(self) {
+        self.consentResult = result;
+        self.consentState = TiAdmobUnifiedOperationStateComplete;
+    }
+
+    if (error != nil) {
+        [self fireEvent:@"consent_error" withObject:result];
+    } else {
+        [self fireEvent:@"consent_ready" withObject:result];
+    }
+    [self fireEvent:@"consent_complete" withObject:result];
 }
 
 // ===================================================================
@@ -254,16 +297,19 @@
 // ===================================================================
 - (NSNumber *)canShowAds:(id)args
 {
+    return [self canRequestAds:args];
+}
+
+- (NSNumber *)canRequestAds:(id)args
+{
     return @(UMPConsentInformation.sharedInstance.canRequestAds);
 }
 
 - (NSNumber *)canShowPersonalizedAds:(id)args
 {
-    // The UMP SDK is the authoritative source for whether ads can be shown and
-    // whether personalization is permitted. Returning canRequestAds matches the
-    // SDK's gating: GMA itself respects the user's TCF choices when fetching ads.
-    // Parsing IABTCF_TCString by hand here is brittle and was a known weak point.
-    return @(UMPConsentInformation.sharedInstance.canRequestAds);
+    // Deprecated: UMP deliberately does not expose a publisher-facing
+    // "personalized" boolean. GMA applies the collected privacy signals.
+    return @NO;
 }
 
 - (NSNumber *)isGDPR:(id)args
@@ -280,23 +326,21 @@
 
 - (void)presentPrivacyOptions:(id)args
 {
-    NSDictionary *config = nil;
-    if (args != nil && [args count] > 0) {
-        config = [args objectAtIndex:0];
-    }
-    
-    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    
-    [UMPConsentForm presentPrivacyOptionsFormFromViewController:rootViewController
+    [UMPConsentForm presentPrivacyOptionsFormFromViewController:nil
                                               completionHandler:^(NSError *_Nullable error) {
         NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
         if (error != nil) {
             [result setObject:@NO forKey:@"success"];
             [result setObject:error.localizedDescription forKey:@"error"];
+            [result setObject:@(error.code) forKey:@"code"];
         } else {
             [result setObject:@YES forKey:@"success"];
         }
-        
+
+        result[@"canRequestAds"] = @(UMPConsentInformation.sharedInstance.canRequestAds);
+        result[@"privacyOptionsRequired"] =
+            @(UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus
+              == UMPPrivacyOptionsRequirementStatusRequired);
         [self fireEvent:@"privacy_options_dismissed" withObject:result];
     }];
 }
@@ -304,6 +348,10 @@
 - (void)resetConsent:(id)args
 {
     [UMPConsentInformation.sharedInstance reset];
+    @synchronized(self) {
+        self.consentState = TiAdmobUnifiedOperationStateNotStarted;
+        self.consentResult = nil;
+    }
     DebugLog(@"[DEBUG] Consent information has been reset");
 }
 
@@ -314,22 +362,12 @@
 {
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
     if (@available(iOS 14, *)) {
-        NSDictionary *config = nil;
-        if (args != nil && [args count] > 0) {
-            config = [args objectAtIndex:0];
-        }
-        
         [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
             NSDictionary *result = @{
                 @"status": @(status)
             };
-            
+
             [self fireEvent:@"tracking_authorization_completed" withObject:result];
-            
-            // If callback is provided in config, also fire that
-            if (config && [config objectForKey:@"callback"]) {
-                // The callback should be handled by the JavaScript side
-            }
         }];
     } else {
         // iOS < 14, tracking authorization not required
@@ -459,7 +497,7 @@
 
 - (void)enableOptionalMediationNetworks:(id)args
 {
-    DebugLog(@"[DEBUG] enableOptionalMediationNetworks called; iOS bundle includes all adapters statically.");
+    DebugLog(@"[DEBUG] enableOptionalMediationNetworks is a compatibility no-op; core artifact contains no third-party adapters.");
 }
 
 #pragma mark - JS Constants (parity with Android @Kroll.constant)
@@ -514,6 +552,11 @@
 - (NSString *)MAX_AD_CONTENT_RATING_PARENTAL_GUIDANCE { return @"PG"; }
 - (NSString *)MAX_AD_CONTENT_RATING_TEEN { return @"T"; }
 - (NSString *)MAX_AD_CONTENT_RATING_MATURE_AUDIENCE { return @"MA"; }
+
+// Age-restricted treatment values
+- (NSString *)AGE_RESTRICTED_TREATMENT_CHILD { return @"child"; }
+- (NSString *)AGE_RESTRICTED_TREATMENT_TEEN { return @"teen"; }
+- (NSString *)AGE_RESTRICTED_TREATMENT_UNSPECIFIED { return @"unspecified"; }
 
 // GMA error codes
 - (NSNumber *)ERROR_CODE_SERVER_ERROR { return @(0); }

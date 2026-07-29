@@ -1,115 +1,13 @@
-# Podfile para ti.admob.unified iOS Module
-# Equivalente al build.gradle de Android con 8 networks de mediación
-# Basado en la documentación oficial de Titanium Hyperloop
-
-# This is required for CocoaPods 1.x (from Titanium docs)
 install! 'cocoapods',
          :integrate_targets => false
 
-platform :ios, '13.0'
+platform :ios, '15.0'
 
 target 'ti.admob.unified' do
   use_frameworks!
 
-  # ===================================================================
-  # CORE GOOGLE MOBILE ADS SDK
-  # ===================================================================
-
-  # Core Google Mobile Ads SDK - Latest stable version (matches Android 22.6.0)
-  pod 'Google-Mobile-Ads-SDK', '~> 12.9.0'
-
-  # User Messaging Platform SDK for GDPR/CCPA/UMP consent (matches Android 2.1.0)
-  pod 'GoogleUserMessagingPlatform', '~> 2.4.0'
-
-  # ===================================================================
-  # MEDIATION ADAPTERS - 8 Networks (same as Android)
-  # ===================================================================
-
-  # Facebook Audience Network (Meta) - VERIFICADO
-  pod 'GoogleMobileAdsMediationFacebook', '~> 6.20.1.0'
-
-  # InMobi - Strong in international markets - VERIFICADO
-  pod 'GoogleMobileAdsMediationInMobi', '~> 10.8.6.0'
-
-  # Unity Ads - Perfect for gaming apps, high video eCPM - VERIFICADO
-  pod 'GoogleMobileAdsMediationUnity', '~> 4.16.0.0'
-
-  # AppLovin MAX - Premium mediation platform, excellent optimization - VERIFICADO
-  pod 'GoogleMobileAdsMediationAppLovin', '~> 13.3.1.0'
-
-  # Vungle - Video advertising specialists, great for rewarded ads - VERIFICADO
-  pod 'GoogleMobileAdsMediationVungle', '~> 7.5.3.0'
-
-  # IronSource - Gaming-focused, high retention campaigns - VERIFICADO
-  pod 'GoogleMobileAdsMediationIronSource', '~> 8.10.0.0.0'
-
-  # ===================================================================
-  # OPTIONAL: Additional popular networks (uncomment if needed)
-  # ===================================================================
-  # pod 'GoogleMobileAdsMediationChartboost'
-  # pod 'GoogleMobileAdsMediationAdColony'
-  # pod 'GoogleMobileAdsMediationTapjoy'
-  # pod 'GoogleMobileAdsMediationMaio'
-
-end
-
-# Option 3: Use CocoaPods only as automatic downloader
-# Copy frameworks to platform/ and clean Pods/ to follow Titanium standard
-post_install do |installer|
-  puts "🚀 Starting post-install for Titanium module..."
-
-  # Fix configuration conflicts between pods
-  installer.pods_project.targets.each do |target|
-    target.build_configurations.each do |config|
-      # Remove conflicting configurations
-      config.build_settings.delete('EXCLUDED_ARCHS[sdk=iphonesimulator*]')
-      # Ensure Titanium compatibility
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
-    end
-  end
-
-  platform_dir = File.expand_path('../platform', __FILE__)
-
-  # Create platform directory if it doesn't exist
-  FileUtils.mkdir_p(platform_dir) unless Dir.exist?(platform_dir)
-  puts "📁 Platform directory prepared"
-
-  # Copy .xcframework files (modern format with multi-architecture support)
-  framework_count = 0
-  Dir.glob('Pods/**/*.xcframework').each do |xcframework_path|
-    xcframework_name = File.basename(xcframework_path)
-    destination = File.join(platform_dir, xcframework_name)
-
-    # Always copy (without file comparison to avoid errors)
-    puts "📦 Copying #{xcframework_name} → platform/"
-    FileUtils.cp_r(xcframework_path, destination, remove_destination: true)
-    framework_count += 1
-  end
-
-  puts "✅ #{framework_count} xcframeworks copied to platform/"
-
-  # Clean CocoaPods files (we don't need them anymore)
-  puts "🧹 Cleaning temporary CocoaPods files..."
-
-  # Remove Pods folder (suppress output to avoid confusion)
-  FileUtils.rm_rf('Pods') if Dir.exist?('Pods')
-
-  # Remove CocoaPods configuration files (suppress errors)
-  ['Podfile.lock', 'ti.admob.unified.xcworkspace'].each do |file|
-    FileUtils.rm_rf(file) if File.exist?(file)
-  end
-
-  puts "🎯 Done! XCFrameworks installed with arm64 simulator support"
-  puts "💡 You can now run: ti build -p ios --build-only"
-  puts ""
-  puts "📋 XCFrameworks installed (modern format with multi-architecture):"
-  Dir.glob(File.join(platform_dir, '*.xcframework')).each do |fw|
-    puts "   • #{File.basename(fw)}"
-  end
-
-  # Note about expected errors
-  puts ""
-  puts "⚠️  Note: Any errors that appear after this are normal - CocoaPods tries"
-  puts "   to access files we intentionally deleted. You can ignore them."
-  puts ""
+  # This Podfile is the dependency source of truth. Distribution continues to
+  # use the vendored XCFrameworks in ios/platform/.
+  pod 'Google-Mobile-Ads-SDK', '= 13.7.0'
+  pod 'GoogleUserMessagingPlatform', '= 3.1.0'
 end

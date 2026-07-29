@@ -2,7 +2,7 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.1.0
+version: 1.2.0
 apiversion: 2
 architectures: arm64 x86_64
 mac: false
@@ -16,4 +16,4 @@ name: ti.admob.unified
 moduleid: ti.admob.unified
 guid: 67829dbd-d857-4749-9e7c-6143caedee43
 platform: iphone
-minsdk: 12.8.0.GA
+minsdk: 13.4.0.GA
