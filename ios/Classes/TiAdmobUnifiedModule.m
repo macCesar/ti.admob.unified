@@ -370,13 +370,9 @@
 
 - (id)createBanner:(id)args
 {
-    NSLog(@"[BANNER-DBG] createBanner: ENTRY (args=%@)", args);
     ENSURE_ARG_COUNT(args, 1);
-    NSDictionary *config = [args objectAtIndex:0];
-    NSLog(@"[BANNER-DBG] createBanner: config dict = %@", config);
-    TiAdmobUnifiedBannerAdProxy *bannerProxy = [[TiAdmobUnifiedBannerAdProxy alloc] _initWithPageContext:[self pageContext] args:args];
-    NSLog(@"[BANNER-DBG] createBanner: returning proxy %@", bannerProxy);
-    return bannerProxy;
+    DebugLog(@"[DEBUG] Creating banner ad");
+    return [[TiAdmobUnifiedBannerAdProxy alloc] _initWithPageContext:[self pageContext] args:args];
 }
 
 - (id)createAdaptiveBanner:(id)args
