@@ -86,4 +86,157 @@
                 return;
             }
             
-            DebugLog(@"[DEBUG] Rewarded ad loaded successfully");\n            self.rewardedAd = ad;\n            self.rewardedAd.fullScreenContentDelegate = self;\n            \n            NSDictionary *loadedEvent = @{\n                @"adUnitId": self.adUnitId\n            };\n            [self fireEvent:@"loaded" withObject:loadedEvent];\n        });\n    }];\n}\n\n- (GADRequest *)buildAdRequest\n{\n    GADRequest *request = [GADRequest request];\n    \n    // Add keywords if provided\n    if (self.keywords && [self.keywords count] > 0) {\n        // Keywords are set via GADExtras for mediation networks\n        GADExtras *extras = [[GADExtras alloc] init];\n        NSMutableDictionary *extrasDict = [[NSMutableDictionary alloc] init];\n        \n        // Add keywords\n        [extrasDict setObject:[self.keywords componentsJoinedByString:@","] forKey:@"keywords"];\n        \n        // Add any additional extras\n        if (self.extras) {\n            [extrasDict addEntriesFromDictionary:self.extras];\n        }\n        \n        extras.additionalParameters = extrasDict;\n        [request registerAdNetworkExtras:extras];\n    } else if (self.extras) {\n        // Just add extras without keywords\n        GADExtras *extras = [[GADExtras alloc] init];\n        extras.additionalParameters = self.extras;\n        [request registerAdNetworkExtras:extras];\n    }\n    \n    return request;\n}\n\n- (void)show:(id)args\n{\n    if (!self.rewardedAd) {\n        DebugLog(@"[ERROR] Cannot show rewarded ad - ad not loaded");\n        \n        NSDictionary *errorEvent = @{\n            @"error": @"Ad not loaded",\n            @"adUnitId": self.adUnitId\n        };\n        [self fireEvent:@"failed_to_show" withObject:errorEvent];\n        return;\n    }\n    \n    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;\n    \n    [self.rewardedAd presentFromRootViewController:rootViewController\n                              userDidEarnRewardHandler:^{\n        DebugLog(@"[DEBUG] User earned reward");\n        \n        // Get reward information\n        GADAdReward *reward = self.rewardedAd.adReward;\n        \n        NSDictionary *rewardEvent = @{\n            @"rewardType": reward.type ?: @"coins",\n            @"rewardAmount": reward.amount ?: @(1),\n            @"adUnitId": self.adUnitId\n        };\n        [self fireEvent:@"rewarded" withObject:rewardEvent];\n    }];\n}\n\n- (NSNumber *)isLoaded:(id)args\n{\n    return @(self.rewardedAd != nil);\n}\n\n- (void)destroy:(id)args\n{\n    DebugLog(@"[DEBUG] Destroying rewarded ad");\n    \n    self.rewardedAd = nil;\n    \n    NSDictionary *destroyEvent = @{\n        @"adUnitId": self.adUnitId\n    };\n    [self fireEvent:@"destroyed" withObject:destroyEvent];\n}\n\n#pragma mark - GADFullScreenContentDelegate\n\n- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad\n{\n    DebugLog(@"[DEBUG] Rewarded ad recorded impression");\n    \n    NSDictionary *impressionEvent = @{\n        @"adUnitId": self.adUnitId\n    };\n    [self fireEvent:@"impression" withObject:impressionEvent];\n}\n\n- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad\n{\n    DebugLog(@"[DEBUG] Rewarded ad was clicked");\n    \n    NSDictionary *clickEvent = @{\n        @"adUnitId": self.adUnitId\n    };\n    [self fireEvent:@"clicked" withObject:clickEvent];\n}\n\n- (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error\n{\n    DebugLog(@"[ERROR] Rewarded ad failed to present: %@", error.localizedDescription);\n    \n    NSDictionary *errorEvent = @{\n        @"error": error.localizedDescription,\n        @"code": @(error.code),\n        @"adUnitId": self.adUnitId\n    };\n    [self fireEvent:@"failed_to_show" withObject:errorEvent];\n}\n\n- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad\n{\n    DebugLog(@"[DEBUG] Rewarded ad will present full screen content");\n    \n    NSDictionary *openEvent = @{\n        @"adUnitId": self.adUnitId\n    };\n    [self fireEvent:@"opened" withObject:openEvent];\n}\n\n- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad\n{\n    DebugLog(@"[DEBUG] Rewarded ad dismissed full screen content");\n    \n    NSDictionary *closeEvent = @{\n        @"adUnitId": self.adUnitId\n    };\n    [self fireEvent:@"closed" withObject:closeEvent];\n    \n    // Auto-reload if enabled (iOS can reuse the same object, but we'll reload for consistency)\n    if (self.autoReload) {\n        DebugLog(@"[DEBUG] Auto-reloading rewarded ad");\n        [self load:nil];\n    } else {\n        // Clear the ad reference if not auto-reloading\n        self.rewardedAd = nil;\n    }\n}\n\n@end
+            DebugLog(@"[DEBUG] Rewarded ad loaded successfully");
+            self.rewardedAd = ad;
+            self.rewardedAd.fullScreenContentDelegate = self;
+            
+            NSDictionary *loadedEvent = @{
+                @"adUnitId": self.adUnitId
+            };
+            [self fireEvent:@"loaded" withObject:loadedEvent];
+        });
+    }];
+}
+
+- (GADRequest *)buildAdRequest
+{
+    GADRequest *request = [GADRequest request];
+    
+    // Add keywords if provided
+    if (self.keywords && [self.keywords count] > 0) {
+        // Keywords are set via GADExtras for mediation networks
+        GADExtras *extras = [[GADExtras alloc] init];
+        NSMutableDictionary *extrasDict = [[NSMutableDictionary alloc] init];
+        
+        // Add keywords
+        [extrasDict setObject:[self.keywords componentsJoinedByString:@","] forKey:@"keywords"];
+        
+        // Add any additional extras
+        if (self.extras) {
+            [extrasDict addEntriesFromDictionary:self.extras];
+        }
+        
+        extras.additionalParameters = extrasDict;
+        [request registerAdNetworkExtras:extras];
+    } else if (self.extras) {
+        // Just add extras without keywords
+        GADExtras *extras = [[GADExtras alloc] init];
+        extras.additionalParameters = self.extras;
+        [request registerAdNetworkExtras:extras];
+    }
+    
+    return request;
+}
+
+- (void)show:(id)args
+{
+    if (!self.rewardedAd) {
+        DebugLog(@"[ERROR] Cannot show rewarded ad - ad not loaded");
+        
+        NSDictionary *errorEvent = @{
+            @"error": @"Ad not loaded",
+            @"adUnitId": self.adUnitId
+        };
+        [self fireEvent:@"failed_to_show" withObject:errorEvent];
+        return;
+    }
+    
+    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+    
+    [self.rewardedAd presentFromRootViewController:rootViewController
+                              userDidEarnRewardHandler:^{
+        DebugLog(@"[DEBUG] User earned reward");
+        
+        // Get reward information
+        GADAdReward *reward = self.rewardedAd.adReward;
+        
+        NSDictionary *rewardEvent = @{
+            @"rewardType": reward.type ?: @"coins",
+            @"rewardAmount": reward.amount ?: @(1),
+            @"adUnitId": self.adUnitId
+        };
+        [self fireEvent:@"rewarded" withObject:rewardEvent];
+    }];
+}
+
+- (NSNumber *)isLoaded:(id)args
+{
+    return @(self.rewardedAd != nil);
+}
+
+- (void)destroy:(id)args
+{
+    DebugLog(@"[DEBUG] Destroying rewarded ad");
+    
+    self.rewardedAd = nil;
+    
+    NSDictionary *destroyEvent = @{
+        @"adUnitId": self.adUnitId
+    };
+    [self fireEvent:@"destroyed" withObject:destroyEvent];
+}
+
+#pragma mark - GADFullScreenContentDelegate
+
+- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
+{
+    DebugLog(@"[DEBUG] Rewarded ad recorded impression");
+    
+    NSDictionary *impressionEvent = @{
+        @"adUnitId": self.adUnitId
+    };
+    [self fireEvent:@"impression" withObject:impressionEvent];
+}
+
+- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
+{
+    DebugLog(@"[DEBUG] Rewarded ad was clicked");
+    
+    NSDictionary *clickEvent = @{
+        @"adUnitId": self.adUnitId
+    };
+    [self fireEvent:@"clicked" withObject:clickEvent];
+}
+
+- (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
+{
+    DebugLog(@"[ERROR] Rewarded ad failed to present: %@", error.localizedDescription);
+    
+    NSDictionary *errorEvent = @{
+        @"error": error.localizedDescription,
+        @"code": @(error.code),
+        @"adUnitId": self.adUnitId
+    };
+    [self fireEvent:@"failed_to_show" withObject:errorEvent];
+}
+
+- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
+{
+    DebugLog(@"[DEBUG] Rewarded ad will present full screen content");
+    
+    NSDictionary *openEvent = @{
+        @"adUnitId": self.adUnitId
+    };
+    [self fireEvent:@"opened" withObject:openEvent];
+}
+
+- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
+{
+    DebugLog(@"[DEBUG] Rewarded ad dismissed full screen content");
+    
+    NSDictionary *closeEvent = @{
+        @"adUnitId": self.adUnitId
+    };
+    [self fireEvent:@"closed" withObject:closeEvent];
+    
+    // Auto-reload if enabled (iOS can reuse the same object, but we'll reload for consistency)
+    if (self.autoReload) {
+        DebugLog(@"[DEBUG] Auto-reloading rewarded ad");
+        [self load:nil];
+    } else {
+        // Clear the ad reference if not auto-reloading
+        self.rewardedAd = nil;
+    }
+}
+
+@end
