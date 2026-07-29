@@ -5,7 +5,7 @@ All notable changes to `ti.admob.unified` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] — 2026-07-29
+## [1.2.0] — Unreleased
 
 ### Added
 
@@ -18,6 +18,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Reproducible iOS dependency inventory with official URLs and checksums.
 - Static contract tests and artifact inventory verification.
 - Shared standard/adaptive banner lifecycle contract tests for iOS and Android.
+- Regression coverage for density-independent adaptive banner heights, dynamic
+  Titanium proxy sizing, and safe native-view teardown on Android.
 - `pause()` and `resume()` on the iOS adaptive banner proxy.
 - Both banner destruction aliases on both iOS proxy types.
 - Complete English documentation for installation, privacy, banners,
@@ -37,8 +39,16 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Public privacy documentation is event-based; callback options are deprecated.
 - Standard and adaptive banners now share `load()`, `pause()`, `resume()`,
   `destroy()`, `isLoaded()`, event names, and common event payload keys.
+- Banner events now consistently include `adUnitId`, `adType`, and
+  `isAdaptive`; adaptive banners also include `adaptiveType`.
+- Adaptive `loaded` events report the measured `height` and `heightUnit`
+  (`dp`) on both platforms. Android additionally reports diagnostic
+  `width`, `widthUnit`, pixel dimensions, and display density.
 - Banner loads are serialized to one active request, with at most one request
   deferred while paused.
+- Android adaptive banners update the Titanium proxy height from the Google
+  Mobile Ads size in density-independent units whenever the native size is
+  created or loaded.
 - The example application now uses only official test constants, the
   `consent_complete` contract, UMP → ATT → initialization ordering, dynamic
   banner height, and explicit listener cleanup.
@@ -58,6 +68,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   handlers, and native view references.
 - Android banner destruction clears ad listeners, destroys the native `AdView`,
   releases Titanium views, and unregisters activity lifecycle listeners.
+- Android adaptive banners retain a stable native container, replace or remove
+  only the child `AdView`, and unregister layout listeners during teardown
+  instead of detaching the Titanium native view with `setNativeView(null)`.
+- Adaptive banner height is no longer treated as raw display pixels on Android,
+  preventing density-dependent over-allocation of the host view.
 
 ### Removed
 
