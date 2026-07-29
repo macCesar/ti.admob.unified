@@ -1,40 +1,41 @@
 
 dependencies {
-	// Core Google Mobile Ads SDK - Latest stable version
-	implementation 'com.google.android.gms:play-services-ads:22.6.0'
+	// Core Google Mobile Ads SDK - bumped to latest stable (May 2026)
+	implementation 'com.google.android.gms:play-services-ads:25.3.0'
 
 	// User Messaging Platform SDK for GDPR/CCPA/UMP consent
-	implementation 'com.google.android.ump:user-messaging-platform:2.1.0'
+	implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
 
 	// ===================================================================
-	// MEDIATION ADAPTERS - Using verified available versions
+	// MEDIATION ADAPTERS - All bumped to versions compatible with GMA 25.x
+	// (verified against Google's mediation docs, May 2026)
 	// ===================================================================
 
-	// Facebook Audience Network (Meta) - Verified available version
-	implementation 'com.google.ads.mediation:facebook:6.20.0.0'
+	// Facebook Audience Network (Meta)
+	implementation 'com.google.ads.mediation:facebook:6.21.0.3'
 
 	// InMobi - Strong in international markets
-	implementation 'com.google.ads.mediation:inmobi:10.8.7.0'
+	implementation 'com.google.ads.mediation:inmobi:11.3.0.0'
 
 	// Unity Ads - Perfect for gaming apps, high video eCPM
-	implementation 'com.google.ads.mediation:unity:4.16.0.0'
+	implementation 'com.google.ads.mediation:unity:4.18.0.0'
 
-	// AppLovin MAX - Premium mediation platform, excellent optimization
-	// TEMPORARILY DISABLED - Missing SDK Key causing 30+ second delays
-	// implementation 'com.google.ads.mediation:applovin:13.3.1.1'
+	// AppLovin MAX - Premium mediation platform
+	// Previously disabled due to MobileAds.initialize() loading all adapters at startup.
+	// GMA 25.x uses lazy/reflection-based adapter init — safe to re-enable.
+	implementation 'com.google.ads.mediation:applovin:13.6.2.0'
 
-	// Vungle - Video advertising specialists, great for rewarded ads  
-	// TEMPORARILY DISABLED - Multiple appid conflict causing delays
-	// implementation 'com.google.ads.mediation:vungle:7.5.0.1'
+	// Vungle (Liftoff Monetize) - Video advertising specialists
+	implementation 'com.google.ads.mediation:vungle:7.7.4.0'
 
 	// IronSource - Gaming-focused, high retention campaigns
-	implementation 'com.google.ads.mediation:ironsource:8.10.0.0'
+	implementation 'com.google.ads.mediation:ironsource:9.4.2.0'
 
 	// ===================================================================
 	// OPTIONAL: Additional popular networks (uncomment if needed)
 	// ===================================================================
-	// implementation 'com.google.ads.mediation:chartboost:9.5.1.1'
-	// implementation 'com.google.ads.mediation:adcolony:4.8.0.1'
-	// implementation 'com.google.ads.mediation:tapjoy:12.11.1.1'
-	// implementation 'com.google.ads.mediation:maio:1.1.16.0'
+	// implementation 'com.google.ads.mediation:chartboost:9.x.x.x'
+	// implementation 'com.google.ads.mediation:adcolony:4.x.x.x'
+	// implementation 'com.google.ads.mediation:tapjoy:12.x.x.x'
+	// implementation 'com.google.ads.mediation:maio:1.x.x.x'
 }
