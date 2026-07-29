@@ -9,8 +9,10 @@
 package ti.admob.unified;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.util.Log;
 
+import com.google.ads.mediation.admob.AdMobAdapter;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
@@ -19,6 +21,7 @@ import com.google.android.gms.ads.LoadAdError;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
 import java.util.HashMap;
@@ -32,12 +35,23 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	private boolean isAdLoaded = false;
 	private String adUnitId;
 	private AdSize adSize = AdSize.BANNER;
+	
+	// Advanced properties
+	private String[] keywords;
+	private String contentUrl;
+	private Bundle extras;
+	private KrollDict customAdSize;
+	
+	// Positioning properties
+	private int propTop;
+	private int propLeft;
+	private int propRight;
 
 	public TiAdmobUnifiedBannerAdView(TiViewProxy proxy)
 	{
 		super(proxy);
 		Log.d(LCAT, "Banner view created");
-		createAdView();
+		// Don't create AdView immediately - wait for properties
 	}
 
 	private void createAdView()
@@ -101,6 +115,8 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			}
 		});
 
+		// Set positioning properties
+		adView.setPadding(propLeft, propTop, propRight, 0);
 		setNativeView(adView);
 		Log.d(LCAT, "AdView created with unit ID: " + adUnitId);
 	}
@@ -108,11 +124,39 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	public void loadAd()
 	{
 		if (adView == null) {
-			Log.e(LCAT, "Cannot load ad - AdView not created");
+			Log.d(LCAT, "AdView not created yet, creating now");
+			createAdView();
+		}
+		
+		if (adView == null) {
+			Log.e(LCAT, "Cannot load ad - AdView creation failed");
 			return;
 		}
 
-		AdRequest adRequest = new AdRequest.Builder().build();
+		// Build AdRequest with advanced properties
+		AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
+		
+		// Add keywords
+		if (keywords != null) {
+			for (String keyword : keywords) {
+				adRequestBuilder.addKeyword(keyword);
+			}
+			Log.d(LCAT, "Added keywords: " + java.util.Arrays.toString(keywords));
+		}
+		
+		// Set content URL
+		if (contentUrl != null) {
+			adRequestBuilder.setContentUrl(contentUrl);
+			Log.d(LCAT, "Set content URL: " + contentUrl);
+		}
+		
+		// Add network extras
+		if (extras != null && !extras.isEmpty()) {
+			adRequestBuilder.addNetworkExtrasBundle(AdMobAdapter.class, extras);
+			Log.d(LCAT, "Added network extras");
+		}
+		
+		AdRequest adRequest = adRequestBuilder.build();
 		Log.d(LCAT, "Loading banner ad with unit ID: " + adUnitId);
 		adView.loadAd(adRequest);
 	}
@@ -134,9 +178,45 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		this.adSize = getAdSizeFromString(sizeString);
 		Log.d(LCAT, "Ad size set to: " + sizeString);
 		
+		// If AdView exists, recreate it with new size
 		if (adView != null) {
-			adView.setAdSize(this.adSize);
+			recreateAdView();
 		}
+	}
+	
+	public void setCustomAdSize(KrollDict customSize)
+	{
+		this.customAdSize = customSize;
+		
+		if (customSize != null) {
+			int width = TiConvert.toInt(customSize.get("width"));
+			int height = TiConvert.toInt(customSize.get("height"));
+			this.adSize = new AdSize(width, height);
+			Log.d(LCAT, "Custom ad size set to: " + width + "x" + height);
+			
+			// If AdView exists, recreate it with new size
+			if (adView != null) {
+				recreateAdView();
+			}
+		}
+	}
+	
+	public void setKeywords(String[] keywordArray)
+	{
+		this.keywords = keywordArray;
+		Log.d(LCAT, "Keywords set: " + (keywordArray != null ? java.util.Arrays.toString(keywordArray) : "null"));
+	}
+	
+	public void setContentUrl(String url)
+	{
+		this.contentUrl = url;
+		Log.d(LCAT, "Content URL set: " + url);
+	}
+	
+	public void setExtras(Bundle bundleExtras)
+	{
+		this.extras = bundleExtras;
+		Log.d(LCAT, "Network extras set");
 	}
 
 	public boolean isLoaded()
@@ -144,6 +224,22 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		return isAdLoaded;
 	}
 
+	public void pause()
+	{
+		if (adView != null) {
+			adView.pause();
+			Log.d(LCAT, "Banner ad paused");
+		}
+	}
+	
+	public void resume()
+	{
+		if (adView != null) {
+			adView.resume();
+			Log.d(LCAT, "Banner ad resumed");
+		}
+	}
+	
 	public void destroy()
 	{
 		if (adView != null) {
@@ -153,6 +249,19 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			Log.d(LCAT, "Banner ad destroyed");
 			fireAdEvent(TiAdmobUnifiedModule.AD_DESTROYED, null);
 		}
+	}
+	
+	private void recreateAdView()
+	{
+		if (adView != null) {
+			// Destroy existing view
+			adView.destroy();
+			adView = null;
+			isAdLoaded = false;
+		}
+		
+		// Create new view with updated properties
+		createAdView();
 	}
 
 	private void fireAdEvent(String eventName, Map<String, Object> data)
@@ -165,6 +274,77 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		proxy.fireEvent(eventName, data);
 	}
 
+	// Process properties from Titanium proxy
+	public void processProperties(KrollDict properties)
+	{
+		if (properties == null) return;
+		
+		Log.d(LCAT, "Processing banner properties");
+		
+		// Handle adUnitId
+		if (properties.containsKeyAndNotNull("adUnitId")) {
+			setAdUnitId(TiConvert.toString(properties.get("adUnitId")));
+		}
+		
+		// Handle adSize
+		if (properties.containsKeyAndNotNull("adSize")) {
+			setAdSize(TiConvert.toString(properties.get("adSize")));
+		}
+		
+		// Handle customAdSize
+		if (properties.containsKeyAndNotNull("customAdSize")) {
+			KrollDict customSize = (KrollDict) properties.get("customAdSize");
+			setCustomAdSize(customSize);
+		}
+		
+		// Handle keywords
+		if (properties.containsKeyAndNotNull("keywords")) {
+			Object keywordsObj = properties.get("keywords");
+			if (keywordsObj instanceof String[]) {
+				setKeywords((String[]) keywordsObj);
+			} else if (keywordsObj instanceof String) {
+				setKeywords(new String[]{(String) keywordsObj});
+			}
+		}
+		
+		// Handle contentUrl
+		if (properties.containsKeyAndNotNull("contentUrl")) {
+			setContentUrl(TiConvert.toString(properties.get("contentUrl")));
+		}
+		
+		// Handle extras bundle
+		if (properties.containsKeyAndNotNull("extras")) {
+			KrollDict extrasDict = (KrollDict) properties.get("extras");
+			Bundle extrasBundle = new Bundle();
+			
+			for (String key : extrasDict.keySet()) {
+				Object value = extrasDict.get(key);
+				if (value instanceof String) {
+					extrasBundle.putString(key, (String) value);
+				} else if (value instanceof Integer) {
+					extrasBundle.putInt(key, (Integer) value);
+				} else if (value instanceof Boolean) {
+					extrasBundle.putBoolean(key, (Boolean) value);
+				} else {
+					extrasBundle.putString(key, value.toString());
+				}
+			}
+			
+			setExtras(extrasBundle);
+		}
+		
+		// Handle positioning properties
+		if (properties.containsKey("top")) {
+			propTop = TiConvert.toInt(properties.get("top"));
+		}
+		if (properties.containsKey("left")) {
+			propLeft = TiConvert.toInt(properties.get("left"));
+		}
+		if (properties.containsKey("right")) {
+			propRight = TiConvert.toInt(properties.get("right"));
+		}
+	}
+	
 	private static AdSize getAdSizeFromString(String sizeString)
 	{
 		if (sizeString == null) {
@@ -179,11 +359,16 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			case "medium_rectangle":
 				return AdSize.MEDIUM_RECTANGLE;
 			case "full_banner":
+			case "fullbanner": // Support both variants
 				return AdSize.FULL_BANNER;
 			case "leaderboard":
 				return AdSize.LEADERBOARD;
 			case "smart_banner":
-				return AdSize.SMART_BANNER;
+				// SMART_BANNER removed from GMA 25.x. Google's recommended replacement is
+				// adaptive banners (use createAdaptiveBanner proxy). For legacy callers we
+				// fall back to BANNER (320x50 fixed).
+				Log.w(LCAT, "SMART_BANNER deprecated and removed in newer GMA SDK; falling back to BANNER. Use createAdaptiveBanner() for full-width.");
+				return AdSize.BANNER;
 			default:
 				Log.w(LCAT, "Unknown ad size: " + sizeString + ", using BANNER");
 				return AdSize.BANNER;
