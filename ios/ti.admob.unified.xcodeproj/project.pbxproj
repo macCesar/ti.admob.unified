@@ -26,6 +26,14 @@
 		24DD6CFA1134B3F500162E58 /* TiAdmobUnifiedModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DD6CF81134B3F500162E58 /* TiAdmobUnifiedModule.m */; };
 		24DE9E1111C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h */; };
 		24DE9E1211C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DE9E1011C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m */; };
+		240C0F00000000000000B011 /* TiAdmobUnifiedBannerAdProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000B001 /* TiAdmobUnifiedBannerAdProxy.h */; };
+		240C0F00000000000000B012 /* TiAdmobUnifiedBannerAdProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000B002 /* TiAdmobUnifiedBannerAdProxy.m */; };
+		240C0F00000000000000C011 /* TiAdmobUnifiedInterstitialAdProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000C001 /* TiAdmobUnifiedInterstitialAdProxy.h */; };
+		240C0F00000000000000C012 /* TiAdmobUnifiedInterstitialAdProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000C002 /* TiAdmobUnifiedInterstitialAdProxy.m */; };
+		240C0F00000000000000D011 /* TiAdmobUnifiedRewardedAdProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000D001 /* TiAdmobUnifiedRewardedAdProxy.h */; };
+		240C0F00000000000000D012 /* TiAdmobUnifiedRewardedAdProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000D002 /* TiAdmobUnifiedRewardedAdProxy.m */; };
+		240C0F00000000000000E011 /* TiAdmobUnifiedAdaptiveBannerAdProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000E001 /* TiAdmobUnifiedAdaptiveBannerAdProxy.h */; };
+		240C0F00000000000000E012 /* TiAdmobUnifiedAdaptiveBannerAdProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 240C0F00000000000000E002 /* TiAdmobUnifiedAdaptiveBannerAdProxy.m */; };
 		AA747D9F0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch */; };
 		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
 		B11E042C241AC5C100EFA7DC /* TitaniumKit.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = B11E042B241AC5C100EFA7DC /* TitaniumKit.xcframework */; };
@@ -47,6 +55,14 @@
 		24DD6D1B1134B66800162E58 /* titanium.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = titanium.xcconfig; sourceTree = "<group>"; };
 		24DE9E0F11C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedModuleAssets.h"; path = "Classes/TiAdmobUnifiedModuleAssets.h"; sourceTree = "<group>"; };
 		24DE9E1011C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedModuleAssets.m"; path = "Classes/TiAdmobUnifiedModuleAssets.m"; sourceTree = "<group>"; };
+		240C0F00000000000000B001 /* TiAdmobUnifiedBannerAdProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedBannerAdProxy.h"; path = "Classes/TiAdmobUnifiedBannerAdProxy.h"; sourceTree = "<group>"; };
+		240C0F00000000000000B002 /* TiAdmobUnifiedBannerAdProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedBannerAdProxy.m"; path = "Classes/TiAdmobUnifiedBannerAdProxy.m"; sourceTree = "<group>"; };
+		240C0F00000000000000C001 /* TiAdmobUnifiedInterstitialAdProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedInterstitialAdProxy.h"; path = "Classes/TiAdmobUnifiedInterstitialAdProxy.h"; sourceTree = "<group>"; };
+		240C0F00000000000000C002 /* TiAdmobUnifiedInterstitialAdProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedInterstitialAdProxy.m"; path = "Classes/TiAdmobUnifiedInterstitialAdProxy.m"; sourceTree = "<group>"; };
+		240C0F00000000000000D001 /* TiAdmobUnifiedRewardedAdProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedRewardedAdProxy.h"; path = "Classes/TiAdmobUnifiedRewardedAdProxy.h"; sourceTree = "<group>"; };
+		240C0F00000000000000D002 /* TiAdmobUnifiedRewardedAdProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedRewardedAdProxy.m"; path = "Classes/TiAdmobUnifiedRewardedAdProxy.m"; sourceTree = "<group>"; };
+		240C0F00000000000000E001 /* TiAdmobUnifiedAdaptiveBannerAdProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiAdmobUnifiedAdaptiveBannerAdProxy.h"; path = "Classes/TiAdmobUnifiedAdaptiveBannerAdProxy.h"; sourceTree = "<group>"; };
+		240C0F00000000000000E002 /* TiAdmobUnifiedAdaptiveBannerAdProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "TiAdmobUnifiedAdaptiveBannerAdProxy.m"; path = "Classes/TiAdmobUnifiedAdaptiveBannerAdProxy.m"; sourceTree = "<group>"; };
 		AA747D9E0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "TiAdmobUnified_Prefix.pch"; sourceTree = SOURCE_ROOT; };
 		AACBBE490F95108600F1A2B1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		B11E042B241AC5C100EFA7DC /* TitaniumKit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = TitaniumKit.xcframework; path = "$(TITANIUM_SDK)/iphone/Frameworks/TitaniumKit.xcframework"; sourceTree = "<group>"; };
@@ -101,6 +117,14 @@
 				24DE9E1011C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m */,
 				24DD6CF71134B3F500162E58 /* TiAdmobUnifiedModule.h */,
 				24DD6CF81134B3F500162E58 /* TiAdmobUnifiedModule.m */,
+				240C0F00000000000000B001 /* TiAdmobUnifiedBannerAdProxy.h */,
+				240C0F00000000000000B002 /* TiAdmobUnifiedBannerAdProxy.m */,
+				240C0F00000000000000C001 /* TiAdmobUnifiedInterstitialAdProxy.h */,
+				240C0F00000000000000C002 /* TiAdmobUnifiedInterstitialAdProxy.m */,
+				240C0F00000000000000D001 /* TiAdmobUnifiedRewardedAdProxy.h */,
+				240C0F00000000000000D002 /* TiAdmobUnifiedRewardedAdProxy.m */,
+				240C0F00000000000000E001 /* TiAdmobUnifiedAdaptiveBannerAdProxy.h */,
+				240C0F00000000000000E002 /* TiAdmobUnifiedAdaptiveBannerAdProxy.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -124,6 +148,10 @@
 				AA747D9F0F9514B9006C5449 /* TiAdmobUnified_Prefix.pch in Headers */,
 				24DD6CF91134B3F500162E58 /* TiAdmobUnifiedModule.h in Headers */,
 				24DE9E1111C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.h in Headers */,
+				240C0F00000000000000B011 /* TiAdmobUnifiedBannerAdProxy.h in Headers */,
+				240C0F00000000000000C011 /* TiAdmobUnifiedInterstitialAdProxy.h in Headers */,
+				240C0F00000000000000D011 /* TiAdmobUnifiedRewardedAdProxy.h in Headers */,
+				240C0F00000000000000E011 /* TiAdmobUnifiedAdaptiveBannerAdProxy.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +225,10 @@
 			files = (
 				24DD6CFA1134B3F500162E58 /* TiAdmobUnifiedModule.m in Sources */,
 				24DE9E1211C5FE74003F90F6 /* TiAdmobUnifiedModuleAssets.m in Sources */,
+				240C0F00000000000000B012 /* TiAdmobUnifiedBannerAdProxy.m in Sources */,
+				240C0F00000000000000C012 /* TiAdmobUnifiedInterstitialAdProxy.m in Sources */,
+				240C0F00000000000000D012 /* TiAdmobUnifiedRewardedAdProxy.m in Sources */,
+				240C0F00000000000000E012 /* TiAdmobUnifiedAdaptiveBannerAdProxy.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
