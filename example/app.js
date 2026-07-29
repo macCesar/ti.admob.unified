@@ -64,9 +64,9 @@ var statusLabel = Ti.UI.createLabel({
   textAlign: 'center'
 });
 
-// Info label about mediation
+// Info label about the core distribution
 var infoLabel = Ti.UI.createLabel({
-  text: '💡 This module includes mediation adapters for Facebook, InMobi, Unity, AppLovin, and more to maximize your ad revenue!',
+  text: 'Google Mobile Ads + UMP core. Third-party mediation is not bundled.',
   top: 10,
   left: 20,
   right: 20,
@@ -108,8 +108,7 @@ var initButton = createButton('1. Initialize AdMob', function () {
     applicationId: 'ca-app-pub-3940256099942544~3347511713', // Test app ID
     testDeviceIds: ['33BE2250B43518CCDA7DE426D04EE231'], // Add your device ID here - check logcat for "This request is sent from a test device"
     debugGeography: Admob.DEBUG_GEOGRAPHY_EEA,
-    tagForChildDirectedTreatment: false,
-    tagForUnderAgeOfConsent: false,
+    ageRestrictedTreatment: Admob.AGE_RESTRICTED_TREATMENT_UNSPECIFIED,
     maxAdContentRating: Admob.MAX_AD_CONTENT_RATING_GENERAL
   });
 });
@@ -133,13 +132,18 @@ var consentButton = createButton('2. Request Consent (GDPR)', function () {
 
 // Listen for consent events globally
 Admob.addEventListener('consent_ready', function (e) {
-  statusLabel.text = 'Consent ready - Can show ads: ' + e.canShowAds + ', Personalized: ' + e.canShowPersonalizedAds;
+  statusLabel.text = 'Consent ready - Can request ads: ' + e.canRequestAds;
   Ti.API.info('✅ Consent ready: ' + JSON.stringify(e));
 });
 
 Admob.addEventListener('consent_error', function (e) {
   statusLabel.text = '❌ Consent error: ' + e.error;
   Ti.API.error('Consent error: ' + JSON.stringify(e));
+});
+
+Admob.addEventListener('consent_complete', function (e) {
+  statusLabel.text = 'Consent complete - Can request ads: ' + e.canRequestAds;
+  Ti.API.info('Consent complete: ' + JSON.stringify(e));
 });
 
 // Debug button to show device info
@@ -149,8 +153,8 @@ var debugButton = createButton('🐛 Debug Info', function () {
   deviceInfo += 'OS: ' + Ti.Platform.osname + ' ' + Ti.Platform.version + '\n';
   deviceInfo += 'UUID: ' + Ti.Platform.id + '\n';
 
-  // Check which networks are available
-  deviceInfo += '\nNetworks Available:\n';
+  // Compatibility diagnostics. Core builds report false.
+  deviceInfo += '\nOptional mediation bundled:\n';
   deviceInfo += 'InMobi: ' + Admob.isInMobiAvailable() + '\n';
   deviceInfo += 'AppLovin: ' + Admob.isAppLovinAvailable() + '\n';
   deviceInfo += 'Vungle: ' + Admob.isVungleAvailable() + '\n';
@@ -316,11 +320,10 @@ win.add(bannerAdContainer);
 
 // iOS specific: Request tracking authorization
 if (Ti.Platform.osname === 'iphone' || Ti.Platform.osname === 'ipad') {
-  Admob.requestTrackingAuthorization({
-    callback: function (result) {
-      Ti.API.info('Tracking authorization: ' + result.status);
-    }
+  Admob.addEventListener('tracking_authorization_completed', function (e) {
+    Ti.API.info('Tracking authorization: ' + e.status);
   });
+  Admob.requestTrackingAuthorization();
 }
 
 // Handle app lifecycle for better ad management

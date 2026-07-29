@@ -31,9 +31,9 @@ We're always interested in feature suggestions! Please:
 
 ### Prerequisites
 
-- **Titanium SDK**: 12.8.0 or higher
-- **Xcode**: 14+ (for iOS development)
-- **Android SDK**: API Level 21+ (for Android development)
+- **Titanium SDK**: 13.4.0.GA or higher
+- **Xcode**: 16+ (for iOS development)
+- **Android SDK**: API Level 23+ (for Android development)
 - **Node.js**: Latest LTS version
 - **Git**: Latest version
 
@@ -54,13 +54,14 @@ We're always interested in feature suggestions! Please:
 
 ```bash
 # Build for iOS
-ti build -p ios --build-only
+ti build -p ios --build-only --project-dir ios --no-prompt
 
 # Build for Android
-ti build -p android --build-only
+ti build -p android --build-only --project-dir android --no-prompt
 
 # Build for both platforms
-ti build -p ios --build-only && ti build -p android --build-only
+ti build -p ios --build-only --project-dir ios --no-prompt
+ti build -p android --build-only --project-dir android --no-prompt
 ```
 
 ### Testing Your Changes

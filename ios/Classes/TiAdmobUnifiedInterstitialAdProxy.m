@@ -8,6 +8,7 @@
  */
 
 #import "TiAdmobUnifiedInterstitialAdProxy.h"
+#import "TiApp.h"
 #import "TiUtils.h"
 
 @implementation TiAdmobUnifiedInterstitialAdProxy
@@ -141,8 +142,8 @@
         return;
     }
     
-    UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-    
+    UIViewController *rootViewController = [[[TiApp app] controller] topPresentedController];
+
     [self.interstitialAd presentFromRootViewController:rootViewController];
 }
 

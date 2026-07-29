@@ -24,6 +24,7 @@
 
 // Consent management (GDPR/CCPA/UMP)
 - (void)requestConsent:(id)args;
+- (NSNumber *)canRequestAds:(id)args;
 - (NSNumber *)canShowAds:(id)args;
 - (NSNumber *)canShowPersonalizedAds:(id)args;
 - (NSNumber *)isGDPR:(id)args;

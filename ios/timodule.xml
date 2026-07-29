@@ -10,7 +10,7 @@
 
   <iphone>
     <!-- iOS deployment target -->
-    <min-ios-ver>12.0</min-ios-ver>
+    <min-ios-ver>15.0</min-ios-ver>
 
     <!-- Required iOS frameworks -->
     <frameworks>
@@ -30,17 +30,9 @@
       <framework>ImageIO</framework>
     </frameworks>
 
-    <!-- Third-party frameworks (auto-detected from platform/ folder) -->
+    <!-- Vendored core frameworks (auto-detected from platform/ folder) -->
     <!-- GoogleMobileAds.xcframework -->
     <!-- UserMessagingPlatform.xcframework -->
-    <!-- AppLovinSDK.xcframework + AppLovinAdapter.xcframework -->
-    <!-- InMobiSDK.xcframework + InMobiAdapter.xcframework -->
-    <!-- IronSource.xcframework + IronSourceAdapter.xcframework -->
-    <!-- MetaAdapter.xcframework + FBAudienceNetwork.xcframework -->
-    <!-- UnityAds.xcframework + UnityAdapter.xcframework -->
-    <!-- VungleAdsSDK.xcframework -->
-    <!-- IronSourceAdQualitySDK.xcframework -->
-    <!-- LiftoffMonetizeAdapter.xcframework -->
   </iphone>
   <android xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Android configuration handled in android/timodule.xml -->

@@ -3,7 +3,7 @@
 # This module provides a consistent API across iOS and Android platforms
 # with automatic compliance handling for GDPR, CCPA, and App Tracking Transparency.
 #
-version: 1.1.0
+version: 1.2.0
 apiversion: 4
 architectures: arm64-v8a armeabi-v7a x86 x86_64
 description: A unified AdMob module for Titanium SDK with automatic compliance handling
@@ -25,4 +25,4 @@ platform: android
 #
 classpaths:
 plugins:
-minsdk: 12.8.0.GA
+minsdk: 13.4.0.GA

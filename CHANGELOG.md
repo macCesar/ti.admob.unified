@@ -5,6 +5,46 @@ All notable changes to `ti.admob.unified` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] — 2026-07-29
+
+### Added
+
+- Recoverable pre-change tag and Git bundle for the 1.1.0 baseline.
+- `canRequestAds()` on iOS and Android; `canShowAds()` remains an alias.
+- Terminal `consent_complete` event with `success`, `canRequestAds`,
+  `privacyOptionsRequired`, and optional `error`/`code`.
+- Idempotent state machines for native initialization and UMP consent.
+- Age treatment constants and `ageRestrictedTreatment` initialization option.
+- Reproducible iOS dependency inventory with official URLs and checksums.
+- Static contract tests and artifact inventory verification.
+
+### Changed
+
+- Titanium baseline: `12.8.0.GA` → `13.4.0.GA`.
+- iOS deployment target: mixed 12/13 → 15.0.
+- Google Mobile Ads iOS: `13.4.0` → `13.7.0`.
+- Google Mobile Ads Android: `25.3.0` → `25.4.0`.
+- UMP remains iOS `3.1.0` and Android `4.0.0`.
+- Consent uses UMP's load-and-present-if-required flow.
+- Full-screen iOS presentation uses Titanium's top presented controller.
+- Public privacy documentation is event-based; callback options are deprecated.
+
+### Fixed
+
+- Every accepted consent operation reaches a terminal event, including errors
+  and missing Android activity.
+- Removed manual parsing of `IABTCF_TCString`.
+- `canShowPersonalizedAds()` no longer claims that ad-request permission
+  represents personalization permission; it remains as a deprecated safe
+  `false` result.
+- `privacy_options_dismissed` now fires regardless of a callback property.
+
+### Removed
+
+- Required Meta, InMobi, AppLovin, IronSource, Unity, and Liftoff/Vungle
+  mediation dependencies from both core artifacts.
+- Stale dependency/version claims and unsupported revenue assertions.
+
 ## [1.1.0] — 2026-05-28
 
 Minor version bump: significant additions (paridad constants/methods, iOS rescue),
