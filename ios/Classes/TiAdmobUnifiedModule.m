@@ -12,6 +12,7 @@
 #import "TiHost.h"
 #import "TiUtils.h"
 #import "TiAdmobUnifiedRewardedAdProxy.h"
+#import "TiAdmobUnifiedAdaptiveBannerAdProxy.h"
 #import "TiAdmobUnifiedInterstitialAdProxy.h"
 #import "TiAdmobUnifiedBannerAdProxy.h"
 
@@ -258,12 +259,11 @@
 
 - (NSNumber *)canShowPersonalizedAds:(id)args
 {
-    // Check TCF string for personalized ads consent
-    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
-    NSString *tcString = [userDefaults stringForKey:@"IABTCF_TCString"] ?: @"";
-    
-    // Simplified check - in real implementation, you'd parse the TC string properly
-    return @(![tcString isEqualToString:@""] && [tcString containsString:@"1"]);
+    // The UMP SDK is the authoritative source for whether ads can be shown and
+    // whether personalization is permitted. Returning canRequestAds matches the
+    // SDK's gating: GMA itself respects the user's TCF choices when fetching ads.
+    // Parsing IABTCF_TCString by hand here is brittle and was a known weak point.
+    return @(UMPConsentInformation.sharedInstance.canRequestAds);
 }
 
 - (NSNumber *)isGDPR:(id)args
@@ -370,22 +370,21 @@
 
 - (id)createBanner:(id)args
 {
+    NSLog(@"[BANNER-DBG] createBanner: ENTRY (args=%@)", args);
     ENSURE_ARG_COUNT(args, 1);
     NSDictionary *config = [args objectAtIndex:0];
-    
-    DebugLog(@"[DEBUG] Creating banner ad");
+    NSLog(@"[BANNER-DBG] createBanner: config dict = %@", config);
     TiAdmobUnifiedBannerAdProxy *bannerProxy = [[TiAdmobUnifiedBannerAdProxy alloc] _initWithPageContext:[self pageContext] args:args];
+    NSLog(@"[BANNER-DBG] createBanner: returning proxy %@", bannerProxy);
     return bannerProxy;
 }
 
 - (id)createAdaptiveBanner:(id)args
 {
     ENSURE_ARG_COUNT(args, 1);
-    NSDictionary *config = [args objectAtIndex:0];
-    
     DebugLog(@"[DEBUG] Creating adaptive banner ad");
-    // TODO: Implement adaptive banner ad proxy
-    return nil;
+    TiAdmobUnifiedAdaptiveBannerAdProxy *proxy = [[TiAdmobUnifiedAdaptiveBannerAdProxy alloc] _initWithPageContext:[self pageContext] args:args];
+    return proxy;
 }
 
 - (id)createAppOpen:(id)args
@@ -403,35 +402,140 @@
 // ===================================================================
 - (void)setAppVolume:(id)args
 {
+    // GADMobileAds.applicationVolume was removed by Google. The method is kept as
+    // a no-op for backwards compatibility with JS code that still calls it.
+    // Use the device system volume for ad audio control.
     ENSURE_ARG_COUNT(args, 1);
-    NSString *volume = [TiUtils stringValue:[args objectAtIndex:0]];
-    
-    // Convert percentage string to float
-    NSString *cleanVolume = [volume stringByReplacingOccurrencesOfString:@"%" withString:@""];
-    float volumeValue = [cleanVolume floatValue] / 100.0f;
-    
-    // Audio volume setting deprecated in newer versions
-    DebugLog(@"[DEBUG] App volume setting requested: %f", volumeValue);
-    DebugLog(@"[DEBUG] App volume set to: %f", volumeValue);
+    DebugLog(@"[DEBUG] setAppVolume() is a no-op in GMA 13.x+; use device system volume");
 }
 
 - (void)setTestDevice:(id)args
 {
     ENSURE_ARG_COUNT(args, 1);
     NSString *deviceId = [TiUtils stringValue:[args objectAtIndex:0]];
-    
-    // Set test device through RequestConfiguration
+
     GADRequestConfiguration *requestConfig = GADMobileAds.sharedInstance.requestConfiguration;
     requestConfig.testDeviceIdentifiers = @[deviceId];
-    
+
     DebugLog(@"[DEBUG] Test device ID set: %@", deviceId);
 }
 
 - (NSNumber *)isTestDevice:(id)args
 {
-    // This would require tracking test device status
-    // For now, return false as default implementation
-    return @NO;
+    // Returns YES if any test device IDs have been registered via setTestDevice().
+    NSArray<NSString *> *testIds = GADMobileAds.sharedInstance.requestConfiguration.testDeviceIdentifiers;
+    return @(testIds != nil && testIds.count > 0);
 }
+
+#pragma mark - Mediation network availability (parity with Android)
+
+- (NSNumber *)isAppLovinAvailable:(id)args
+{
+    return @(NSClassFromString(@"ALSdk") != nil);
+}
+
+- (NSNumber *)isInMobiAvailable:(id)args
+{
+    return @(NSClassFromString(@"IMSdk") != nil);
+}
+
+- (NSNumber *)isVungleAvailable:(id)args
+{
+    return @(NSClassFromString(@"VungleAds") != nil);
+}
+
+#pragma mark - Per-network GDPR consent (stubs — iOS GMA already routes UMP consent to adapters)
+
+- (void)setAppLovinGDPRConsent:(id)args
+{
+    DebugLog(@"[DEBUG] setAppLovinGDPRConsent called; on iOS this is handled by GMA via UMP. No-op.");
+}
+
+- (void)setInMobiGDPRConsent:(id)args
+{
+    DebugLog(@"[DEBUG] setInMobiGDPRConsent called; on iOS this is handled by GMA via UMP. No-op.");
+}
+
+- (void)setVungleGDPRConsent:(id)args
+{
+    DebugLog(@"[DEBUG] setVungleGDPRConsent called; on iOS this is handled by GMA via UMP. No-op.");
+}
+
+- (void)enableOptionalMediationNetworks:(id)args
+{
+    DebugLog(@"[DEBUG] enableOptionalMediationNetworks called; iOS bundle includes all adapters statically.");
+}
+
+#pragma mark - JS Constants (parity with Android @Kroll.constant)
+
+// Ad type identifiers
+- (NSString *)AD_TYPE_BANNER { return @"banner"; }
+- (NSString *)AD_TYPE_INTERSTITIAL { return @"interstitial"; }
+- (NSString *)AD_TYPE_REWARDED { return @"rewarded"; }
+- (NSString *)AD_TYPE_REWARDED_INTERSTITIAL { return @"rewarded_interstitial"; }
+- (NSString *)AD_TYPE_APP_OPEN { return @"app_open"; }
+- (NSString *)AD_TYPE_NATIVE { return @"native"; }
+
+// Banner sizes
+- (NSString *)BANNER { return @"banner"; }
+- (NSString *)LARGE_BANNER { return @"large_banner"; }
+- (NSString *)MEDIUM_RECTANGLE { return @"medium_rectangle"; }
+- (NSString *)FULLBANNER { return @"fullbanner"; }
+- (NSString *)LEADERBOARD { return @"leaderboard"; }
+- (NSString *)ADAPTIVE_ANCHORED { return @"adaptive_anchored"; }
+- (NSString *)ADAPTIVE_INLINE { return @"adaptive_inline"; }
+- (NSString *)COLLAPSIBLE_TOP { return @"collapsible_top"; }
+- (NSString *)COLLAPSIBLE_BOTTOM { return @"collapsible_bottom"; }
+
+// Event names
+- (NSString *)AD_LOADED { return @"loaded"; }
+- (NSString *)AD_FAILED_TO_LOAD { return @"failed_to_load"; }
+- (NSString *)AD_OPENED { return @"opened"; }
+- (NSString *)AD_CLOSED { return @"closed"; }
+- (NSString *)AD_CLICKED { return @"clicked"; }
+- (NSString *)AD_IMPRESSION { return @"impression"; }
+- (NSString *)AD_REWARDED { return @"rewarded"; }
+- (NSString *)AD_FAILED_TO_SHOW { return @"failed_to_show"; }
+- (NSString *)AD_SHOWED_FULLSCREEN_CONTENT { return @"showed_fullscreen_content"; }
+- (NSString *)AD_DESTROYED { return @"destroyed"; }
+
+// UMP consent status (values from UMPConsentStatus iOS enum, match Android UMP)
+- (NSNumber *)CONSENT_STATUS_UNKNOWN { return @(UMPConsentStatusUnknown); }
+- (NSNumber *)CONSENT_STATUS_REQUIRED { return @(UMPConsentStatusRequired); }
+- (NSNumber *)CONSENT_STATUS_NOT_REQUIRED { return @(UMPConsentStatusNotRequired); }
+- (NSNumber *)CONSENT_STATUS_OBTAINED { return @(UMPConsentStatusObtained); }
+
+// UMP debug geography — bundled iOS UMP has only Disabled/EEA/NotEEA.
+// OTHER maps to NotEEA (closest match in this SDK version).
+// REGULATED_US_STATE is hardcoded to 3 — will work after UMP SDK bump in Fase 2.
+- (NSNumber *)DEBUG_GEOGRAPHY_DISABLED { return @(UMPDebugGeographyDisabled); }
+- (NSNumber *)DEBUG_GEOGRAPHY_EEA { return @(UMPDebugGeographyEEA); }
+- (NSNumber *)DEBUG_GEOGRAPHY_OTHER { return @(UMPDebugGeographyNotEEA); }
+- (NSNumber *)DEBUG_GEOGRAPHY_REGULATED_US_STATE { return @(3); }
+
+// Max ad content ratings
+- (NSString *)MAX_AD_CONTENT_RATING_GENERAL { return @"G"; }
+- (NSString *)MAX_AD_CONTENT_RATING_PARENTAL_GUIDANCE { return @"PG"; }
+- (NSString *)MAX_AD_CONTENT_RATING_TEEN { return @"T"; }
+- (NSString *)MAX_AD_CONTENT_RATING_MATURE_AUDIENCE { return @"MA"; }
+
+// GMA error codes
+- (NSNumber *)ERROR_CODE_SERVER_ERROR { return @(0); }
+- (NSNumber *)ERROR_CODE_INVALID_REQUEST { return @(1); }
+- (NSNumber *)ERROR_CODE_NETWORK_ERROR { return @(2); }
+- (NSNumber *)ERROR_CODE_NO_FILL { return @(3); }
+- (NSNumber *)ERROR_CODE_APP_ID_MISSING { return @(8); }
+- (NSNumber *)ERROR_CODE_MEDIATION_NO_FILL { return @(9); }
+- (NSNumber *)ERROR_CODE_INVALID_AD_SIZE { return @(10); }
+
+// Google test ad unit IDs (iOS-specific values from https://developers.google.com/admob/ios/test-ads)
+- (NSString *)TEST_BANNER { return @"ca-app-pub-3940256099942544/2934735716"; }
+- (NSString *)TEST_ADAPTIVE_BANNER { return @"ca-app-pub-3940256099942544/2435281174"; }
+- (NSString *)TEST_INTERSTITIAL { return @"ca-app-pub-3940256099942544/4411468910"; }
+- (NSString *)TEST_INTERSTITIAL_VIDEO { return @"ca-app-pub-3940256099942544/5135589807"; }
+- (NSString *)TEST_REWARDED { return @"ca-app-pub-3940256099942544/1712485313"; }
+- (NSString *)TEST_REWARDED_INTERSTITIAL { return @"ca-app-pub-3940256099942544/6978759866"; }
+- (NSString *)TEST_NATIVE { return @"ca-app-pub-3940256099942544/3986624511"; }
+- (NSString *)TEST_APP_OPEN { return @"ca-app-pub-3940256099942544/5575463023"; }
 
 @end
