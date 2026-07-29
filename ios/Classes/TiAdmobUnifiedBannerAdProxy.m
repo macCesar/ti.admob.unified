@@ -8,6 +8,7 @@
  */
 
 #import "TiAdmobUnifiedBannerAdProxy.h"
+#import "TiApp.h"
 #import "TiBase.h"
 #import "TiHost.h"
 #import "TiUtils.h"
@@ -33,18 +34,32 @@
 
 @end
 
+@interface TiAdmobUnifiedBannerAdProxy ()
+// Set when load() is called before the view exists; createView will fire loadAd once ready.
+@property (nonatomic, assign) BOOL pendingLoad;
+@end
+
 @implementation TiAdmobUnifiedBannerAdProxy
 
 #pragma mark - Lifecycle
 
 - (id)init
 {
-    if (self = [super init]) {
-        // Set default values
-        self.adSize = @"banner";
-        DebugLog(@"[DEBUG] Banner ad proxy initialized");
+    NSLog(@"[BANNER-DBG] Proxy init: ENTRY");
+    self = [super init];
+    NSLog(@"[BANNER-DBG] Proxy init: super init returned self=%@", self);
+    if (self) {
+        _adSize = @"banner";
+        NSLog(@"[BANNER-DBG] Proxy init: _adSize set, returning");
     }
     return self;
+}
+
+- (void)_initWithProperties:(NSDictionary *)properties
+{
+    NSLog(@"[BANNER-DBG] _initWithProperties: ENTRY (keys=%@)", [properties allKeys]);
+    [super _initWithProperties:properties];
+    NSLog(@"[BANNER-DBG] _initWithProperties: super returned (adUnitId=%@, adSize=%@)", self.adUnitId, self.adSize);
 }
 
 - (void)dealloc
@@ -54,51 +69,38 @@
 
 #pragma mark - TiViewProxy overrides
 
-- (TiUIView *)createView
+- (TiUIView *)newView
 {
+    NSLog(@"[BANNER-DBG] newView invoked (adUnitId=%@, adSize=%@)", self.adUnitId, self.adSize);
     TiAdmobUnifiedBannerAdView *bannerAdView = [[TiAdmobUnifiedBannerAdView alloc] init];
     bannerAdView.proxy = self;
-    return bannerAdView;
-}
-
-- (void)configurationSet
-{
-    [super configurationSet];
-    
-    // Extract configuration from creation arguments
-    NSDictionary *args = [self valueForKey:@"_args"];
-    if (args && [args isKindOfClass:[NSDictionary class]]) {
-        if ([args objectForKey:@"adUnitId"]) {
-            self.adUnitId = [TiUtils stringValue:@"adUnitId" properties:args];
-        }
-        
-        if ([args objectForKey:@"adSize"]) {
-            self.adSize = [TiUtils stringValue:@"adSize" properties:args];
-        }
-        
-        if ([args objectForKey:@"keywords"]) {
-            self.keywords = [args objectForKey:@"keywords"];
-        }
-        
-        if ([args objectForKey:@"extras"]) {
-            self.extras = [args objectForKey:@"extras"];
-        }
+    NSLog(@"[BANNER-DBG] proxy wired, calling createBannerView");
+    [bannerAdView createBannerView];
+    NSLog(@"[BANNER-DBG] createBannerView returned; pendingLoad=%d", self.pendingLoad);
+    if (self.pendingLoad) {
+        self.pendingLoad = NO;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSLog(@"[BANNER-DBG] firing deferred loadAd");
+            [bannerAdView loadAd];
+        });
     }
-    
-    DebugLog(@"[DEBUG] Banner ad proxy configured with adUnitId: %@, adSize: %@", self.adUnitId, self.adSize);
+    return bannerAdView;
 }
 
 #pragma mark - Public Methods
 
 - (void)load:(id)args
 {
-    DebugLog(@"[DEBUG] Loading banner ad");
-    
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
+    NSLog(@"[BANNER-DBG] load() called (adUnitId=%@)", self.adUnitId);
+    TiUIView *tiView = [self view];
+    NSLog(@"[BANNER-DBG] [self view] returned %@ (class=%@)", tiView, NSStringFromClass([tiView class]));
+    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
+        NSLog(@"[BANNER-DBG] view is correct subclass, calling loadAd directly");
         [bannerAdView loadAd];
     } else {
-        NSLog(@"[ERROR] Cannot load ad - banner view not created yet");
+        self.pendingLoad = YES;
+        NSLog(@"[BANNER-DBG] view is NOT our subclass; setting pendingLoad=YES, waiting for createView");
     }
 }
 
@@ -106,8 +108,9 @@
 {
     DebugLog(@"[DEBUG] Destroying banner ad");
     
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
+    TiUIView *tiView = [self view];
+    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
         [bannerAdView destroyAd];
     }
 }
@@ -116,8 +119,9 @@
 {
     DebugLog(@"[DEBUG] Pausing banner ad");
     
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
+    TiUIView *tiView = [self view];
+    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
         [bannerAdView pauseAd];
     }
 }
@@ -126,16 +130,18 @@
 {
     DebugLog(@"[DEBUG] Resuming banner ad");
     
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
+    TiUIView *tiView = [self view];
+    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
         [bannerAdView resumeAd];
     }
 }
 
 - (NSNumber *)isLoaded:(id)args
 {
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
+    TiUIView *tiView = [self view];
+    if ([tiView isKindOfClass:[TiAdmobUnifiedBannerAdView class]]) {
+        TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)tiView;
         return @([bannerAdView isAdLoaded]);
     }
     return @(NO);
@@ -145,31 +151,26 @@
 
 - (void)setAdUnitId:(NSString *)adUnitId
 {
+    // Just store the ivar — do NOT call [self view] from a setter that may fire
+    // during _initWithProperties:. Doing so caused a hang in the alloc/init chain
+    // (TiViewProxy [self view] dispatch_sync to main thread deadlocking against the
+    // Kroll-thread setter invocation).
+    // The view, when it is created via createView, reads self.proxy.adUnitId.
     _adUnitId = adUnitId;
-    DebugLog(@"[DEBUG] AdUnit ID set to: %@", adUnitId);
-    
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
-        [bannerAdView setAdUnitId:adUnitId];
-    }
+    NSLog(@"[BANNER-DBG] setAdUnitId: stored ivar (no view forward) val=%@", adUnitId);
 }
 
 - (void)setAdSize:(NSString *)adSize
 {
     _adSize = adSize;
-    DebugLog(@"[DEBUG] Ad size set to: %@", adSize);
-    
-    TiAdmobUnifiedBannerAdView *bannerAdView = (TiAdmobUnifiedBannerAdView *)[self view];
-    if (bannerAdView) {
-        [bannerAdView setAdSize:adSize];
-    }
+    NSLog(@"[BANNER-DBG] setAdSize: stored ivar (no view forward) val=%@", adSize);
 }
 
 #pragma mark - GADBannerViewDelegate
 
 - (void)bannerViewDidReceiveAd:(GADBannerView *)bannerView
 {
-    DebugLog(@"[DEBUG] Banner ad loaded successfully");
+    NSLog(@"[BANNER-DBG] bannerViewDidReceiveAd FIRED (ad loaded successfully)");
     
     // Force layout refresh to make banner visible
     TiUIView *tiView = [self view];
@@ -189,7 +190,7 @@
 
 - (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error
 {
-    NSLog(@"[ERROR] Banner ad failed to load: %@", error.localizedDescription);
+    NSLog(@"[BANNER-DBG] bannerView:didFailToReceiveAdWithError FIRED: %@ (code=%ld)", error.localizedDescription, (long)error.code);
     
     NSDictionary *event = @{
         @"error": error.localizedDescription,
@@ -272,7 +273,7 @@
     } else if ([lowerSize isEqualToString:@"leaderboard"]) {
         return GADAdSizeLeaderboard;
     } else if ([lowerSize isEqualToString:@"smart_banner"]) {
-        return GADAdSizeSmartBannerPortrait; // Default to portrait
+        return kGADAdSizeSmartBannerPortrait; // Default to portrait
     } else {
         NSLog(@"[WARN] Unknown ad size: %@, using default BANNER", sizeString);
         return GADAdSizeBanner;
@@ -290,7 +291,8 @@
     if (self = [super init]) {
         isAdLoaded = NO;
         DebugLog(@"[DEBUG] Banner ad view initialized");
-        [self createBannerView];
+        // createBannerView NOT called here — self.proxy is nil at init time.
+        // The proxy calls createBannerView from its own createView after wiring proxy.
     }
     return self;
 }
@@ -303,8 +305,9 @@
 
 - (void)createBannerView
 {
+    NSLog(@"[BANNER-DBG] BannerAdView createBannerView; proxy=%@, adUnitId=%@", self.proxy, self.proxy.adUnitId);
     if (!self.proxy.adUnitId) {
-        NSLog(@"[ERROR] Cannot create banner view - no ad unit ID specified");
+        NSLog(@"[BANNER-DBG][ERROR] BAIL: no adUnitId on proxy");
         return;
     }
     
@@ -349,7 +352,7 @@
     }
     
     [bannerView loadRequest:request];
-    DebugLog(@"[DEBUG] Ad request sent for banner ad");
+    NSLog(@"[BANNER-DBG] loadRequest sent to GADBannerView for adUnit=%@", bannerView.adUnitID);
 }
 
 - (void)destroyAd
@@ -365,16 +368,16 @@
 
 - (void)pauseAd
 {
-    // GADBannerView doesn't have explicit pause/resume methods
-    // The system handles lifecycle automatically
-    DebugLog(@"[DEBUG] Banner ad paused (handled automatically by system)");
+    // GADBannerView lifecycle is handled by iOS/GMA automatically (view visibility +
+    // app lifecycle notifications). This method is a no-op kept for paridad with the
+    // Android API surface.
+    DebugLog(@"[DEBUG] Banner pauseAd() is a no-op on iOS (handled by GADBannerView lifecycle)");
 }
 
 - (void)resumeAd
 {
-    // GADBannerView doesn't have explicit pause/resume methods
-    // The system handles lifecycle automatically
-    DebugLog(@"[DEBUG] Banner ad resumed (handled automatically by system)");
+    // Companion no-op to pauseAd above.
+    DebugLog(@"[DEBUG] Banner resumeAd() is a no-op on iOS (handled by GADBannerView lifecycle)");
 }
 
 - (BOOL)isAdLoaded
