@@ -35,7 +35,7 @@
 @end
 
 @interface TiAdmobUnifiedBannerAdProxy ()
-// Set when load() is called before the view exists; createView will fire loadAd once ready.
+// Set when load() is called before the view exists; newView will fire loadAd once ready.
 @property (nonatomic, assign) BOOL pendingLoad;
 @end
 
@@ -153,7 +153,7 @@
     // during _initWithProperties:. Doing so caused a hang in the alloc/init chain
     // (TiViewProxy [self view] dispatch_sync to main thread deadlocking against the
     // Kroll-thread setter invocation).
-    // The view, when it is created via createView, reads self.proxy.adUnitId.
+    // The view, when it is created via newView, reads self.proxy.adUnitId.
     _adUnitId = adUnitId;
     DebugLog(@"[DEBUG] AdUnit ID set to: %@", adUnitId);
 }
@@ -290,7 +290,7 @@
         isAdLoaded = NO;
         DebugLog(@"[DEBUG] Banner ad view initialized");
         // createBannerView NOT called here — self.proxy is nil at init time.
-        // The proxy calls createBannerView from its own createView after wiring proxy.
+        // The proxy calls createBannerView from its own newView after wiring proxy.
     }
     return self;
 }
