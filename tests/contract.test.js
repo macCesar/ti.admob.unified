@@ -281,3 +281,41 @@ test('connects Android banners to native activity lifecycle without leaks', () =
     assert.match(source, /onBannerViewDestroyed\(this\)/)
   }
 })
+
+test('does not detach Android native banner views with a null view', () => {
+  for (const source of [androidBannerView, androidAdaptiveBannerView]) {
+    assert.doesNotMatch(source, /setNativeView\(null\)/)
+    assert.match(source, /setAdListener\(null\)/)
+    assert.match(source, /viewToDestroy\.destroy\(\)/)
+    assert.doesNotMatch(
+      source,
+      /if \(adView == null && unitId != null\) \{\s*createAdView\(\)/
+    )
+  }
+  assert.match(
+    androidBannerView,
+    /bannerProxy\.setProperty\(TiC\.PROPERTY_HEIGHT, adSize\.getHeight\(\)\)/
+  )
+  assert.match(
+    androidAdaptiveBannerView,
+    /bannerProxy\.setPropertyAndFire\(TiC\.PROPERTY_HEIGHT, heightDp \+ "dp"\)/
+  )
+  assert.match(androidAdaptiveBannerView, /updateProxyHeight\(loadedAdSize\.getHeight\(\)\)/)
+  assert.match(androidAdaptiveBannerView, /addOnLayoutChangeListener\(layoutChangeListener\)/)
+  assert.match(androidAdaptiveBannerView, /removeLayoutChangeListener\(viewToDestroy\)/)
+})
+
+test('adaptive loaded events expose the real banner height on both platforms', () => {
+  assert.match(
+    androidAdaptiveBannerView,
+    /event\.put\("height", adSize\.getHeight\(\)\)/
+  )
+  assert.match(androidAdaptiveBannerView, /event\.put\("heightUnit", "dp"\)/)
+  assert.match(androidAdaptiveBannerView, /adSize\.getHeightInPixels\(activity\)/)
+  assert.match(androidAdaptiveBannerView, /adSize\.getHeight\(\) \+ "dp"/)
+  assert.match(
+    iosAdaptiveBanner,
+    /@"height": @\(bannerView\.adSize\.size\.height\)/
+  )
+  assert.match(iosAdaptiveBanner, /@"heightUnit": @"dp"/)
+})

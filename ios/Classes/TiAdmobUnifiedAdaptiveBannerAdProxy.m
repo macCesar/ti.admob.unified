@@ -250,7 +250,11 @@
             [tiView layoutIfNeeded];
         });
     }
-    [self fireAdEvent:@"loaded" withData:@{@"adUnitId": self.adUnitId ?: @""}];
+    [self fireAdEvent:@"loaded" withData:@{
+        @"adUnitId": self.adUnitId ?: @"",
+        @"height": @(bannerView.adSize.size.height),
+        @"heightUnit": @"dp"
+    }];
 }
 
 - (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error

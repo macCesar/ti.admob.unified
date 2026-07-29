@@ -19,6 +19,7 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.LoadAdError;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
@@ -77,6 +78,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 
 		adView = new AdView(activity);
 		adView.setAdSize(adSize);
+		bannerProxy.setProperty(TiC.PROPERTY_HEIGHT, adSize.getHeight());
 		adView.setAdUnitId(adUnitId);
 		
 		adView.setAdListener(new com.google.android.gms.ads.AdListener() {
@@ -197,9 +199,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		this.adUnitId = unitId;
 		Log.d(LCAT, "Ad unit ID set to: " + unitId);
 		
-		if (adView == null && unitId != null) {
-			createAdView();
-		} else if (adView != null) {
+		if (adView != null) {
 			adView.setAdUnitId(unitId);
 		}
 	}
@@ -298,7 +298,6 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			viewToDestroy.setAdListener(null);
 			viewToDestroy.destroy();
 		}
-		setNativeView(null);
 		Log.d(LCAT, "Banner ad destroyed");
 		fireAdEvent(TiAdmobUnifiedModule.AD_DESTROYED, null);
 		bannerProxy.onBannerViewDestroyed(this);
@@ -318,7 +317,6 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			adView = null;
 			viewToDestroy.setAdListener(null);
 			viewToDestroy.destroy();
-			setNativeView(null);
 			isLoading = false;
 			isAdLoaded = false;
 		}
