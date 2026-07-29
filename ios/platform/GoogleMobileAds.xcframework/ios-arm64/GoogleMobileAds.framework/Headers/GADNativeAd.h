@@ -17,6 +17,7 @@
 #import <GoogleMobileAds/GADNativeAdImage.h>
 #import <GoogleMobileAds/GADResponseInfo.h>
 #import <GoogleMobileAds/GADVideoController.h>
+#import <GoogleMobileAds/GoogleMobileAdsDefines.h>
 #import <UIKit/UIKit.h>
 
 /// Native ad. To request this ad type, pass GADAdLoaderAdTypeNative
@@ -84,21 +85,6 @@ NS_SWIFT_NAME(NativeAd)
 /// implement your own Mute This Ad feature only when customMuteThisAdAvailable is YES.
 @property(nonatomic, readonly, nullable) NSArray<GADMuteThisAdReason *> *muteThisAdReasons;
 
-/// Registers ad view, clickable asset views, and nonclickable asset views with this native ad.
-/// Media view shouldn't be registered as clickable.
-/// @param clickableAssetViews Dictionary of asset views that are clickable, keyed by asset IDs.
-/// @param nonclickableAssetViews Dictionary of asset views that are not clickable, keyed by asset
-///        IDs.
-- (void)registerAdView:(nonnull UIView *)adView
-       clickableAssetViews:
-           (nonnull NSDictionary<GADNativeAssetIdentifier, UIView *> *)clickableAssetViews
-    nonclickableAssetViews:
-        (nonnull NSDictionary<GADNativeAssetIdentifier, UIView *> *)nonclickableAssetViews;
-
-/// Unregisters ad view from this native ad. The corresponding asset views will also be
-/// unregistered.
-- (void)unregisterAdView;
-
 /// Reports the mute event with the mute reason selected by user. Use nil if no reason was selected.
 /// Call this method only if customMuteThisAdAvailable is YES.
 - (void)muteThisAdWithReason:(nullable GADMuteThisAdReason *)reason;
@@ -110,11 +96,14 @@ NS_SWIFT_NAME(NativeAd)
 /// The delegate of a GADAdLoader object implements this protocol to receive GADNativeAd ads.
 NS_SWIFT_NAME(NativeAdLoaderDelegate)
 @protocol GADNativeAdLoaderDelegate <GADAdLoaderDelegate>
+
 /// Called when a native ad is received.
-- (void)adLoader:(nonnull GADAdLoader *)adLoader didReceiveNativeAd:(nonnull GADNativeAd *)nativeAd;
+- (void)adLoader:(nonnull GADAdLoader *)adLoader
+    didReceiveNativeAd:(nonnull GADNativeAd *)nativeAd NS_SWIFT_UI_ACTOR;
+
 @end
 
-#pragma mark - Unified Native Ad View
+#pragma mark - Native Ad View
 
 /// Base class for native ad views. Your native ad view must be a subclass of this class and must
 /// call superclass methods for all overridden methods.
