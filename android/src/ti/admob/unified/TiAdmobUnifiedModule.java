@@ -244,6 +244,36 @@ public class TiAdmobUnifiedModule extends KrollModule
 		});
 	}
 
+	@Kroll.method
+	public void openAdInspector()
+	{
+		Activity activity = TiApplication.getInstance().getCurrentActivity();
+		if (activity == null) {
+			Log.e(LCAT, "Cannot open Ad Inspector - no current activity");
+			Map<String, Object> event = new HashMap<>();
+			event.put("success", false);
+			event.put("error", "No current activity");
+			event.put("code", -1);
+			fireEvent("ad_inspector_closed", event);
+			return;
+		}
+
+		activity.runOnUiThread(() -> MobileAds.openAdInspector(activity, new OnAdInspectorClosedListener() {
+			@Override
+			public void onAdInspectorClosed(AdInspectorError error) {
+				Map<String, Object> event = new HashMap<>();
+				if (error == null) {
+					event.put("success", true);
+				} else {
+					event.put("success", false);
+					event.put("error", error.getMessage());
+					event.put("code", error.getCode());
+				}
+				fireEvent("ad_inspector_closed", event);
+			}
+		}));
+	}
+
 	private void setAgeRestrictedTreatment(RequestConfiguration.Builder builder, KrollDict config)
 	{
 		String treatment = null;

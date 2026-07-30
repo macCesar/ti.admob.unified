@@ -72,6 +72,18 @@ This is an installation diagnostic, not evidence that a network filled a
 request. Use Ad Inspector and the ad response information for request-level
 diagnostics.
 
+The module exposes the native inspector on both platforms:
+
+```js
+Admob.addEventListener('ad_inspector_closed', event => {
+  Ti.API.info(JSON.stringify(event))
+})
+Admob.openAdInspector()
+```
+
+Use it only in development UI, after initialization, on a registered Google
+Mobile Ads test device.
+
 The legacy `enableOptionalMediationNetworks(config)` method remains callable
 for existing applications, but it does not enable or initialize a network.
 Adapters are auto-discovered. It now logs the same availability information.

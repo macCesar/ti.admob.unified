@@ -144,6 +144,25 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     }];
 }
 
+- (void)openAdInspector:(id)args
+{
+    ENSURE_UI_THREAD(openAdInspector, args);
+
+    [[GADMobileAds sharedInstance]
+        presentAdInspectorFromViewController:nil
+                           completionHandler:^(NSError *_Nullable error) {
+        NSMutableDictionary *event = [[NSMutableDictionary alloc] init];
+        if (error == nil) {
+            event[@"success"] = @YES;
+        } else {
+            event[@"success"] = @NO;
+            event[@"error"] = error.localizedDescription;
+            event[@"code"] = @(error.code);
+        }
+        [self fireEvent:@"ad_inspector_closed" withObject:event];
+    }];
+}
+
 - (GADRequestConfiguration *)buildRequestConfiguration:(NSDictionary *)config
 {
     GADRequestConfiguration *requestConfig = GADMobileAds.sharedInstance.requestConfiguration;

@@ -161,6 +161,26 @@ test('keeps tracking authorization portable across platforms', () => {
   )
 })
 
+test('exposes one portable Ad Inspector launcher and terminal event', () => {
+  for (const source of [iosModule, androidModule]) {
+    assert.match(source, /openAdInspector/)
+    assert.match(source, /ad_inspector_closed/)
+    for (const payloadKey of ['success', 'error', 'code']) {
+      assert.match(source, new RegExp(`[\"']${payloadKey}[\"']`))
+    }
+  }
+
+  assert.match(iosHeader, /openAdInspector/)
+  assert.match(
+    iosModule,
+    /presentAdInspectorFromViewController:nil[\s\S]*?completionHandler/
+  )
+  assert.match(
+    androidModule,
+    /MobileAds\.openAdInspector\(activity,[\s\S]*?OnAdInspectorClosedListener/
+  )
+})
+
 test('preserves global Android request configuration and reports test devices', () => {
   assert.match(
     androidModule,

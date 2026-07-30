@@ -69,6 +69,7 @@ test('documents every public module method and compatibility method', () => {
     'presentPrivacyOptions',
     'resetConsent',
     'requestTrackingAuthorization',
+    'openAdInspector',
     'createRewarded',
     'createInterstitial',
     'createBanner',

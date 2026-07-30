@@ -18,6 +18,7 @@ const Admob = require('ti.admob.unified')
 | `presentPrivacyOptions(config)` | iOS, Android | Supported |
 | `resetConsent()` | iOS, Android | Testing only |
 | `requestTrackingAuthorization()` | iOS, Android | Portable |
+| `openAdInspector()` | iOS, Android | Development diagnostic |
 | `createBanner(config)` | iOS, Android | Supported |
 | `createAdaptiveBanner(config)` | iOS, Android | Supported |
 | `createInterstitial(config)` | iOS, Android | Supported |
@@ -122,6 +123,26 @@ Completes the portable tracking-authorization step and emits
 `tracking_authorization_completed`. On iOS it requests or retrieves App
 Tracking Transparency authorization. On Android it completes immediately with
 `applicable: false`, so consumers do not need a platform condition.
+
+### `openAdInspector()`
+
+Presents Google Mobile Ads Ad Inspector and emits `ad_inspector_closed` when
+the inspector closes or fails to open.
+
+```js
+Admob.addEventListener('ad_inspector_closed', event => {
+  if (!event.success) {
+    Ti.API.warn(`Ad Inspector failed: ${event.error} (${event.code})`)
+  }
+})
+
+Admob.openAdInspector()
+```
+
+Call this only from a visible development screen after Google Mobile Ads has
+initialized. Google requires the device to be registered as a test device.
+The method does not enable test mode, change consent, or substitute production
+ad units.
 
 ### `createBanner(config)`
 
@@ -339,6 +360,20 @@ On iOS, status values are `0` not determined, `1` restricted, `2` denied, and
 `3` authorized. Android reports `3`, `authorized: true`, and
 `applicable: false` because ATT is not an Android API.
 
+### `ad_inspector_closed`
+
+```js
+{
+  success: Boolean,
+  error: String, // failure only
+  code: Number   // failure only
+}
+```
+
+`success: true` means Ad Inspector was displayed and then closed. A failure
+usually indicates that the SDK is not initialized, the device is not
+registered for testing, or there is no visible activity/controller.
+
 ## Constants
 
 ### Ad types
@@ -518,5 +553,3 @@ consent and US-state sale/sharing choices. Those are different legal signals.
 - Android does not export `createAppOpen`.
 - There is no `createRewardedInterstitial`.
 - There is no `createNative`.
-- There is no public Ad Inspector launcher in `1.2.0`; use Google's supported
-  device/debug mechanisms from the consuming application.

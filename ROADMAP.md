@@ -85,7 +85,6 @@ and privacy APIs:
 
 - implement iOS inline adaptive and collapsible banners, or formally narrow
   the portable adaptive surface to anchored banners;
-- add a supported public Ad Inspector launcher;
 - replace or remove the remaining platform-divergent compatibility utility
   `setAppVolume()`;
 - remove deprecated privacy and destruction aliases in a future major release.

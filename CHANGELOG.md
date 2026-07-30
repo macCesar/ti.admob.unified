@@ -37,6 +37,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   availability methods for all six networks.
 - Reproducible CocoaPods-based iOS framework staging with a verified inventory
   of all 16 XCFrameworks.
+- Portable `openAdInspector()` launcher and terminal `ad_inspector_closed`
+  event on iOS and Android.
 
 ### Changed
 

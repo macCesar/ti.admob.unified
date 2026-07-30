@@ -21,6 +21,7 @@
 
 // Initialization and SDK setup
 - (void)initialize:(id)args;
+- (void)openAdInspector:(id)args;
 
 // Consent management (GDPR/CCPA/UMP)
 - (void)requestConsent:(id)args;

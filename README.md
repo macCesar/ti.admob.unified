@@ -153,6 +153,10 @@ For the publisher-rendered privacy entry point, check
 Read [Privacy and initialization](documentation/privacy.md) for production,
 debug-geography, privacy-options, error, and event-payload guidance.
 
+For development diagnostics, `openAdInspector()` presents Google's native Ad
+Inspector on a registered test device and emits `ad_inspector_closed`. Invoke
+it only from visible development UI after SDK initialization.
+
 ## Adaptive banner
 
 The module reports the real adaptive height after load. Reserve that space in
