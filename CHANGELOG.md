@@ -78,6 +78,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
+- Corrected the `1.2.0` migration guide, which still claimed that mediation
+  adapters were absent after the six-network distribution was restored.
+- Documented expected adapter initialization warnings for incomplete AdMob
+  mappings without recommending placeholder provider credentials.
 - Every accepted consent operation reaches a terminal event, including errors
   and missing Android activity.
 - Removed manual parsing of `IABTCF_TCString`.

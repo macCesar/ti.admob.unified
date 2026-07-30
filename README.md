@@ -38,6 +38,14 @@ platform checks or call a different ad factory for a mediated request.
 Publisher accounts, ad-source mappings, privacy declarations, and provider
 credentials are still configured outside the module.
 
+Because the adapters are present, Google Mobile Ads can inspect or initialize
+them when the SDK starts. Development builds with incomplete provider mappings
+can therefore log setup warnings such as a missing AppLovin SDK key or multiple
+Liftoff Monetize app IDs. The module does not inject provider IDs or keys; those
+values come from the AdMob mediation mapping. Treat these warnings as
+configuration diagnostics and verify the intended source with Ad Inspector
+before enabling production.
+
 Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level
 validation. See [AdMob mediation](documentation/mediation.md).
 

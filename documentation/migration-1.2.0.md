@@ -152,12 +152,16 @@ Rewarded value must be granted only from the `rewarded` event.
 
 ## Mediation
 
-The core `1.2.0` artifacts do not bundle AppLovin, InMobi, Vungle/Liftoff,
-Meta, IronSource, Unity, or other third-party mediation adapters.
+The `1.2.0` artifacts bundle matching adapters and native SDKs for AppLovin,
+InMobi, Liftoff Monetize/Vungle, Meta, ironSource, and Unity on both platforms.
+Google Mobile Ads discovers them automatically; applications keep using the
+same banner, interstitial, and rewarded factories.
 
-Availability probes and legacy consent setters remain only to prevent runtime
-breakage in old consumers. They do not install, download, or enable an
-adapter. New code should not call them.
+Availability probes remain for portable diagnostics. Legacy provider consent
+setters are deprecated no-ops because UMP and each provider's current
+requirements must drive privacy configuration. Bundling an adapter does not
+create an account or enable a mediation source: configure mappings and
+credentials in AdMob, then validate with Ad Inspector.
 
 ## Development checklist
 

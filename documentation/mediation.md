@@ -25,6 +25,18 @@ Bundling an adapter does not create an account, placement, mapping, or bidding
 relationship. An unconfigured network simply does not participate in the
 request.
 
+Google Mobile Ads can still inspect or initialize every bundled adapter during
+SDK startup. In development, incomplete or conflicting server mappings can
+produce provider warnings even when Google serves the requested test banner.
+Examples include a missing AppLovin SDK key and multiple Liftoff Monetize app
+IDs. The module does not add provider credentials to either native manifest;
+AdMob supplies those server parameters from the mediation mapping.
+
+Do not silence these messages with placeholder credentials. Complete the
+provider mapping, use that provider's test mode, and verify it through
+single-source testing in Ad Inspector. If the application does not intend to
+use a bundled provider, leave it out of the AdMob mediation group.
+
 Google maintains the current setup instructions and format caveats in its
 [Android mediation network guide](https://developers.google.com/admob/android/choose-networks)
 and [iOS mediation network guide](https://developers.google.com/admob/ios/choose-networks).
