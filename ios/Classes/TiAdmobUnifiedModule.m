@@ -126,6 +126,15 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
         [self buildRequestConfiguration:config];
     }
 
+    // Skip mediation adapter initialization when the application declares it
+    // will not use mediation during this session. Adapters stay bundled; the
+    // SDK just does not start them, so a network that never answers cannot
+    // hold the first ad request. Must run before starting the SDK.
+    if (config != nil && [TiUtils boolValue:[config objectForKey:@"disableMediation"] def:NO]) {
+        DebugLog(@"[DEBUG] Disabling mediation adapter initialization for this session");
+        [[GADMobileAds sharedInstance] disableMediationInitialization];
+    }
+
     // Initialize the SDK
     [[GADMobileAds sharedInstance] startWithCompletionHandler:^(GADInitializationStatus *status) {
         DebugLog(@"[DEBUG] AdMob SDK initialization completed successfully");

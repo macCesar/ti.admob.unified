@@ -88,6 +88,18 @@ The legacy `enableOptionalMediationNetworks(config)` method remains callable
 for existing applications, but it does not enable or initialize a network.
 Adapters are auto-discovered. It now logs the same availability information.
 
+## Applications that do not use mediation
+
+Auto-discovery has a cost: `initialize()` starts every bundled adapter and does
+not report back until all of them answer or time out. An adapter with no
+credentials configured can consume its entire timeout, which delays the first
+ad of an application that never intended to mediate.
+
+Such an application passes `disableMediation: true` to `initialize()`. The
+adapters stay bundled and the six networks remain available to every other
+application; the SDK simply does not start them in that session. See
+[`initialize(config)`](api-reference.md#initializeconfig).
+
 ## Privacy and store declarations
 
 UMP determines when the application may request ads; continue using

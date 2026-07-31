@@ -531,3 +531,23 @@ test('forwards fullscreen extras through the Google adapter on Android', () => {
     assert.match(source, /addNetworkExtrasBundle\(AdMobAdapter\.class, extrasBundle\)/)
   }
 })
+
+test('lets an application skip mediation initialization on both platforms', () => {
+  for (const source of [iosModule, androidModule]) {
+    assert.match(source, /["']?disableMediation["']?/)
+  }
+
+  // The native call only takes effect before the SDK starts, so the order is
+  // part of the contract, not a detail of the implementation.
+  assert.match(
+    androidModule,
+    /disableMediation[\s\S]*?MobileAds\.disableMediationAdapterInitialization\(activity\)[\s\S]*?MobileAds\.initialize\(/
+  )
+  assert.match(
+    iosModule,
+    /disableMediation[\s\S]*?disableMediationInitialization\][\s\S]*?startWithCompletionHandler/
+  )
+
+  // Skipping initialization must never mean dropping a network.
+  assert.match(read('android/build.gradle'), /com\.google\.ads\.mediation:vungle/)
+})

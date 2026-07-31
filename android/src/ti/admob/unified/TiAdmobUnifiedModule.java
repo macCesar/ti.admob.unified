@@ -217,8 +217,17 @@ public class TiAdmobUnifiedModule extends KrollModule
 			MobileAds.setRequestConfiguration(requestConfigBuilder.build());
 		}
 
+		// Skip mediation adapter initialization when the application declares it
+		// will not use mediation during this session. Adapters stay bundled; the
+		// SDK just does not start them, so a network that never answers cannot
+		// hold the first ad request.
+		if (config != null && config.optBoolean("disableMediation", false)) {
+			Log.d(LCAT, "Disabling mediation adapter initialization for this session");
+			MobileAds.disableMediationAdapterInitialization(activity);
+		}
+
 		Log.d(LCAT, "Starting AdMob SDK initialization...");
-		
+
 		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {

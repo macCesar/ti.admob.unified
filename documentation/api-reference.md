@@ -58,9 +58,33 @@ Accepted properties:
 | `maxAdContentRating` | String | `G`, `PG`, `T`, or `MA` constant value. |
 | `tagForChildDirectedTreatment` | Boolean | Deprecated compatibility input. |
 | `tagForUnderAgeOfConsent` | Boolean | Deprecated initialization input, separate from the UMP property. |
+| `disableMediation` | Boolean | Skips mediation adapter initialization for this session. |
 
 It emits `module_initialized`. Calls are idempotent and the first accepted
 configuration wins. Always pass an object, even when empty.
+
+#### `disableMediation`
+
+`initialize()` does not complete until every bundled adapter reports back, and
+an adapter with no credentials configured can take its full timeout to answer.
+An application that does not use mediation pays that wait for nothing: on one
+measured Android launch it was `30,755 ms`, of which the Liftoff Monetize
+adapter alone accounted for the timeout.
+
+Set `disableMediation: true` and the SDK starts without initializing the
+adapters. They remain bundled and available; they are simply not started, so a
+network that never answers cannot hold back the first ad request.
+
+```js
+Admob.initialize({ disableMediation: true })
+```
+
+It maps to `disableMediationAdapterInitialization()` on Android and
+`disableMediationInitialization` on iOS, and both run before the SDK starts,
+which is the only point where either call has any effect.
+
+Do not set it in an application that serves mediated ads: with adapters left
+uninitialized, the mediation waterfall cannot fill.
 
 `applicationId` and `debugGeography` are not accepted here.
 
