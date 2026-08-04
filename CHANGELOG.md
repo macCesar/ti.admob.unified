@@ -7,6 +7,17 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.2.1] — Unreleased
 
+### Added
+
+- Fullscreen ads document when it is acceptable to interrupt: preload well
+  before the break, present only at a natural one, and the cases Google's
+  guidance rules out — at app open, on the way out, mid-action, as a reward, or
+  back to back.
+- Fullscreen ads document the reload-after-`closed` cycle that keeps the next
+  ad ready, and state the exact scope of `autoReload`: it reloads after
+  `closed` and after nothing else, so load and show failures stay the
+  application's job.
+
 ### Fixed
 
 - Banners no longer resume themselves against the application's intent. The
@@ -45,6 +56,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and never move.
 - `banners.md` documents who may pause a placement, and that hiding a banner
   that has not loaded yet prevents it from loading at all on Android.
+- The interstitial example no longer calls `show()` from inside its `loaded`
+  listener, which presented the ad at whatever second the network answered
+  instead of at a moment the application chose. It now separates loading from
+  presenting, matching what `example/app.js` already did with its Load and Show
+  buttons.
 
 ## [1.2.0] — Unreleased
 

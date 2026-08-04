@@ -190,6 +190,22 @@ test('states portable banner and fullscreen contracts', () => {
   assert.doesNotMatch(fullscreen, /iOS emits `opened` but does not currently emit/)
 })
 
+test('separates loading a fullscreen ad from presenting it', () => {
+  const fullscreen = read('documentation/fullscreen.md')
+
+  // `show()` reached without the `loaded` listener having closed first.
+  assert.doesNotMatch(
+    fullscreen,
+    /AD_LOADED[^}]*\.show\(\)/,
+    'fullscreen.md must not present an interstitial from inside its loaded listener'
+  )
+
+  assert.match(fullscreen, /## When to show a fullscreen ad/)
+  assert.match(fullscreen, /Load early, show later/)
+  assert.match(fullscreen, /natural break/)
+  assert.match(fullscreen, /## Keeping the next ad ready/)
+})
+
 test('documents bundled mediation without revenue promises', () => {
   const mediation = read('documentation/mediation.md')
   const readme = read('README.md')
