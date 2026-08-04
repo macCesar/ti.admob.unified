@@ -56,6 +56,11 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   and never move.
 - `banners.md` documents who may pause a placement, and that hiding a banner
   that has not loaded yet prevents it from loading at all on Android.
+- The `TEST_*` constants are documented by whether a factory accepts them.
+  `TEST_REWARDED_INTERSTITIAL`, `TEST_NATIVE`, and `TEST_APP_OPEN` are marked
+  reserved, since the formats behind them are not implemented, and
+  `TEST_INTERSTITIAL_VIDEO` is documented as an ordinary `createInterstitial()`
+  unit with a video creative rather than as a variant with no home.
 - The interstitial example no longer calls `show()` from inside its `loaded`
   listener, which presented the ad at whatever second the network answered
   instead of at a moment the application chose. It now separates loading from

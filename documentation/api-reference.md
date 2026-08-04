@@ -513,18 +513,22 @@ instead of assuming every error maps to this list.
 
 The constant names are portable; their string values are platform-specific:
 
-| Constant | iOS | Android | Module format |
-|---|---|---|---|
-| `TEST_BANNER` | `ca-app-pub-3940256099942544/2934735716` | `ca-app-pub-3940256099942544/6300978111` | Standard banner |
-| `TEST_ADAPTIVE_BANNER` | `ca-app-pub-3940256099942544/2435281174` | `ca-app-pub-3940256099942544/9214589741` | Adaptive banner |
-| `TEST_INTERSTITIAL` | `ca-app-pub-3940256099942544/4411468910` | `ca-app-pub-3940256099942544/1033173712` | Interstitial |
-| `TEST_INTERSTITIAL_VIDEO` | `ca-app-pub-3940256099942544/5135589807` | `ca-app-pub-3940256099942544/8691691433` | Interstitial variant |
-| `TEST_REWARDED` | `ca-app-pub-3940256099942544/1712485313` | `ca-app-pub-3940256099942544/5224354917` | Rewarded |
-| `TEST_REWARDED_INTERSTITIAL` | `ca-app-pub-3940256099942544/6978759866` | `ca-app-pub-3940256099942544/5354046379` | No module factory |
-| `TEST_NATIVE` | `ca-app-pub-3940256099942544/3986624511` | `ca-app-pub-3940256099942544/2247696110` | No module factory |
-| `TEST_APP_OPEN` | `ca-app-pub-3940256099942544/5575463023` | `ca-app-pub-3940256099942544/9257395921` | No module factory |
+| Constant | iOS | Android | Module format | Factory |
+|---|---|---|---|---|
+| `TEST_BANNER` | `ca-app-pub-3940256099942544/2934735716` | `ca-app-pub-3940256099942544/6300978111` | Standard banner | `createBanner()` |
+| `TEST_ADAPTIVE_BANNER` | `ca-app-pub-3940256099942544/2435281174` | `ca-app-pub-3940256099942544/9214589741` | Adaptive banner | `createAdaptiveBanner()` |
+| `TEST_INTERSTITIAL` | `ca-app-pub-3940256099942544/4411468910` | `ca-app-pub-3940256099942544/1033173712` | Interstitial | `createInterstitial()` |
+| `TEST_INTERSTITIAL_VIDEO` | `ca-app-pub-3940256099942544/5135589807` | `ca-app-pub-3940256099942544/8691691433` | Interstitial, video creative | `createInterstitial()` |
+| `TEST_REWARDED` | `ca-app-pub-3940256099942544/1712485313` | `ca-app-pub-3940256099942544/5224354917` | Rewarded | `createRewarded()` |
+| `TEST_REWARDED_INTERSTITIAL` | `ca-app-pub-3940256099942544/6978759866` | `ca-app-pub-3940256099942544/5354046379` | Rewarded interstitial | None. Reserved |
+| `TEST_NATIVE` | `ca-app-pub-3940256099942544/3986624511` | `ca-app-pub-3940256099942544/2247696110` | Native | None. Reserved |
+| `TEST_APP_OPEN` | `ca-app-pub-3940256099942544/5575463023` | `ca-app-pub-3940256099942544/9257395921` | App open | None. Reserved |
 
 Use the constant rather than copying a platform value into shared code.
+
+The reserved constants exist so that code written against a future release
+still compiles today. There is nothing to pass them to yet; see
+[Reserved and unavailable APIs](#reserved-and-unavailable-apis).
 
 ## Mediation diagnostics and compatibility
 

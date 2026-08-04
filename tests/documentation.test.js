@@ -206,6 +206,34 @@ test('separates loading a fullscreen ad from presenting it', () => {
   assert.match(fullscreen, /## Keeping the next ad ready/)
 })
 
+test('marks the test constants that have no factory as reserved', () => {
+  const gettingStarted = read('documentation/getting-started.md')
+
+  for (const constant of [
+    'TEST_REWARDED_INTERSTITIAL',
+    'TEST_NATIVE',
+    'TEST_APP_OPEN'
+  ]) {
+    const reserved = new RegExp(`\`${constant}\`[^\\n]*None\\. Reserved`)
+
+    assert.match(
+      apiReference,
+      reserved,
+      `${constant} must be documented as reserved in the API reference`
+    )
+    assert.match(
+      gettingStarted,
+      reserved,
+      `${constant} must be documented as reserved in getting started`
+    )
+  }
+
+  // Not reserved: it is an ordinary interstitial unit with a video creative.
+  const video = /`TEST_INTERSTITIAL_VIDEO`[^\n]*createInterstitial\(\)/
+  assert.match(apiReference, video)
+  assert.match(gettingStarted, video)
+})
+
 test('documents bundled mediation without revenue promises', () => {
   const mediation = read('documentation/mediation.md')
   const readme = read('README.md')
