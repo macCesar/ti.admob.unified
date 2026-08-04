@@ -221,6 +221,7 @@ the complete event table.
 ## Documentation
 
 - [Getting started](documentation/getting-started.md)
+- [Integrating the module](documentation/integration.md)
 - [Privacy and initialization](documentation/privacy.md)
 - [AdMob mediation](documentation/mediation.md)
 - [Third-party SDK notices](documentation/third-party-notices.md)

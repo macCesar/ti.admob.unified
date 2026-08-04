@@ -9,6 +9,12 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- `documentation/integration.md`, the page that was missing between the API
+  reference and a working app: why every consumer ends up writing a small
+  layer, a copyable starter for the generic half of it — events as promises,
+  one start-up sequence, a placement that reserves its own slot, named
+  listeners removed before `destroy()` — and a table separating what is generic
+  from what each application decides for itself.
 - Fullscreen ads document when it is acceptable to interrupt: preload well
   before the break, present only at a natural one, and the cases Google's
   guidance rules out — at app open, on the way out, mid-action, as a reward, or
@@ -61,6 +67,10 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   reserved, since the formats behind them are not implemented, and
   `TEST_INTERSTITIAL_VIDEO` is documented as an ordinary `createInterstitial()`
   unit with a video creative rather than as a variant with no home.
+- The documentation index leads with integration and gives fullscreen ads the
+  same standing as banners instead of leaving them in the reference section. It
+  no longer claims fullscreen has differences that are not yet unified; the
+  interstitial and rewarded contracts were unified in `1.2.0`.
 - The interstitial example no longer calls `show()` from inside its `loaded`
   listener, which presented the ad at whatever second the network answered
   instead of at a moment the application chose. It now separates loading from

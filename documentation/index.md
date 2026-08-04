@@ -7,19 +7,22 @@ This documentation describes the public JavaScript contract implemented by
 
 1. [Getting started](getting-started.md) — install both platform artifacts,
    configure the AdMob application IDs, and make a first test request.
-2. [Privacy and initialization](privacy.md) — implement UMP, ATT, the
+2. [Integrating the module](integration.md) — the layer between the module and
+   the application: start-up sequence, events as promises, layout reservation,
+   and what every app decides for itself.
+3. [Privacy and initialization](privacy.md) — implement UMP, ATT, the
    `canRequestAds()` gate, and privacy options correctly.
-3. [AdMob mediation](mediation.md) — configure and validate the six bundled
+4. [AdMob mediation](mediation.md) — configure and validate the six bundled
    mediation networks without platform-specific JavaScript.
-4. [Banner ads](banners.md) — integrate standard or adaptive banners with real
+5. [Banner ads](banners.md) — integrate standard or adaptive banners with real
    layout space and deterministic cleanup.
+6. [Fullscreen ads](fullscreen.md) — interstitial and rewarded ads on one
+   lifecycle, and when it is acceptable to interrupt the user.
 
 ## Reference
 
 - [Complete API reference](api-reference.md) — module methods, proxy methods,
   events, payloads, constants, compatibility APIs, and platform notes.
-- [Fullscreen ads](fullscreen.md) — preserved interstitial and rewarded APIs,
-  including the differences that are not yet unified.
 - [Migration to 1.2.0](migration-1.2.0.md) — replace older modules and obsolete
   gates without breaking existing placements.
 - [Third-party SDK notices](third-party-notices.md) — licenses and terms for

@@ -13,6 +13,7 @@ const documentationPages = [
   'README.md',
   'documentation/index.md',
   'documentation/getting-started.md',
+  'documentation/integration.md',
   'documentation/privacy.md',
   'documentation/mediation.md',
   'documentation/third-party-notices.md',
