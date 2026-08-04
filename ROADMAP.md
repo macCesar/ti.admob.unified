@@ -95,10 +95,28 @@ and privacy APIs:
 - Rewarded interstitial
 - Native
 
-Their constants are already exported for compatibility, but they do not have
-working cross-platform factories. Implementing one requires a complete native
-proxy, shared events and payloads, cleanup semantics, tests, examples, and
-physical validation.
+Their constants are already exported, but they do not have working
+cross-platform factories. Implementing one requires a complete native proxy,
+shared events and payloads, cleanup semantics, tests, examples, and physical
+validation.
+
+These three are the gap against the modules this one is meant to replace.
+Measured on 4 August 2026: `ti.android.admob` `11.1.0` ships proxies for all
+three, and `ti.admob` `8.1.0` on iOS documents an `AD_TYPE_APP_OPEN`.
+
+Decided on 4 August 2026:
+
+- **App open** and **rewarded interstitial** are planned, app open first because
+  it is the only format present in both replaced modules.
+- **Native stays deferred**, and the gap is accepted knowingly. The decision is
+  about use, not difficulty: a native ad only pays off where the ad has to look
+  like one more item in a content list, and no application in progress has such
+  a list. A content feed in a future app is what would reopen it.
+
+The proposed sequence, the contract each new proxy must satisfy, and the design
+choice that native ads would still require are written up in
+[PLAN-PARIDAD-FORMATOS.md](PLAN-PARIDAD-FORMATOS.md). Nothing in that plan is
+implemented yet.
 
 ## Mediation maintenance
 
