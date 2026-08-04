@@ -11,6 +11,7 @@ package ti.admob.unified;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
@@ -272,11 +273,14 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		}
 		isPaused = true;
 		if (adView != null) {
+			// INVISIBLE, not GONE: it matches the iOS `hidden` behaviour and
+			// keeps the measured slot, so returning does not reflow the layout.
+			adView.setVisibility(View.INVISIBLE);
 			adView.pause();
 			Log.d(LCAT, "Banner ad paused");
 		}
 	}
-	
+
 	public void resume()
 	{
 		if (isDestroyed || !isPaused) {
@@ -284,6 +288,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		}
 		isPaused = false;
 		if (adView != null) {
+			adView.setVisibility(View.VISIBLE);
 			adView.resume();
 			Log.d(LCAT, "Banner ad resumed");
 		}

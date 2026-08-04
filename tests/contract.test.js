@@ -43,8 +43,8 @@ const androidRewarded = read(
 )
 
 test('pins the unified ads and mediation dependency baseline', () => {
-  assert.match(read('ios/manifest'), /version: 1\.2\.0/)
-  assert.match(read('android/manifest'), /version: 1\.2\.0/)
+  assert.match(read('ios/manifest'), /version: 1\.2\.1/)
+  assert.match(read('android/manifest'), /version: 1\.2\.1/)
 
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.4\.0/)
@@ -550,4 +550,83 @@ test('lets an application skip mediation initialization on both platforms', () =
 
   // Skipping initialization must never mean dropping a network.
   assert.match(read('android/build.gradle'), /com\.google\.ads\.mediation:vungle/)
+})
+
+test('tracks application and lifecycle pauses as independent causes', () => {
+  const banners = [
+    iosBanner,
+    iosAdaptiveBanner,
+    androidBannerProxy,
+    androidAdaptiveBannerProxy
+  ]
+
+  // One flag cannot express two causes: the lifecycle would resume a banner the
+  // application deliberately paused, and a load deferred while paused would
+  // fire into a placement nobody is looking at.
+  for (const source of banners) {
+    assert.match(source, /pausedByApp/)
+    assert.match(source, /pausedByLifecycle/)
+  }
+
+  // The proxy owns the combined state and must not assign it directly. The
+  // view classes keep their own `isPaused` — on iOS they share this file — and
+  // that one is legitimate, so the assertion is scoped to proxy assignments.
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.doesNotMatch(source, /self\.isPaused\s*=/)
+  }
+  for (const source of [androidBannerProxy, androidAdaptiveBannerProxy]) {
+    assert.doesNotMatch(source, /\bisPaused\s*=\s*(true|false)/)
+  }
+
+  // The public methods own only the application cause.
+  for (const source of [androidBannerProxy, androidAdaptiveBannerProxy]) {
+    assert.match(source, /public void pause\(\)[\s\S]*?pausedByApp = true/)
+    assert.match(source, /public void resume\(\)[\s\S]*?pausedByApp = false/)
+    assert.match(source, /public void onPause\(Activity[\s\S]*?pausedByLifecycle = true/)
+    assert.match(source, /public void onResume\(Activity[\s\S]*?pausedByLifecycle = false/)
+  }
+
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.match(source, /- \(void\)pause:\(id\)args[\s\S]*?pausedByApp = YES/)
+    assert.match(source, /- \(void\)resume:\(id\)args[\s\S]*?pausedByApp = NO/)
+  }
+
+  // Resuming is gated on every cause being clear, on both platforms.
+  for (const source of [androidBannerProxy, androidAdaptiveBannerProxy]) {
+    assert.match(source, /private void applyResume\(\)\s*\{\s*if \(isDestroyed \|\| isPaused\(\)\)/)
+  }
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.match(source, /- \(void\)applyResume\s*\{\s*if \(self\.isDestroyed \|\| self\.isPaused\)/)
+  }
+})
+
+test('follows the host lifecycle on both platforms', () => {
+  // Android already followed its activity. iOS observed nothing, so a
+  // backgrounded app kept a banner running behind the home screen.
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.match(source, /UIApplicationDidEnterBackgroundNotification/)
+    assert.match(source, /UIApplicationWillEnterForegroundNotification/)
+    assert.match(source, /removeObserver:self/)
+
+    // Resign-active fires for transient interruptions that leave the ad on
+    // screen and viewable; pausing there would blank a visible banner.
+    assert.doesNotMatch(source, /UIApplicationWillResignActiveNotification/)
+  }
+
+  for (const source of [androidBannerProxy, androidAdaptiveBannerProxy]) {
+    assert.match(source, /implements TiLifecycle\.OnLifecycleEvent/)
+  }
+})
+
+test('hides the native banner view while paused on both platforms', () => {
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.match(source, /bannerView\.hidden = YES/)
+    assert.match(source, /bannerView\.hidden = NO/)
+  }
+
+  // INVISIBLE, not GONE: it matches iOS `hidden` and keeps the measured slot.
+  for (const source of [androidBannerView, androidAdaptiveBannerView]) {
+    assert.match(source, /adView\.setVisibility\(View\.INVISIBLE\)/)
+    assert.match(source, /adView\.setVisibility\(View\.VISIBLE\)/)
+  }
 })

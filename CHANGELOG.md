@@ -5,6 +5,47 @@ All notable changes to `ti.admob.unified` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] — Unreleased
+
+### Fixed
+
+- Banners no longer resume themselves against the application's intent. The
+  activity lifecycle called the same public `pause()`/`resume()` the consuming
+  app calls, so returning from the background resumed a banner the app had
+  deliberately paused — and, worse, ran a load deferred while paused, issuing
+  an ad request for a placement nobody was looking at. Application and
+  lifecycle pauses are now independent causes, and a banner resumes only once
+  every cause has cleared.
+- iOS banners follow the application lifecycle. Android had always paused with
+  its hosting activity while iOS observed nothing, so a backgrounded app left
+  its banner running behind the home screen. iOS observes background and
+  foreground rather than resign/become-active, because a Control Center pull or
+  a call banner resigns active while the ad is still on screen and viewable.
+- Android hides the native `AdView` while paused, matching the `hidden`
+  behaviour iOS already had. It uses `INVISIBLE` rather than `GONE` so the
+  measured slot survives and returning does not reflow the layout. This also
+  engages the SDK's own visibility gate (`Ad is not visible. Not refreshing
+  ad.`), which is what stops the refresh on Android — `BaseAdView` exposes no
+  refresh control of its own.
+
+### Changed
+
+- The getting-started path now reflects what a typical banner integration
+  actually needs: ATT moved out of the main consent flow into an explicitly
+  optional section, `disableMediation` documented at the step where an
+  application decides whether it mediates, and the banner step defines its
+  host view and links to the placement contract in `banners.md`.
+- The README no longer shows App Tracking Transparency as part of safe
+  initialization, and its mediation section states how an AdMob-only
+  application skips adapter startup.
+- Banner placements are documented as reserving their space before the ad
+  arrives. Growing the host from zero on `loaded` shoves surrounding content
+  upward a second or two after the screen appears; a fixed `BANNER` is `50dp`
+  and `FULLBANNER` is `60dp`, so a fixed placement can reserve its exact height
+  and never move.
+- `banners.md` documents who may pause a placement, and that hiding a banner
+  that has not loaded yet prevents it from loading at all on Android.
+
 ## [1.2.0] — Unreleased
 
 ### Added

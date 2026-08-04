@@ -3,13 +3,17 @@
 Version `1.2.0` unifies the supported banner, fullscreen, tracking, and privacy
 contracts without requiring a production-ad rollout.
 
+This guide still describes that migration, but **install the current release of
+the series**, `1.2.1`, which fixes the banner pause/resume lifecycle on both
+platforms. See the [changelog](../CHANGELOG.md).
+
 ## Module declaration
 
 Replace platform-specific or older AdMob modules with one declaration:
 
 ```xml
 <modules>
-  <module version="1.2.0">ti.admob.unified</module>
+  <module version="1.2.1">ti.admob.unified</module>
 </modules>
 ```
 
@@ -111,6 +115,12 @@ banner.destroy()
 
 `destroy()` is terminal and idempotent. Remove JavaScript event listeners and
 the proxy from its parent when the owning placement closes.
+
+From `1.2.1`, the host lifecycle pauses banners on its own — the Android
+activity, and the iOS application entering the background. An application
+migrating from a module where it wired those by hand can drop that wiring and
+keep only the pauses it alone can know about: a tab it stopped showing, a
+window it covered. See [Who pauses a banner](banners.md#who-pauses-a-banner).
 
 Replace both historical aliases when practical:
 

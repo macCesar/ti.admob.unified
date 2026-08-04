@@ -1,7 +1,7 @@
 # API reference
 
 This page documents the JavaScript surface exported by
-`ti.admob.unified` `1.2.0`.
+`ti.admob.unified` `1.2.1`.
 
 ```js
 const Admob = require('ti.admob.unified')
@@ -262,12 +262,17 @@ The standard and adaptive proxies expose the same methods:
 | Method | Return | Behavior |
 |---|---|---|
 | `load()` | `void` | Starts one request or defers one while paused. |
-| `pause()` | `void` | Idempotently pauses/hides the native banner. |
-| `resume()` | `void` | Idempotently resumes and runs one deferred load. |
+| `pause()` | `void` | Idempotently pauses and hides the native banner. |
+| `resume()` | `void` | Clears the application's pause. Resumes and runs one deferred load only once every pause cause is clear. |
 | `isLoaded()` | Boolean | Reports the current native load state. |
 | `destroy()` | `void` | Terminal, idempotent native cleanup. |
 | `destroyAdViewAndCancelRequest()` | `void` | Compatibility alias of `destroy()`. |
 | `destoyAdViewAndCancelRequest()` | `void` | Deprecated misspelled alias. |
+
+The host lifecycle — the Android activity, and the iOS application entering the
+background — pauses banners on its own, as a cause independent from these
+calls. Neither cause resumes the other's pause. See
+[Who pauses a banner](banners.md#who-pauses-a-banner).
 
 Banner events:
 

@@ -3,7 +3,7 @@
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads
 and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `1.2.0` provides a safe privacy flow, idempotent SDK operations, and
+Version `1.2.1` provides a safe privacy flow, idempotent SDK operations, and
 shared lifecycle/event contracts for banners, interstitials, and rewarded ads.
 The same distribution also bundles current AdMob mediation adapters and native
 SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on
@@ -46,6 +46,12 @@ values come from the AdMob mediation mapping. Treat these warnings as
 configuration diagnostics and verify the intended source with Ad Inspector
 before enabling production.
 
+An application that serves AdMob demand only passes
+`initialize({ disableMediation: true })`. Auto-discovery waits for every
+bundled adapter to answer or time out, so an unmapped provider can delay the
+first ad by tens of seconds. The adapters stay bundled and remain available to
+every other application.
+
 Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level
 validation. See [AdMob mediation](documentation/mediation.md).
 
@@ -69,11 +75,11 @@ for the single-use and reward rules.
 
 ## Installation
 
-Install the `1.2.0` ZIP for each target platform and declare the module:
+Install the `1.2.1` ZIP for each target platform and declare the module:
 
 ```xml
 <modules>
-  <module version="1.2.0">ti.admob.unified</module>
+  <module version="1.2.1">ti.admob.unified</module>
 </modules>
 ```
 
@@ -117,23 +123,9 @@ Admob.addEventListener('consent_complete', event => {
     Ti.API.warn(`UMP completed with an error: ${event.error}`)
   }
 
-  if (!event.canRequestAds) {
-    return
-  }
-
-  const onTrackingComplete = () => {
-    Admob.removeEventListener(
-      'tracking_authorization_completed',
-      onTrackingComplete
-    )
+  if (event.canRequestAds) {
     initializeAdsOnce()
   }
-
-  Admob.addEventListener(
-    'tracking_authorization_completed',
-    onTrackingComplete
-  )
-  Admob.requestTrackingAuthorization()
 })
 
 Admob.requestConsent({
@@ -141,10 +133,13 @@ Admob.requestConsent({
 })
 ```
 
-Tracking authorization resolution does not replace UMP and is not an
-additional ad-request gate. The same call site works on both platforms:
-iOS resolves ATT and Android completes immediately with `applicable: false`.
-The app still uses only `canRequestAds()`.
+App Tracking Transparency is optional and is **not** part of this flow. It does
+not replace UMP and is not an additional ad-request gate; the app still uses
+only `canRequestAds()`. An application with a real tracking case resolves ATT
+before initializing — see
+[Getting started](documentation/getting-started.md#optional-if-the-application-requests-att).
+The same call site works on both platforms: iOS resolves ATT and Android
+completes immediately with `applicable: false`.
 
 For the publisher-rendered privacy entry point, check
 `isPrivacyOptionsRequired()` and call `presentPrivacyOptions({})`.

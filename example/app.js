@@ -291,6 +291,14 @@ function onRewardedClosed() {
   setStatus('Rewarded ad closed')
 }
 
+// The module already pauses banners when the host goes away: the Android
+// activity, and the iOS application entering the background. These handlers are
+// therefore redundant for backgrounding, and are kept only to exercise the
+// public methods.
+//
+// What an application does have to own is its own screens — a tab it stopped
+// showing, a window it covered — because the module cannot see that. Those call
+// the same pause()/resume(), and the two causes never resume each other.
 function onAppPause() {
   if (banner) {
     banner.pause()

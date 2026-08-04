@@ -2,12 +2,12 @@
 
 ## 1. Install the module
 
-Install the `1.2.0` ZIP for every platform you build. Both artifacts must have
+Install the `1.2.1` ZIP for every platform you build. Both artifacts must have
 the same module ID and version:
 
 ```xml
 <modules>
-  <module version="1.2.0">ti.admob.unified</module>
+  <module version="1.2.1">ti.admob.unified</module>
 </modules>
 ```
 
@@ -46,8 +46,11 @@ Add the iOS application ID to the app plist section:
 </ios>
 ```
 
-For App Tracking Transparency, also add a clear, app-specific usage
-description:
+App Tracking Transparency is **optional and separate from UMP**. Most banner
+applications do not need it: serving ads does not require tracking the user
+across other companies' apps and websites. Add the usage description only when
+the application has a real tracking case it can describe honestly, because
+Apple reviews the prompt against actual behavior.
 
 ```xml
 <ios>
@@ -59,6 +62,10 @@ description:
   </plist>
 </ios>
 ```
+
+Omit that key entirely if the application never calls
+`requestTrackingAuthorization()`. UMP still runs and still shows the consent
+form where the region requires one; the two mechanisms are unrelated.
 
 Keep any required `SKAdNetworkItems` in the consuming app. Follow Google's
 [iOS setup guide](https://developers.google.com/admob/ios/quick-start) for the
@@ -96,6 +103,23 @@ account, placement, privacy, and store-disclosure setup.
 
 No platform-specific JavaScript or manual adapter initialization is required.
 See [AdMob mediation](mediation.md).
+
+### Applications that do not mediate
+
+Adapter auto-discovery has a cost. `initialize()` starts every bundled adapter
+and does not report back until all of them answer or time out, so an adapter
+with no credentials configured can consume its entire timeout and delay the
+first ad by tens of seconds.
+
+An application that serves AdMob demand only passes `disableMediation: true`:
+
+```js
+Admob.initialize({ disableMediation: true })
+```
+
+The adapters stay bundled and remain available to every other application; the
+SDK simply does not start them in that session. Use this whenever step 3 does
+not apply to your app.
 
 ## 4. Configure Privacy & messaging
 
@@ -156,6 +180,27 @@ Admob.addEventListener('module_initialized', event => {
 })
 
 Admob.addEventListener('consent_complete', event => {
+  if (event.canRequestAds) {
+    initializeOnce()
+  }
+})
+
+Admob.requestConsent({
+  tagForUnderAgeOfConsent: false
+})
+```
+
+### Optional: if the application requests ATT
+
+Skip this section unless step 2 added `NSUserTrackingUsageDescription`. ATT is
+not a prerequisite for serving ads, and requesting it without a real tracking
+case invites an App Store rejection.
+
+An application that does request it waits for the Apple prompt to settle before
+initializing, so that the SDK reads a final tracking status:
+
+```js
+Admob.addEventListener('consent_complete', event => {
   if (!event.canRequestAds) {
     return
   }
@@ -175,11 +220,11 @@ Admob.addEventListener('consent_complete', event => {
   )
   Admob.requestTrackingAuthorization()
 })
-
-Admob.requestConsent({
-  tagForUnderAgeOfConsent: false
-})
 ```
+
+Google Mobile Ads reads `trackingAuthorizationStatus` on its own on iOS. That
+read is not a permission request and does not open Apple's prompt: only
+`requestTrackingAuthorization()` does.
 
 `initialize()` and `requestConsent()` are idempotent native operations.
 Application-level guards are still useful because cached terminal events may
@@ -187,7 +232,23 @@ be emitted again when a caller invokes an already-completed operation.
 
 ## 7. Create an ad only after the gate opens
 
+A banner needs a host view that is already in the hierarchy, so the native view
+can measure its real width.
+
+**Reserve the space before the ad arrives.** Growing the host from zero when
+`loaded` fires shoves the surrounding content upward a second or two after the
+screen appears, which reads as a glitch. Give the host its expected height up
+front, in a background colour that matches the screen, and an empty slot looks
+like a bottom margin instead of a hole:
+
 ```js
+const bannerHost = Ti.UI.createView({
+  left: 0,
+  right: 0,
+  bottom: 0,
+  height: '50dp'
+})
+
 if (Admob.canRequestAds()) {
   const banner = Admob.createAdaptiveBanner({
     adUnitId: Admob.TEST_ADAPTIVE_BANNER,
@@ -195,10 +256,24 @@ if (Admob.canRequestAds()) {
     width: Ti.UI.FILL
   })
 
+  banner.addEventListener(Admob.AD_LOADED, event => {
+    bannerHost.height = `${event.height}dp`
+  })
+
   bannerHost.add(banner)
   banner.load()
 }
 ```
+
+A fixed `BANNER` is `50dp` and `FULLBANNER` is `60dp`, so a fixed-size
+placement can reserve its exact height and never move. An adaptive banner
+reports its real height only after loading, so reserve a sensible minimum up
+front and let the loaded event adjust it — a few dp of correction is not the
+same glitch as growing from zero.
+
+[Banner ads](banners.md) covers the full placement contract: reserving layout
+space without overlapping bottom-aligned UI, the named-listener lifecycle, and
+`pause()` / `resume()` / `destroy()`.
 
 The module does not enforce the privacy gate inside ad proxies. The consuming
 application owns the order.
@@ -212,3 +287,7 @@ application owns the order.
 - Hardcoding an adaptive banner height.
 - Keeping banner listeners after destroying or removing a placement.
 - Using a production ad unit while clicking ads during development.
+- Requesting ATT, or shipping `NSUserTrackingUsageDescription`, in an app with
+  no tracking case. UMP does not require either one.
+- Leaving mediation initialization on in an app that serves only AdMob demand,
+  and paying an adapter timeout before the first ad.
