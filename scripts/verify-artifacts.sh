@@ -6,8 +6,7 @@ set -euo pipefail
 
 MODULE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PLATFORM_DIR="$MODULE_ROOT/ios/platform"
-GMA_TREE_SHA256="86620aa1581fd67a513cac90582415fcb320a11f7d9e2cd7484b198760d9a188"
-UMP_TREE_SHA256="a9817dd1b5288b6c8c6858e0a689ffd7af0d7ad85cc51628256cbd1ad93f5fdc"
+CHECKSUM_FILE="$MODULE_ROOT/ios/framework-checksums.sha256"
 
 tree_sha256() {
   framework_path="$1"
@@ -24,25 +23,35 @@ if [ ! -d "$PLATFORM_DIR" ]; then
   exit 1
 fi
 
+if [ ! -f "$CHECKSUM_FILE" ]; then
+  echo "Missing framework checksum inventory." >&2
+  exit 1
+fi
+
 unexpected_frameworks=""
 for framework in "$PLATFORM_DIR"/*.xcframework; do
   [ -e "$framework" ] || continue
   framework_name="$(basename "$framework")"
-  case "$framework_name" in
-    GoogleMobileAds.xcframework|UserMessagingPlatform.xcframework)
-      ;;
-    *)
-      unexpected_frameworks="${unexpected_frameworks}${framework_name}\n"
-      ;;
-  esac
-done
-
-for required in GoogleMobileAds.xcframework UserMessagingPlatform.xcframework; do
-  if [ ! -d "$PLATFORM_DIR/$required" ]; then
-    echo "Missing declared framework: $required" >&2
-    exit 1
+  if ! awk -v name="$framework_name" \
+    '$2 == name { found = 1 } END { exit !found }' "$CHECKSUM_FILE"; then
+    unexpected_frameworks="${unexpected_frameworks}${framework_name}\n"
   fi
 done
+
+while read -r expected_sha256 framework_name; do
+  [ -n "$framework_name" ] || continue
+  framework_path="$PLATFORM_DIR/$framework_name"
+  if [ ! -d "$framework_path" ]; then
+    echo "Missing declared framework: $framework_name" >&2
+    exit 1
+  fi
+
+  actual_sha256="$(tree_sha256 "$framework_path")"
+  if [ "$actual_sha256" != "$expected_sha256" ]; then
+    echo "$framework_name checksum mismatch: $actual_sha256" >&2
+    exit 1
+  fi
+done < "$CHECKSUM_FILE"
 
 stale_files="$(find "$PLATFORM_DIR" \( -name '*.old*' -o -name '.DS_Store' \) -print)"
 if [ -n "$stale_files" ]; then
@@ -57,17 +66,5 @@ if [ -n "$unexpected_frameworks" ]; then
   exit 1
 fi
 
-actual_gma_sha256="$(tree_sha256 "$PLATFORM_DIR/GoogleMobileAds.xcframework")"
-actual_ump_sha256="$(tree_sha256 "$PLATFORM_DIR/UserMessagingPlatform.xcframework")"
-
-if [ "$actual_gma_sha256" != "$GMA_TREE_SHA256" ]; then
-  echo "GoogleMobileAds XCFramework checksum mismatch: $actual_gma_sha256" >&2
-  exit 1
-fi
-
-if [ "$actual_ump_sha256" != "$UMP_TREE_SHA256" ]; then
-  echo "UserMessagingPlatform XCFramework checksum mismatch: $actual_ump_sha256" >&2
-  exit 1
-fi
-
-echo "Artifact inventory and checksums verified: GoogleMobileAds + UserMessagingPlatform only."
+framework_count="$(wc -l < "$CHECKSUM_FILE" | tr -d ' ')"
+echo "Artifact inventory and checksums verified: $framework_count XCFrameworks."

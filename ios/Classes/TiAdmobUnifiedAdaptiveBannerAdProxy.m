@@ -43,9 +43,16 @@
 
 @interface TiAdmobUnifiedAdaptiveBannerAdProxy ()
 @property (nonatomic, assign) BOOL pendingLoad;
-@property (nonatomic, assign) BOOL isPaused;
+// Two independent pause causes. The application pauses a placement it owns but
+// no longer shows; the application lifecycle pauses everything while the app is
+// in the background. Either one holds the banner paused, so neither may resume
+// the other's. `isPaused` stays readable as the combined state.
+@property (nonatomic, assign) BOOL pausedByApp;
+@property (nonatomic, assign) BOOL pausedByLifecycle;
 @property (nonatomic, assign) BOOL isDestroyed;
 @property (nonatomic, assign) BOOL destroyedEventFired;
+@property (nonatomic, assign) BOOL lifecycleObserved;
+- (BOOL)isPaused;
 @end
 
 @implementation TiAdmobUnifiedAdaptiveBannerAdProxy
@@ -55,6 +62,9 @@
 - (id)init
 {
     self = [super init];
+    if (self) {
+        [self startObservingLifecycle];
+    }
     return self;
 }
 
@@ -65,7 +75,64 @@
 
 - (void)dealloc
 {
+    [self stopObservingLifecycle];
     DebugLog(@"[DEBUG] AdaptiveBanner proxy deallocated");
+}
+
+#pragma mark - Application lifecycle
+
+// Android pauses every banner its activity hosts. iOS has no equivalent hook,
+// so the proxy observes the application itself and both platforms behave alike.
+//
+// These are background/foreground rather than resign/become-active on purpose:
+// a Control Center pull or an incoming-call banner resigns active while the ad
+// is still on screen and still viewable. Pausing there would blank a visible
+// banner for a transient interruption.
+- (void)startObservingLifecycle
+{
+    if (self.lifecycleObserved) {
+        return;
+    }
+    self.lifecycleObserved = YES;
+
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    [center addObserver:self
+               selector:@selector(applicationDidEnterBackground:)
+                   name:UIApplicationDidEnterBackgroundNotification
+                 object:nil];
+    [center addObserver:self
+               selector:@selector(applicationWillEnterForeground:)
+                   name:UIApplicationWillEnterForegroundNotification
+                 object:nil];
+}
+
+- (void)stopObservingLifecycle
+{
+    if (!self.lifecycleObserved) {
+        return;
+    }
+    self.lifecycleObserved = NO;
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
+}
+
+- (void)applicationDidEnterBackground:(NSNotification *)notification
+{
+    if (self.isDestroyed || self.pausedByLifecycle) {
+        return;
+    }
+    self.pausedByLifecycle = YES;
+    DebugLog(@"[DEBUG] Application backgrounded, pausing adaptive banner");
+    [self applyPause];
+}
+
+- (void)applicationWillEnterForeground:(NSNotification *)notification
+{
+    if (self.isDestroyed || !self.pausedByLifecycle) {
+        return;
+    }
+    self.pausedByLifecycle = NO;
+    DebugLog(@"[DEBUG] Application foregrounded, resuming adaptive banner");
+    [self applyResume];
 }
 
 - (void)windowWillClose
@@ -147,6 +214,7 @@
     }
     self.isDestroyed = YES;
     self.pendingLoad = NO;
+    [self stopObservingLifecycle];
 
     TiThreadPerformOnMainThread(^{
         if ([self viewInitialized]) {
@@ -163,13 +231,31 @@
     }
 }
 
+- (BOOL)isPaused
+{
+    return self.pausedByApp || self.pausedByLifecycle;
+}
+
 - (void)pause:(id)args
 {
-    if (self.isDestroyed || self.isPaused) {
+    if (self.isDestroyed || self.pausedByApp) {
         return;
     }
-    self.isPaused = YES;
+    self.pausedByApp = YES;
+    [self applyPause];
+}
 
+- (void)resume:(id)args
+{
+    if (self.isDestroyed || !self.pausedByApp) {
+        return;
+    }
+    self.pausedByApp = NO;
+    [self applyResume];
+}
+
+- (void)applyPause
+{
     TiThreadPerformOnMainThread(^{
         if ([self viewInitialized]) {
             TiUIView *tiView = [self view];
@@ -180,12 +266,14 @@
     }, NO);
 }
 
-- (void)resume:(id)args
+// Resumes only once every pause cause is gone. A banner the application paused
+// stays paused while the app returns from the background, and vice versa, so a
+// deferred load never fires into a placement nobody is looking at.
+- (void)applyResume
 {
-    if (self.isDestroyed || !self.isPaused) {
+    if (self.isDestroyed || self.isPaused) {
         return;
     }
-    self.isPaused = NO;
 
     TiThreadPerformOnMainThread(^{
         if ([self viewInitialized]) {

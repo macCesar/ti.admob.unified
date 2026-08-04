@@ -2,7 +2,7 @@
 
 ## Current baseline
 
-Version `1.2.0` establishes a Google-only core:
+Version `1.2.0` establishes one portable AdMob and mediation distribution:
 
 - Titanium `13.4.0.GA`
 - iOS `15.0+`
@@ -11,7 +11,7 @@ Version `1.2.0` establishes a Google-only core:
 - Android API `23+`
 - Google Mobile Ads Android `25.4.0`
 - User Messaging Platform Android `4.0.0`
-- no required third-party mediation
+- six matched mediation networks on iOS and Android
 - idempotent initialization and consent
 - terminal `consent_complete` events
 - one standard/adaptive banner lifecycle on both platforms
@@ -57,7 +57,8 @@ Version `1.2.0` establishes a Google-only core:
 
 ### Distribution
 
-- Core artifacts contain only Google Mobile Ads and UMP.
+- Artifacts contain Google Mobile Ads, UMP, and current adapters/SDKs for
+  Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource.
 - Dependency versions and iOS checksums are reproducible.
 - Static contract tests cover privacy, lifecycle, payload, cleanup, artifacts,
   and documentation.
@@ -84,7 +85,6 @@ and privacy APIs:
 
 - implement iOS inline adaptive and collapsible banners, or formally narrow
   the portable adaptive surface to anchored banners;
-- add a supported public Ad Inspector launcher;
 - replace or remove the remaining platform-divergent compatibility utility
   `setAppVolume()`;
 - remove deprecated privacy and destruction aliases in a future major release.
@@ -100,16 +100,16 @@ working cross-platform factories. Implementing one requires a complete native
 proxy, shared events and payloads, cleanup semantics, tests, examples, and
 physical validation.
 
-## Optional mediation
+## Mediation maintenance
 
-Mediation is not part of the core distribution. Any future offering should be
-optional and must include:
-
-- independently current adapters on both platforms;
-- explicit privacy-manifest and SKAdNetwork documentation;
-- network-specific test-mode guidance;
-- physical-device and Ad Inspector evidence;
-- no change to the JavaScript ad contract.
+- Keep the six shared adapter/network SDK pairs current on both platforms.
+- Preserve one JavaScript ad contract and portable diagnostics.
+- Track privacy manifests, resource bundles, SKAdNetwork guidance, and store
+  disclosure changes with every dependency update.
+- Require consumer builds, physical-device tests, and Ad Inspector evidence
+  before release.
+- Evaluate additional networks only when they can be supported on both
+  platforms without fragmenting the public API.
 
 ## Longer-term platform work
 

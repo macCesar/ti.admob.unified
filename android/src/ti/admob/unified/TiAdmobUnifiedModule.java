@@ -217,8 +217,17 @@ public class TiAdmobUnifiedModule extends KrollModule
 			MobileAds.setRequestConfiguration(requestConfigBuilder.build());
 		}
 
+		// Skip mediation adapter initialization when the application declares it
+		// will not use mediation during this session. Adapters stay bundled; the
+		// SDK just does not start them, so a network that never answers cannot
+		// hold the first ad request.
+		if (config != null && config.optBoolean("disableMediation", false)) {
+			Log.d(LCAT, "Disabling mediation adapter initialization for this session");
+			MobileAds.disableMediationAdapterInitialization(activity);
+		}
+
 		Log.d(LCAT, "Starting AdMob SDK initialization...");
-		
+
 		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {
@@ -242,6 +251,36 @@ public class TiAdmobUnifiedModule extends KrollModule
 				fireEvent("module_initialized", event);
 			}
 		});
+	}
+
+	@Kroll.method
+	public void openAdInspector()
+	{
+		Activity activity = TiApplication.getInstance().getCurrentActivity();
+		if (activity == null) {
+			Log.e(LCAT, "Cannot open Ad Inspector - no current activity");
+			Map<String, Object> event = new HashMap<>();
+			event.put("success", false);
+			event.put("error", "No current activity");
+			event.put("code", -1);
+			fireEvent("ad_inspector_closed", event);
+			return;
+		}
+
+		activity.runOnUiThread(() -> MobileAds.openAdInspector(activity, new OnAdInspectorClosedListener() {
+			@Override
+			public void onAdInspectorClosed(AdInspectorError error) {
+				Map<String, Object> event = new HashMap<>();
+				if (error == null) {
+					event.put("success", true);
+				} else {
+					event.put("success", false);
+					event.put("error", error.getMessage());
+					event.put("code", error.getCode());
+				}
+				fireEvent("ad_inspector_closed", event);
+			}
+		}));
 	}
 
 	private void setAgeRestrictedTreatment(RequestConfiguration.Builder builder, KrollDict config)
@@ -280,109 +319,25 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public void setAppLovinGDPRConsent(KrollDict config)
 	{
-		if (config != null && config.containsKey("enabled")) {
-			boolean isEnabled = config.getBoolean("enabled");
-			Log.d(LCAT, "Setting AppLovin GDPR consent: " + isEnabled);
-			
-			try {
-				// Only initialize AppLovin if the SDK is available
-				Class<?> appLovinPrivacyClass = Class.forName("com.applovin.sdk.AppLovinPrivacySettings");
-				
-				// Use reflection to avoid compile-time dependency
-				java.lang.reflect.Method setHasUserConsentMethod = 
-					appLovinPrivacyClass.getDeclaredMethod("setHasUserConsent", boolean.class, android.content.Context.class);
-				java.lang.reflect.Method setDoNotSellMethod = 
-					appLovinPrivacyClass.getDeclaredMethod("setDoNotSell", boolean.class, android.content.Context.class);
-				
-				Activity activity = TiApplication.getInstance().getCurrentActivity();
-				if (activity != null) {
-					// EU consent and GDPR
-					setHasUserConsentMethod.invoke(null, isEnabled, activity);
-					// CCPA - Do Not Sell is inverse of consent
-					setDoNotSellMethod.invoke(null, !isEnabled, activity);
-					
-					Log.d(LCAT, "AppLovin GDPR consent configured successfully");
-				}
-				
-			} catch (ClassNotFoundException e) {
-				Log.w(LCAT, "AppLovin SDK not available, skipping GDPR configuration");
-			} catch (Exception e) {
-				Log.e(LCAT, "Error configuring AppLovin GDPR consent: " + e.getMessage());
-			}
-		}
+		Log.w(LCAT, "setAppLovinGDPRConsent() is deprecated and intentionally does not "
+			+ "translate one Boolean into regional privacy choices; use UMP and current "
+			+ "provider requirements");
 	}
 
 	@Kroll.method
 	public void setInMobiGDPRConsent(KrollDict config)
 	{
-		if (config != null && config.containsKey("enabled")) {
-			boolean isEnabled = config.getBoolean("enabled");
-			Log.d(LCAT, "Setting InMobi GDPR consent: " + isEnabled);
-			
-			try {
-				// Only initialize InMobi if the SDK is available
-				Class<?> inMobiSdkClass = Class.forName("com.inmobi.sdk.InMobiSdk");
-				Class<?> inMobiConsentClass = Class.forName("com.google.ads.mediation.inmobi.InMobiConsent");
-				
-				// Get IM_GDPR_CONSENT_AVAILABLE constant
-				String IM_GDPR_CONSENT_AVAILABLE = (String) inMobiSdkClass.getField("IM_GDPR_CONSENT_AVAILABLE").get(null);
-				
-				// Create consent JSON object
-				org.json.JSONObject consentObject = new org.json.JSONObject();
-				consentObject.put(IM_GDPR_CONSENT_AVAILABLE, true);
-				consentObject.put("gdpr", isEnabled ? "1" : "0");
-				
-				// Update GDPR consent
-				java.lang.reflect.Method updateGDPRConsentMethod = 
-					inMobiConsentClass.getDeclaredMethod("updateGDPRConsent", org.json.JSONObject.class);
-				updateGDPRConsentMethod.invoke(null, consentObject);
-				
-				Log.d(LCAT, "InMobi GDPR consent configured successfully");
-				
-			} catch (ClassNotFoundException e) {
-				Log.w(LCAT, "InMobi SDK not available, skipping GDPR configuration");
-			} catch (Exception e) {
-				Log.e(LCAT, "Error configuring InMobi GDPR consent: " + e.getMessage());
-			}
-		}
+		Log.w(LCAT, "setInMobiGDPRConsent() is deprecated and intentionally does not "
+			+ "translate one Boolean into regional privacy choices; use UMP and current "
+			+ "provider requirements");
 	}
 
 	@Kroll.method
 	public void setVungleGDPRConsent(KrollDict config)
 	{
-		if (config != null && config.containsKey("enabled")) {
-			boolean isEnabled = config.getBoolean("enabled");
-			Log.d(LCAT, "Setting Vungle GDPR consent: " + isEnabled);
-			
-			try {
-				// Only configure Vungle if the SDK is available. Vungle 7.x (Liftoff
-				// Monetize) moved the SDK from com.vungle.warren to com.vungle.ads;
-				// try the current package first and fall back to the legacy one.
-				Class<?> vunglePrivacyClass = findClass(
-					"com.vungle.ads.VunglePrivacySettings",
-					"com.vungle.warren.VunglePrivacySettings");
-
-				// Set GDPR consent status
-				java.lang.reflect.Method setGDPRStatusMethod = 
-					vunglePrivacyClass.getDeclaredMethod("setGDPRStatus", boolean.class, String.class);
-				
-				// Set CCPA status  
-				java.lang.reflect.Method setCCPAStatusMethod = 
-					vunglePrivacyClass.getDeclaredMethod("setCCPAStatus", boolean.class);
-				
-				// Configure GDPR
-				setGDPRStatusMethod.invoke(null, true, isEnabled ? "opted_in" : "opted_out");
-				// Configure CCPA (Do Not Sell is inverse of consent)
-				setCCPAStatusMethod.invoke(null, !isEnabled);
-				
-				Log.d(LCAT, "Vungle GDPR consent configured successfully");
-				
-			} catch (ClassNotFoundException e) {
-				Log.w(LCAT, "Vungle SDK not available, skipping GDPR configuration");
-			} catch (Exception e) {
-				Log.e(LCAT, "Error configuring Vungle GDPR consent: " + e.getMessage());
-			}
-		}
+		Log.w(LCAT, "setVungleGDPRConsent() is deprecated and intentionally does not "
+			+ "translate one Boolean into regional privacy choices; use UMP and current "
+			+ "provider requirements");
 	}
 
 	// Returns the first of the given class names that is present on the classpath,
@@ -412,7 +367,19 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.method
 	public boolean isAppLovinAvailable()
 	{
-		return isClassAvailable("com.applovin.sdk.AppLovinSdk");
+		return isClassAvailable(
+			"com.google.ads.mediation.applovin.AppLovinMediationAdapter",
+			"com.applovin.sdk.AppLovinSdk"
+		);
+	}
+
+	@Kroll.method
+	public boolean isMetaAvailable()
+	{
+		return isClassAvailable(
+			"com.google.ads.mediation.facebook.FacebookMediationAdapter",
+			"com.facebook.ads.AudienceNetworkAds"
+		);
 	}
 
 	@Kroll.method
@@ -420,35 +387,60 @@ public class TiAdmobUnifiedModule extends KrollModule
 	{
 		// Vungle 7.x (Liftoff Monetize) renamed the package from com.vungle.warren
 		// to com.vungle.ads. Probe both so detection works with either adapter.
-		return isClassAvailable("com.vungle.ads.VungleAds", "com.vungle.warren.Vungle");
+		return isClassAvailable(
+			"com.google.ads.mediation.vungle.VungleMediationAdapter",
+			"com.vungle.ads.VungleAds",
+			"com.vungle.warren.Vungle"
+		);
 	}
 
 	@Kroll.method
 	public boolean isInMobiAvailable()
 	{
-		return isClassAvailable("com.inmobi.sdk.InMobiSdk");
+		return isClassAvailable(
+			"com.google.ads.mediation.inmobi.InMobiMediationAdapter",
+			"com.inmobi.sdk.InMobiSdk"
+		);
 	}
 
-	// Compatibility method. The core artifact intentionally does not bundle
-	// third-party mediation adapters.
+	@Kroll.method
+	public boolean isUnityAvailable()
+	{
+		return isClassAvailable(
+			"com.google.ads.mediation.unity.UnityMediationAdapter",
+			"com.unity3d.ads.UnityAds"
+		);
+	}
+
+	@Kroll.method
+	public boolean isIronSourceAvailable()
+	{
+		return isClassAvailable(
+			"com.google.ads.mediation.ironsource.IronSourceMediationAdapter",
+			"com.ironsource.mediationsdk.IronSource"
+		);
+	}
+
+	@Kroll.method
+	public KrollDict getMediationStatus()
+	{
+		KrollDict status = new KrollDict();
+		status.put("appLovin", isAppLovinAvailable());
+		status.put("meta", isMetaAvailable());
+		status.put("inMobi", isInMobiAvailable());
+		status.put("unity", isUnityAvailable());
+		status.put("liftoffMonetize", isVungleAvailable());
+		status.put("ironSource", isIronSourceAvailable());
+		return status;
+	}
+
+	// Compatibility method retained for 1.1.x consumers. AdMob discovers the
+	// bundled adapters automatically; this method only reports their status.
 	@Kroll.method
 	public void enableOptionalMediationNetworks(KrollDict config)
 	{
-		if (config == null) {
-			return;
-		}
-
-		if (config.optBoolean("appLovin", false)) {
-			Log.d(LCAT, isAppLovinAvailable()
-				? "AppLovin adapter is bundled; mediation will use it when AdMob serves it"
-				: "AppLovin adapter missing - add 'com.google.ads.mediation:applovin' to android/build.gradle");
-		}
-
-		if (config.optBoolean("vungle", false)) {
-			Log.d(LCAT, isVungleAvailable()
-				? "Vungle adapter is bundled; mediation will use it when AdMob serves it"
-				: "Vungle adapter missing - add 'com.google.ads.mediation:vungle' to android/build.gradle");
-		}
+		Log.d(LCAT, "Mediation adapters are auto-discovered by Google Mobile Ads: "
+			+ getMediationStatus());
 	}
 
 	// ===================================================================

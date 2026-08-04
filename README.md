@@ -3,10 +3,12 @@
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads
 and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `1.2.0` provides a safe privacy flow, idempotent SDK operations, and
+Version `1.2.1` provides a safe privacy flow, idempotent SDK operations, and
 shared lifecycle/event contracts for banners, interstitials, and rewarded ads.
-The core distribution contains only Google Mobile Ads and UMP; third-party
-mediation adapters are not bundled.
+The same distribution also bundles current AdMob mediation adapters and native
+SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on
+both platforms. Applications keep one JavaScript ad API; AdMob selects the
+configured ad source.
 
 ## Requirements
 
@@ -19,6 +21,39 @@ mediation adapters are not bundled.
 | UMP iOS | `3.1.0` |
 | Google Mobile Ads Android | `25.4.0` |
 | UMP Android | `4.0.0` |
+
+## Mediation
+
+| Ad source | iOS adapter | Android adapter |
+|---|---:|---:|
+| Meta Audience Network | `6.21.1.1.1` | `6.21.0.4` |
+| InMobi | `11.4.0.0` | `11.4.0.0` |
+| Unity Ads | `4.19.0.0` | `4.19.0.0` |
+| AppLovin | `13.6.3.0` | `13.6.3.0` |
+| Liftoff Monetize (Vungle) | `7.7.5.0` | `7.7.6.0` |
+| ironSource | `9.5.0.0.0` | `9.5.0.0` |
+
+The adapters are discovered automatically by Google Mobile Ads. Do not add
+platform checks or call a different ad factory for a mediated request.
+Publisher accounts, ad-source mappings, privacy declarations, and provider
+credentials are still configured outside the module.
+
+Because the adapters are present, Google Mobile Ads can inspect or initialize
+them when the SDK starts. Development builds with incomplete provider mappings
+can therefore log setup warnings such as a missing AppLovin SDK key or multiple
+Liftoff Monetize app IDs. The module does not inject provider IDs or keys; those
+values come from the AdMob mediation mapping. Treat these warnings as
+configuration diagnostics and verify the intended source with Ad Inspector
+before enabling production.
+
+An application that serves AdMob demand only passes
+`initialize({ disableMediation: true })`. Auto-discovery waits for every
+bundled adapter to answer or time out, so an unmapped provider can delay the
+first ad by tens of seconds. The adapters stay bundled and remain available to
+every other application.
+
+Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level
+validation. See [AdMob mediation](documentation/mediation.md).
 
 ## Supported formats
 
@@ -40,11 +75,11 @@ for the single-use and reward rules.
 
 ## Installation
 
-Install the `1.2.0` ZIP for each target platform and declare the module:
+Install the `1.2.1` ZIP for each target platform and declare the module:
 
 ```xml
 <modules>
-  <module version="1.2.0">ti.admob.unified</module>
+  <module version="1.2.1">ti.admob.unified</module>
 </modules>
 ```
 
@@ -88,23 +123,9 @@ Admob.addEventListener('consent_complete', event => {
     Ti.API.warn(`UMP completed with an error: ${event.error}`)
   }
 
-  if (!event.canRequestAds) {
-    return
-  }
-
-  const onTrackingComplete = () => {
-    Admob.removeEventListener(
-      'tracking_authorization_completed',
-      onTrackingComplete
-    )
+  if (event.canRequestAds) {
     initializeAdsOnce()
   }
-
-  Admob.addEventListener(
-    'tracking_authorization_completed',
-    onTrackingComplete
-  )
-  Admob.requestTrackingAuthorization()
 })
 
 Admob.requestConsent({
@@ -112,10 +133,13 @@ Admob.requestConsent({
 })
 ```
 
-Tracking authorization resolution does not replace UMP and is not an
-additional ad-request gate. The same call site works on both platforms:
-iOS resolves ATT and Android completes immediately with `applicable: false`.
-The app still uses only `canRequestAds()`.
+App Tracking Transparency is optional and is **not** part of this flow. It does
+not replace UMP and is not an additional ad-request gate; the app still uses
+only `canRequestAds()`. An application with a real tracking case resolves ATT
+before initializing — see
+[Getting started](documentation/getting-started.md#optional-if-the-application-requests-att).
+The same call site works on both platforms: iOS resolves ATT and Android
+completes immediately with `applicable: false`.
 
 For the publisher-rendered privacy entry point, check
 `isPrivacyOptionsRequired()` and call `presentPrivacyOptions({})`.
@@ -123,6 +147,10 @@ For the publisher-rendered privacy entry point, check
 
 Read [Privacy and initialization](documentation/privacy.md) for production,
 debug-geography, privacy-options, error, and event-payload guidance.
+
+For development diagnostics, `openAdInspector()` presents Google's native Ad
+Inspector on a registered test device and emits `ad_inspector_closed`. Invoke
+it only from visible development UI after SDK initialization.
 
 ## Adaptive banner
 
@@ -194,6 +222,8 @@ the complete event table.
 
 - [Getting started](documentation/getting-started.md)
 - [Privacy and initialization](documentation/privacy.md)
+- [AdMob mediation](documentation/mediation.md)
+- [Third-party SDK notices](documentation/third-party-notices.md)
 - [Banner ads](documentation/banners.md)
 - [Fullscreen ads](documentation/fullscreen.md)
 - [Complete API reference](documentation/api-reference.md)

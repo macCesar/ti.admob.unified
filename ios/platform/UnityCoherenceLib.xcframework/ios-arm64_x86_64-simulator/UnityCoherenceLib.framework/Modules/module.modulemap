@@ -1,0 +1,6 @@
+framework module UnityCoherenceLib {
+  umbrella header "UnityCoherenceLib.h"
+  export *
+
+  module * { export * }
+}

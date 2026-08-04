@@ -27,9 +27,18 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	private TiAdmobUnifiedAdaptiveBannerAdView bannerView;
 	private TiBaseActivity lifecycleActivity;
 	private boolean isDestroyed;
-	private boolean isPaused;
+	// Two independent pause causes. The application pauses a placement it owns
+	// but no longer shows; the activity lifecycle pauses everything it hosts.
+	// Either one holds the banner paused, so neither may resume the other's.
+	private boolean pausedByApp;
+	private boolean pausedByLifecycle;
 	private boolean pendingLoad;
 	private boolean destroyedEventFired;
+
+	private boolean isPaused()
+	{
+		return pausedByApp || pausedByLifecycle;
+	}
 
 	public TiAdmobUnifiedAdaptiveBannerAdProxy()
 	{
@@ -48,7 +57,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 		}
 		if (isDestroyed) {
 			createdView.destroy();
-		} else if (isPaused) {
+		} else if (isPaused()) {
 			createdView.pause();
 		}
 		return createdView;
@@ -82,7 +91,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 			fireBannerEvent(TiAdmobUnifiedModule.AD_FAILED_TO_LOAD, "Banner has been destroyed", 1);
 			return;
 		}
-		if (isPaused) {
+		if (isPaused()) {
 			pendingLoad = true;
 			return;
 		}
@@ -99,24 +108,40 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Kroll.method(runOnUiThread = true)
 	public void pause()
 	{
-		if (isDestroyed || isPaused) {
+		if (isDestroyed || pausedByApp) {
 			return;
 		}
-		isPaused = true;
+		pausedByApp = true;
 		Log.d(LCAT, "Pausing adaptive banner ad");
+		applyPause();
+	}
+
+	@Kroll.method(runOnUiThread = true)
+	public void resume()
+	{
+		if (isDestroyed || !pausedByApp) {
+			return;
+		}
+		pausedByApp = false;
+		Log.d(LCAT, "Resuming adaptive banner ad");
+		applyResume();
+	}
+
+	private void applyPause()
+	{
 		if (bannerView != null) {
 			bannerView.pause();
 		}
 	}
-	
-	@Kroll.method(runOnUiThread = true)
-	public void resume()
+
+	// Resumes only once every pause cause is gone. A banner the application
+	// paused stays paused while the activity comes back, and vice versa, so a
+	// deferred load never fires into a placement nobody is looking at.
+	private void applyResume()
 	{
-		if (isDestroyed || !isPaused) {
+		if (isDestroyed || isPaused()) {
 			return;
 		}
-		isPaused = false;
-		Log.d(LCAT, "Resuming adaptive banner ad");
 		if (bannerView != null) {
 			bannerView.resume();
 		}
@@ -325,15 +350,23 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Override
 	public void onPause(Activity activity)
 	{
+		if (isDestroyed || pausedByLifecycle) {
+			return;
+		}
+		pausedByLifecycle = true;
 		Log.d(LCAT, "Activity paused, pausing adaptive banner ad");
-		pause();
+		applyPause();
 	}
-	
+
 	@Override
 	public void onResume(Activity activity)
 	{
+		if (isDestroyed || !pausedByLifecycle) {
+			return;
+		}
+		pausedByLifecycle = false;
 		Log.d(LCAT, "Activity resumed, resuming adaptive banner ad");
-		resume();
+		applyResume();
 	}
 	
 	@Override

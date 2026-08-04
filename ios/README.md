@@ -13,10 +13,9 @@ Community-facing JavaScript documentation starts at the
 - Google Mobile Ads `13.7.0`
 - User Messaging Platform `3.1.0`
 
-The distribution contains only
-`GoogleMobileAds.xcframework` and
-`UserMessagingPlatform.xcframework`. See
-[DEPENDENCIES.md](../DEPENDENCIES.md) for source URLs and checksums.
+The distribution also vendors the matched adapters and native SDKs for Meta,
+InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource. See
+[DEPENDENCIES.md](../DEPENDENCIES.md) for the exact inventory and checksums.
 
 ## Native structure
 
@@ -33,12 +32,12 @@ The distribution contains only
 From the module root:
 
 ```sh
-./scripts/prepare-build.sh
+./ios/install_frameworks.sh
 ti build -p ios --build-only --project-dir ios --no-prompt
 ```
 
-`prepare-build.sh` normalizes framework file permissions before packaging so a
-consumer can replace an existing module installation.
+`install_frameworks.sh` resolves the pinned CocoaPods dependencies, stages all
+16 XCFrameworks, verifies their tree hashes, and prepares them for packaging.
 
 Run contract and artifact checks before building:
 

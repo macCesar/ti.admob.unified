@@ -189,13 +189,35 @@ function destroyBanner() {
 }
 ```
 
-Call `pauseBanner()` when the owning screen backgrounds or becomes inactive,
-`resumeBanner()` when it becomes active, and `destroyBanner()` when the
-placement or window closes.
+Call `pauseBanner()` when the screen that owns the placement stops being shown,
+`resumeBanner()` when it comes back, and `destroyBanner()` when the placement or
+window closes.
 
-Android also follows its native activity lifecycle automatically. Explicit
-screen ownership remains recommended because the app may keep an activity
-alive while replacing windows or tabs.
+### Who pauses a banner
+
+Two independent causes can hold a banner paused, and the module tracks them
+separately:
+
+| Cause | Trigger | Platform |
+|---|---|---|
+| Application | your `pause()` / `resume()` calls | Both |
+| Lifecycle | activity `onPause`/`onResume`, app background/foreground | Both, automatic |
+
+**Neither cause resumes the other's pause.** A banner you paused because its tab
+is hidden stays paused when the app returns from the background, and a banner
+the lifecycle paused stays paused until the app is visible again — even if you
+called `resume()` meanwhile. A load deferred while paused waits for *every*
+cause to clear, so it never fires into a placement nobody is looking at.
+
+This means you only have to own the reason you know about — which screen is
+showing — and never have to mirror the app's background state to keep the two
+from fighting.
+
+The lifecycle cause is automatic on both platforms: Android follows the hosting
+activity, and iOS observes application background/foreground. iOS deliberately
+uses background/foreground rather than resign/become-active, because a Control
+Center pull or a call banner resigns active while the ad is still on screen and
+still viewable.
 
 ## Shared methods
 
@@ -210,12 +232,55 @@ Starts an ad request.
 
 ### `pause()`
 
-Idempotently pauses the banner. Android pauses the native `AdView`; iOS hides
-the banner.
+Idempotently pauses the banner: it hides the native view and suspends the ad
+view's processing on both platforms.
+
+One effect is **not** symmetric, and the difference is in Google's SDKs, not in
+this module:
+
+| | iOS | Android |
+|---|---|---|
+| Hides the native view | Yes | Yes |
+| Suspends ad-view processing | Yes | Yes |
+| Stops the automatic refresh | Yes, via `autoloadEnabled` | **No** |
+
+`GADBannerView` exposes `autoloadEnabled`, so pausing stops the refresh
+explicitly on iOS. `BaseAdView` on Android exposes no refresh control at all —
+`pause()` is documented only as pausing "extra processing".
+
+In practice the gap is smaller than that table suggests, because the SDK gates
+refresh on visibility by itself. An off-screen banner logs:
+
+```text
+I/Ads: Ad is not visible. Not refreshing ad.
+```
+
+Since `pause()` now hides the native view on both platforms, that gate is what
+stops the refresh on Android. The mechanism differs — an explicit flag on iOS,
+a visibility check on Android — but a paused banner should not be refreshing on
+either. Confirm it with that log line rather than assuming it.
+
+Do not try to close the remaining gap by destroying and recreating the banner.
+That discards the loaded creative, issues a fresh request, and costs a full
+load cycle on return. Configure the refresh rate on the ad unit in AdMob.
+
+**Never hide a banner that has not loaded yet.** On Android the visibility gate
+cuts both ways: an `AdView` that is already hidden does not load either, so a
+placement hidden before its first fill stays empty. The module handles this by
+deferring `load()` while paused and running it on resume, once the view is
+visible again — which is why you should call `load()` normally and let the
+module decide when it runs, rather than gating the call yourself.
+
+On iOS there is no visibility gate at all. A hidden `GADBannerView` keeps
+loading and refreshing, and those loads count as impressions nobody saw. That
+is why `pause()` sets `autoloadEnabled = NO` there instead of relying on the
+SDK: on iOS it is the only defence, not an optimisation.
 
 ### `resume()`
 
-Idempotently resumes the banner and runs one deferred load, if present.
+Idempotently resumes the banner and runs one deferred load, if present — but
+only once every pause cause has cleared. See
+[Who pauses a banner](#who-pauses-a-banner).
 
 ### `isLoaded()`
 

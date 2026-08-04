@@ -1,7 +1,7 @@
 # API reference
 
 This page documents the JavaScript surface exported by
-`ti.admob.unified` `1.2.0`.
+`ti.admob.unified` `1.2.1`.
 
 ```js
 const Admob = require('ti.admob.unified')
@@ -18,6 +18,7 @@ const Admob = require('ti.admob.unified')
 | `presentPrivacyOptions(config)` | iOS, Android | Supported |
 | `resetConsent()` | iOS, Android | Testing only |
 | `requestTrackingAuthorization()` | iOS, Android | Portable |
+| `openAdInspector()` | iOS, Android | Development diagnostic |
 | `createBanner(config)` | iOS, Android | Supported |
 | `createAdaptiveBanner(config)` | iOS, Android | Supported |
 | `createInterstitial(config)` | iOS, Android | Supported |
@@ -25,6 +26,13 @@ const Admob = require('ti.admob.unified')
 | `setTestDevice(deviceId)` | iOS, Android | Compatibility utility |
 | `isTestDevice()` | iOS, Android | Supported |
 | `setAppVolume(volume)` | iOS, Android | Platform caveat |
+| `getMediationStatus()` | iOS, Android | Supported diagnostic |
+| `isMetaAvailable()` | iOS, Android | Supported diagnostic |
+| `isInMobiAvailable()` | iOS, Android | Supported diagnostic |
+| `isUnityAvailable()` | iOS, Android | Supported diagnostic |
+| `isAppLovinAvailable()` | iOS, Android | Supported diagnostic |
+| `isVungleAvailable()` | iOS, Android | Supported diagnostic |
+| `isIronSourceAvailable()` | iOS, Android | Supported diagnostic |
 | `canShowAds()` | iOS, Android | Deprecated alias |
 | `canShowPersonalizedAds()` | iOS, Android | Deprecated; always `false` |
 | `isGDPR()` | iOS, Android | Deprecated diagnostic |
@@ -50,9 +58,33 @@ Accepted properties:
 | `maxAdContentRating` | String | `G`, `PG`, `T`, or `MA` constant value. |
 | `tagForChildDirectedTreatment` | Boolean | Deprecated compatibility input. |
 | `tagForUnderAgeOfConsent` | Boolean | Deprecated initialization input, separate from the UMP property. |
+| `disableMediation` | Boolean | Skips mediation adapter initialization for this session. |
 
 It emits `module_initialized`. Calls are idempotent and the first accepted
 configuration wins. Always pass an object, even when empty.
+
+#### `disableMediation`
+
+`initialize()` does not complete until every bundled adapter reports back, and
+an adapter with no credentials configured can take its full timeout to answer.
+An application that does not use mediation pays that wait for nothing: on one
+measured Android launch it was `30,755 ms`, of which the Liftoff Monetize
+adapter alone accounted for the timeout.
+
+Set `disableMediation: true` and the SDK starts without initializing the
+adapters. They remain bundled and available; they are simply not started, so a
+network that never answers cannot hold back the first ad request.
+
+```js
+Admob.initialize({ disableMediation: true })
+```
+
+It maps to `disableMediationAdapterInitialization()` on Android and
+`disableMediationInitialization` on iOS, and both run before the SDK starts,
+which is the only point where either call has any effect.
+
+Do not set it in an application that serves mediated ads: with adapters left
+uninitialized, the mediation waterfall cannot fill.
 
 `applicationId` and `debugGeography` are not accepted here.
 
@@ -115,6 +147,26 @@ Completes the portable tracking-authorization step and emits
 `tracking_authorization_completed`. On iOS it requests or retrieves App
 Tracking Transparency authorization. On Android it completes immediately with
 `applicable: false`, so consumers do not need a platform condition.
+
+### `openAdInspector()`
+
+Presents Google Mobile Ads Ad Inspector and emits `ad_inspector_closed` when
+the inspector closes or fails to open.
+
+```js
+Admob.addEventListener('ad_inspector_closed', event => {
+  if (!event.success) {
+    Ti.API.warn(`Ad Inspector failed: ${event.error} (${event.code})`)
+  }
+})
+
+Admob.openAdInspector()
+```
+
+Call this only from a visible development screen after Google Mobile Ads has
+initialized. Google requires the device to be registered as a test device.
+The method does not enable test mode, change consent, or substitute production
+ad units.
 
 ### `createBanner(config)`
 
@@ -210,12 +262,17 @@ The standard and adaptive proxies expose the same methods:
 | Method | Return | Behavior |
 |---|---|---|
 | `load()` | `void` | Starts one request or defers one while paused. |
-| `pause()` | `void` | Idempotently pauses/hides the native banner. |
-| `resume()` | `void` | Idempotently resumes and runs one deferred load. |
+| `pause()` | `void` | Idempotently pauses and hides the native banner. |
+| `resume()` | `void` | Clears the application's pause. Resumes and runs one deferred load only once every pause cause is clear. |
 | `isLoaded()` | Boolean | Reports the current native load state. |
 | `destroy()` | `void` | Terminal, idempotent native cleanup. |
 | `destroyAdViewAndCancelRequest()` | `void` | Compatibility alias of `destroy()`. |
 | `destoyAdViewAndCancelRequest()` | `void` | Deprecated misspelled alias. |
+
+The host lifecycle — the Android activity, and the iOS application entering the
+background — pauses banners on its own, as a cause independent from these
+calls. Neither cause resumes the other's pause. See
+[Who pauses a banner](banners.md#who-pauses-a-banner).
 
 Banner events:
 
@@ -331,6 +388,20 @@ Deprecated failure-only compatibility event. Use `consent_complete`.
 On iOS, status values are `0` not determined, `1` restricted, `2` denied, and
 `3` authorized. Android reports `3`, `authorized: true`, and
 `applicable: false` because ATT is not an Android API.
+
+### `ad_inspector_closed`
+
+```js
+{
+  success: Boolean,
+  error: String, // failure only
+  code: Number   // failure only
+}
+```
+
+`success: true` means Ad Inspector was displayed and then closed. A failure
+usually indicates that the SDK is not initialized, the device is not
+registered for testing, or there is no visible activity/controller.
 
 ## Constants
 
@@ -455,31 +526,54 @@ The constant names are portable; their string values are platform-specific:
 
 Use the constant rather than copying a platform value into shared code.
 
-## Mediation compatibility surface
+## Mediation diagnostics and compatibility
 
-The following methods remain to keep older `1.1.x` consumers from failing at
-runtime:
+The module bundles Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize
+(Vungle), and ironSource on iOS and Android.
 
-| Method | Core artifact behavior |
+`getMediationStatus()` returns the same object shape on both platforms:
+
+```js
+{
+  appLovin: Boolean,
+  meta: Boolean,
+  inMobi: Boolean,
+  unity: Boolean,
+  liftoffMonetize: Boolean,
+  ironSource: Boolean
+}
+```
+
+Individual methods return the corresponding value:
+
+| Method | Network |
 |---|---|
-| `isAppLovinAvailable()` | Returns whether an AppLovin SDK class is present. |
-| `isInMobiAvailable()` | Returns whether an InMobi SDK class is present. |
-| `isVungleAvailable()` | Returns whether a Vungle/Liftoff SDK class is present. |
-| `setAppLovinGDPRConsent({ enabled })` | iOS no-op; Android reflective setter if SDK is supplied separately. |
-| `setInMobiGDPRConsent({ enabled })` | iOS no-op; Android reflective setter if SDK is supplied separately. |
-| `setVungleGDPRConsent({ enabled })` | iOS no-op; Android reflective setter if SDK is supplied separately. |
-| `enableOptionalMediationNetworks(config)` | Does not download or add adapters. |
+| `isAppLovinAvailable()` | AppLovin |
+| `isMetaAvailable()` | Meta Audience Network |
+| `isInMobiAvailable()` | InMobi |
+| `isUnityAvailable()` | Unity Ads |
+| `isVungleAvailable()` | Liftoff Monetize/Vungle |
+| `isIronSourceAvailable()` | ironSource |
 
-The three legacy consent setters accept `{ enabled: Boolean }`.
-`enableOptionalMediationNetworks()` accepts `{ appLovin: Boolean, vungle:
-Boolean }`; on Android it only logs whether the corresponding classes are
-present, and on iOS it is a no-op. It does not initialize, install, or alter
-the AdMob mediation configuration.
+Availability confirms that the native adapter is installed. It does not prove
+that the provider account, AdMob mapping, consent, or inventory can serve an
+ad.
 
-The core ZIPs include no third-party mediation adapters. Availability returns
-`false` in a core-only app. These methods are compatibility APIs, not a
-recommended consent solution, and they do not replace each network's current
-privacy requirements.
+The following legacy methods remain callable for `1.1.x` compatibility:
+
+| Method | Behavior |
+|---|---|
+| `setAppLovinGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
+| `setInMobiGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
+| `setVungleGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
+| `enableOptionalMediationNetworks(config)` | Logs adapter availability; adapters are auto-discovered. |
+
+New integrations should use UMP, `canRequestAds()`, and each enabled provider's
+current privacy requirements. They should not manually initialize mediation
+networks. See [AdMob mediation](mediation.md).
+
+The legacy setters intentionally do not translate one Boolean into both GDPR
+consent and US-state sale/sharing choices. Those are different legal signals.
 
 ## Reserved and unavailable APIs
 
@@ -488,5 +582,3 @@ privacy requirements.
 - Android does not export `createAppOpen`.
 - There is no `createRewardedInterstitial`.
 - There is no `createNative`.
-- There is no public Ad Inspector launcher in `1.2.0`; use Google's supported
-  device/debug mechanisms from the consuming application.
