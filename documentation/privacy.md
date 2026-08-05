@@ -1,7 +1,6 @@
 # Privacy and initialization
 
-`ti.admob.unified` exposes Google UMP as an event-based workflow. Callback
-properties are not part of the `1.2.0` contract.
+`ti.admob.unified` exposes Google UMP as an event-based workflow. Callback properties are not part of the `2.0.0` contract.
 
 ## Required order
 
@@ -11,24 +10,17 @@ Use this order on every app launch:
 2. Call `requestConsent({ ... })`.
 3. Wait for the terminal `consent_complete` event.
 4. Check `event.canRequestAds` or `canRequestAds()`.
-5. Call the portable tracking-authorization step. iOS resolves ATT; Android
-   completes immediately with `applicable: false`.
+5. Call the portable tracking-authorization step. iOS resolves ATT; Android completes immediately with `applicable: false`.
 6. Call `initialize({ ... })` once.
 7. Create and load ads only after initialization succeeds.
 
-UMP remains authoritative if the consent operation reports an error. A
-previous-session state may still allow requests, so an error is non-blocking
-to the application but `canRequestAds` remains the only gate.
+UMP remains authoritative if the consent operation reports an error. A previous-session state may still allow requests, so an error is non-blocking to the application but `canRequestAds` remains the only gate.
 
-Google's UMP guidance also requires a consent-information update every app
-session and warns against deriving status from cached consent strings. See
-[UMP for Android](https://developers.google.com/admob/android/privacy) and
-[UMP for iOS](https://developers.google.com/admob/ios/privacy).
+Google's UMP guidance also requires a consent-information update every app session and warns against deriving status from cached consent strings. See [UMP for Android](https://developers.google.com/admob/android/privacy) and [UMP for iOS](https://developers.google.com/admob/ios/privacy).
 
 ## `requestConsent(config)`
 
-Starts the UMP consent-information update and immediately loads/presents a form
-if one is required.
+Starts the UMP consent-information update and immediately loads/presents a form if one is required.
 
 | Property | Type | Default | Description |
 |---|---|---|---|
@@ -47,8 +39,7 @@ The operation is idempotent:
 - Concurrent calls share the active native operation.
 - The first accepted call supplies the configuration.
 - A later call after completion re-emits the cached `consent_complete` result.
-- `resetConsent()` clears UMP test state and the module's cached consent
-  operation so a new request can run.
+- `resetConsent()` clears UMP test state and the module's cached consent operation so a new request can run.
 
 Do not put `resetConsent()` in a production launch path.
 
@@ -76,8 +67,7 @@ On failure:
 }
 ```
 
-The exact native `code` is platform and SDK dependent. Do not make business
-logic depend on a particular code.
+The exact native `code` is platform and SDK dependent. Do not make business logic depend on a particular code.
 
 The payload temporarily retains these deprecated keys:
 
@@ -88,9 +78,7 @@ The payload temporarily retains these deprecated keys:
 
 New code must use `canRequestAds` and `privacyOptionsRequired`.
 
-The legacy `consent_ready` and `consent_error` events are emitted before the
-modern terminal event for compatibility. Do not subscribe to all three for
-the same workflow or initialization may be attempted more than once.
+The legacy `consent_ready` and `consent_error` events are emitted before the modern terminal event for compatibility. Do not subscribe to all three for the same workflow or initialization may be attempted more than once.
 
 ## `canRequestAds()`
 
@@ -114,8 +102,7 @@ Google Mobile Ads applies the privacy signals collected by UMP.
 
 ## `initialize(config)`
 
-Configures the global Google Mobile Ads request settings and initializes the
-SDK.
+Configures the global Google Mobile Ads request settings and initializes the SDK.
 
 | Property | Type | Description |
 |---|---|---|
@@ -169,8 +156,7 @@ Treat `status` as diagnostic text, not a stable machine-readable value.
 }
 ```
 
-On iOS, the numeric status follows Apple's
-`ATTrackingManagerAuthorizationStatus`:
+On iOS, the numeric status follows Apple's `ATTrackingManagerAuthorizationStatus`:
 
 | Value | Meaning |
 |---:|---|
@@ -179,22 +165,15 @@ On iOS, the numeric status follows Apple's
 | `2` | Denied |
 | `3` | Authorized |
 
-On Android, ATT does not apply. The method completes synchronously with
-`status: 3`, `authorized: true`, and `applicable: false`, allowing the same
-listener and call site on both platforms.
+On Android, ATT does not apply. The method completes synchronously with `status: 3`, `authorized: true`, and `applicable: false`, allowing the same listener and call site on both platforms.
 
-Always wait for `tracking_authorization_completed`, including when the user
-resolved ATT in an earlier session. ATT denial does not mean
-`canRequestAds() === false`; it changes tracking availability, not the UMP
-request gate.
+Always wait for `tracking_authorization_completed`, including when the user resolved ATT in an earlier session. ATT denial does not mean `canRequestAds() === false`; it changes tracking availability, not the UMP request gate.
 
-The consuming app must provide `NSUserTrackingUsageDescription`.
+ATT is optional. An application that calls `requestTrackingAuthorization()` must ship `NSUserTrackingUsageDescription` in its plist, because Apple's prompt cannot be presented without one. An application that never calls it should omit the key: Apple reviews the prompt against actual behavior, and UMP works without it. See [Getting started](getting-started.md#ios).
 
 ## Privacy options
 
-After consent completes, use either the event payload or
-`isPrivacyOptionsRequired()` to decide whether the app should show a visible,
-interactive privacy entry point:
+After consent completes, use either the event payload or `isPrivacyOptionsRequired()` to decide whether the app should show a visible, interactive privacy entry point:
 
 ```js
 privacyButton.visible = Admob.isPrivacyOptionsRequired()
@@ -230,8 +209,7 @@ The event payload is:
 }
 ```
 
-Failures add `error` and `code`. Remove the module listener when its owning
-service is disposed.
+Failures add `error` and `code`. Remove the module listener when its owning service is disposed.
 
 ## Testing UMP
 
@@ -252,10 +230,6 @@ Available debug constants:
 - `DEBUG_GEOGRAPHY_REGULATED_US_STATE`
 - `DEBUG_GEOGRAPHY_OTHER`
 
-Do not store the numeric values; use the names because the native enum values
-are platform-owned.
+Do not store the numeric values; use the names because the native enum values are platform-owned.
 
-`resetConsent()` exists for controlled testing. It does not remove the need to
-request consent information again, and it must not be exposed as a general
-“revoke consent” implementation. Use `presentPrivacyOptions()` for the
-publisher-rendered privacy entry point.
+`resetConsent()` exists for controlled testing. It does not remove the need to request consent information again, and it must not be exposed as a general "revoke consent" implementation. Use `presentPrivacyOptions()` for the publisher-rendered privacy entry point.

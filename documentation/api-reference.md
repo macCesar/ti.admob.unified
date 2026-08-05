@@ -1,7 +1,6 @@
 # API reference
 
-This page documents the JavaScript surface exported by
-`ti.admob.unified` `1.3.0`.
+This page documents the JavaScript surface exported by `ti.admob.unified` `2.0.0`.
 
 ```js
 const Admob = require('ti.admob.unified')
@@ -34,9 +33,15 @@ const Admob = require('ti.admob.unified')
 | `isAppLovinAvailable()` | iOS, Android | Supported diagnostic |
 | `isVungleAvailable()` | iOS, Android | Supported diagnostic |
 | `isIronSourceAvailable()` | iOS, Android | Supported diagnostic |
+| `enableOptionalMediationNetworks(config)` | iOS, Android | Legacy; logs availability |
+| `setAppLovinGDPRConsent(config)` | iOS, Android | Deprecated no-op |
+| `setInMobiGDPRConsent(config)` | iOS, Android | Deprecated no-op |
+| `setVungleGDPRConsent(config)` | iOS, Android | Deprecated no-op |
 | `canShowAds()` | iOS, Android | Deprecated alias |
 | `canShowPersonalizedAds()` | iOS, Android | Deprecated; always `false` |
 | `isGDPR()` | iOS, Android | Deprecated diagnostic |
+
+The four legacy mediation entries are described under [Mediation diagnostics and compatibility](#mediation-diagnostics-and-compatibility).
 
 ### `initialize(config)`
 
@@ -61,31 +66,21 @@ Accepted properties:
 | `tagForUnderAgeOfConsent` | Boolean | Deprecated initialization input, separate from the UMP property. |
 | `disableMediation` | Boolean | Skips mediation adapter initialization for this session. |
 
-It emits `module_initialized`. Calls are idempotent and the first accepted
-configuration wins. Always pass an object, even when empty.
+It emits `module_initialized`. Calls are idempotent and the first accepted configuration wins. Always pass an object, even when empty.
 
 #### `disableMediation`
 
-`initialize()` does not complete until every bundled adapter reports back, and
-an adapter with no credentials configured can take its full timeout to answer.
-An application that does not use mediation pays that wait for nothing: on one
-measured Android launch it was `30,755 ms`, of which the Liftoff Monetize
-adapter alone accounted for the timeout.
+`initialize()` does not complete until every bundled adapter reports back, and an adapter with no credentials configured can take its full timeout to answer. An application that does not use mediation pays that wait for nothing: on one measured Android launch it was `30,755 ms`, of which the Liftoff Monetize adapter alone accounted for the timeout.
 
-Set `disableMediation: true` and the SDK starts without initializing the
-adapters. They remain bundled and available; they are simply not started, so a
-network that never answers cannot hold back the first ad request.
+Set `disableMediation: true` and the SDK starts without initializing the adapters. They remain bundled and available; they are simply not started, so a network that never answers cannot hold back the first ad request.
 
 ```js
 Admob.initialize({ disableMediation: true })
 ```
 
-It maps to `disableMediationAdapterInitialization()` on Android and
-`disableMediationInitialization` on iOS, and both run before the SDK starts,
-which is the only point where either call has any effect.
+It maps to `disableMediationAdapterInitialization()` on Android and `disableMediationInitialization` on iOS, and both run before the SDK starts, which is the only point where either call has any effect.
 
-Do not set it in an application that serves mediated ads: with adapters left
-uninitialized, the mediation waterfall cannot fill.
+Do not set it in an application that serves mediated ads: with adapters left uninitialized, the mediation waterfall cannot fill.
 
 `applicationId` and `debugGeography` are not accepted here.
 
@@ -109,50 +104,39 @@ Accepted properties:
 | `testDeviceIds` | String[] | UMP hashed device IDs. Applied when `geography` is present. |
 | `tagForUnderAgeOfConsent` | Boolean | UMP under-age flag. |
 
-It emits the terminal `consent_complete` event. Calls are idempotent within
-the module session.
+It emits the terminal `consent_complete` event. Calls are idempotent within the module session.
 
 ### `canRequestAds()`
 
-Returns a Boolean from the native UMP consent-information object. It returns
-`false` until the current app session has requested a consent-information
-update.
+Returns a Boolean from the native UMP consent-information object. It returns `false` until the current app session has requested a consent-information update.
 
 ### `isPrivacyOptionsRequired()`
 
-Returns whether UMP requires a publisher-rendered privacy-options entry point.
-Call it after the consent update completes.
+Returns whether UMP requires a publisher-rendered privacy-options entry point. Call it after the consent update completes.
 
 ### `presentPrivacyOptions(config)`
 
-Presents the UMP privacy-options form and emits
-`privacy_options_dismissed`.
+Presents the UMP privacy-options form and emits `privacy_options_dismissed`.
 
 ```js
 Admob.presentPrivacyOptions({})
 ```
 
-The current native implementations do not consume configuration properties.
-Pass an empty object for a consistent call site.
+The current native implementations do not consume configuration properties. Pass an empty object for a consistent call site.
 
 ### `resetConsent()`
 
 Resets UMP test state and the module's cached consent operation.
 
-Use only during controlled consent testing. For a production privacy entry
-point, call `presentPrivacyOptions()`.
+Use only during controlled consent testing. For a production privacy entry point, call `presentPrivacyOptions()`.
 
 ### `requestTrackingAuthorization()`
 
-Completes the portable tracking-authorization step and emits
-`tracking_authorization_completed`. On iOS it requests or retrieves App
-Tracking Transparency authorization. On Android it completes immediately with
-`applicable: false`, so consumers do not need a platform condition.
+Completes the portable tracking-authorization step and emits `tracking_authorization_completed`. On iOS it requests or retrieves App Tracking Transparency authorization. On Android it completes immediately with `applicable: false`, so consumers do not need a platform condition.
 
 ### `openAdInspector()`
 
-Presents Google Mobile Ads Ad Inspector and emits `ad_inspector_closed` when
-the inspector closes or fails to open.
+Presents Google Mobile Ads Ad Inspector and emits `ad_inspector_closed` when the inspector closes or fails to open.
 
 ```js
 Admob.addEventListener('ad_inspector_closed', event => {
@@ -164,10 +148,7 @@ Admob.addEventListener('ad_inspector_closed', event => {
 Admob.openAdInspector()
 ```
 
-Call this only from a visible development screen after Google Mobile Ads has
-initialized. Google requires the device to be registered as a test device.
-The method does not enable test mode, change consent, or substitute production
-ad units.
+Call this only from a visible development screen after Google Mobile Ads has initialized. Google requires the device to be registered as a test device. The method does not enable test mode, change consent, or substitute production ad units.
 
 ### `createBanner(config)`
 
@@ -181,9 +162,7 @@ const banner = Admob.createBanner({
 })
 ```
 
-`customAdSize: { width, height }` in dp requests a non-standard slot on both
-platforms and takes precedence over `adSize`. It is how a fixed full-width
-strip is requested — the adaptive banner picks its own height.
+`customAdSize: { width, height }` in dp requests a non-standard slot on both platforms and takes precedence over `adSize`. It is how a fixed full-width strip is requested — the adaptive banner picks its own height.
 
 See [Standard banner properties](banners.md#creation-properties-1).
 
@@ -199,29 +178,19 @@ const banner = Admob.createAdaptiveBanner({
 })
 ```
 
-Anchored and inline are both portable as of `1.3.0`, and `keywords`,
-`contentUrl`, `requestAgent` and `extras` reach the request on both platforms.
-`maxHeight`
-applies to inline only. Android additionally forwards a raw experimental
-`collapsible: "top" | "bottom"` option, which has no iOS counterpart here.
-See [Adaptive banner properties](banners.md#creation-properties).
+Anchored and inline are both portable as of `2.0.0`, and `keywords`, `contentUrl`, `requestAgent` and `extras` reach the request on both platforms. `maxHeight` applies to inline only. Android additionally forwards a raw experimental `collapsible: "top" | "bottom"` option, which has no iOS counterpart here. See [Adaptive banner properties](banners.md#creation-properties).
 
 ### `createInterstitial(config)`
 
-Returns an interstitial proxy with `load()`, `show()`, `isLoaded()`, and
-terminal `destroy()`.
+Returns an interstitial proxy with `load()`, `show()`, `isLoaded()`, and terminal `destroy()`.
 
 ### `createRewarded(config)`
 
-Returns a rewarded proxy with `load()`, `show()`, `isLoaded()`, and
-terminal `destroy()`. Grant rewards only from the `rewarded` event.
+Returns a rewarded proxy with `load()`, `show()`, `isLoaded()`, and terminal `destroy()`. Grant rewards only from the `rewarded` event.
 
 ### `createAppOpen(config)`
 
-Returns an app open proxy with `load()`, `show()`, `isLoaded()`, and terminal
-`destroy()`. An app open ad expires four hours after the request: past that
-point `isLoaded()` reports `false` and `show()` emits `failed_to_show` with
-code `1`. See [The four hour window](fullscreen.md#the-four-hour-window).
+Returns an app open proxy with `load()`, `show()`, `isLoaded()`, and terminal `destroy()`. An app open ad expires four hours after the request: past that point `isLoaded()` reports `false` and `show()` emits `failed_to_show` with code `1`. See [The four hour window](fullscreen.md#the-four-hour-window).
 
 See [Fullscreen ads](fullscreen.md) for the three factories.
 
@@ -233,23 +202,17 @@ Replaces the global Google Mobile Ads test-device list with one identifier.
 Admob.setTestDevice('GMA_TEST_DEVICE_ID')
 ```
 
-Prefer `initialize({ testDeviceIds: [...] })` for new integrations because it
-supports a list and keeps initialization configuration in one place.
+Prefer `initialize({ testDeviceIds: [...] })` for new integrations because it supports a list and keeps initialization configuration in one place.
 
 ### `isTestDevice()`
 
-Returns whether the current device will receive test ads according to the
-native Google Mobile Ads request configuration. Android delegates to
-`AdRequest.isTestDevice(context)`; iOS reports whether test identifiers are
-configured.
+Returns whether the current device will receive test ads according to the native Google Mobile Ads request configuration. Android delegates to `AdRequest.isTestDevice(context)`; iOS reports whether test identifiers are configured.
 
 ### `setAppVolume(volume)`
 
-On Android, accepts a percentage string such as `"50%"` and forwards a
-normalized `0.5` value to Google Mobile Ads.
+On Android, accepts a percentage string such as `"50%"` and forwards a normalized `0.5` value to Google Mobile Ads.
 
-On iOS with Google Mobile Ads `13.x`, this is a compatibility no-op because
-the former native application-volume API was removed.
+On iOS with Google Mobile Ads `13.x`, this is a compatibility no-op because the former native application-volume API was removed.
 
 Do not build portable application behavior around this method.
 
@@ -261,13 +224,11 @@ Alias of `canRequestAds()`. Replace it in new code.
 
 ### `canShowPersonalizedAds()`
 
-Always returns `false`. UMP does not expose a publisher-facing personalization
-Boolean. Do not use it as a gate or convert it into an `npa` extra.
+Always returns `false`. UMP does not expose a publisher-facing personalization Boolean. Do not use it as a gate or convert it into an `npa` extra.
 
 ### `isGDPR()`
 
-Reads legacy IAB diagnostic storage. It is not authoritative, can be stale,
-and must not control ad requests or UI.
+Reads legacy IAB diagnostic storage. It is not authoritative, can be stale, and must not control ad requests or UI.
 
 ## Banner proxy
 
@@ -283,10 +244,26 @@ The standard and adaptive proxies expose the same methods:
 | `destroyAdViewAndCancelRequest()` | `void` | Compatibility alias of `destroy()`. |
 | `destoyAdViewAndCancelRequest()` | `void` | Deprecated misspelled alias. |
 
-The host lifecycle — the Android activity, and the iOS application entering the
-background — pauses banners on its own, as a cause independent from these
-calls. Neither cause resumes the other's pause. See
-[Who pauses a banner](banners.md#who-pauses-a-banner).
+The host lifecycle, meaning the Android activity and the iOS application entering the background, pauses banners on its own as a cause independent from these calls. Neither cause resumes the other's pause. See [Who pauses a banner](banners.md#who-pauses-a-banner).
+
+### Banner creation properties
+
+Both factories return a `TiViewProxy`, so the creation dictionary also accepts the usual Titanium layout properties. The AdMob-specific ones are:
+
+| Property | Type | `createBanner()` | `createAdaptiveBanner()` | Notes |
+|---|---|---|---|---|
+| `adUnitId` | String | Yes | Yes | Required. |
+| `adSize` | String | Yes | — | One banner-size constant. Defaults to `BANNER`. |
+| `customAdSize` | Object | Yes | — | `{ width, height }` in dp. Wins over `adSize`. |
+| `adaptiveType` | String | — | Yes | `ADAPTIVE_ANCHORED` or `ADAPTIVE_INLINE`. Defaults to anchored. |
+| `maxHeight` | Number | — | Yes | Inline only, in dp. Defaults to `50` on both platforms. |
+| `collapsible` | String | — | Android | Google's raw placement string, `"top"` or `"bottom"`. Experimental. |
+| `keywords` | String[] | Yes | Yes | Request keywords. |
+| `contentUrl` | String | Yes | Yes | URL describing the surrounding content. |
+| `requestAgent` | String | Yes | Yes | Identifies what issued the request. |
+| `extras` | Object | Yes | Yes | Google ad-network extras. |
+
+A banner cannot be resized after creation. Changing `adSize` or `customAdSize` on a live proxy does not re-request the ad; destroy the placement and create a new one. See [Banner ads](banners.md#creation-properties).
 
 Banner events:
 
@@ -319,9 +296,7 @@ Adaptive payloads add `adaptiveType`. Adaptive `loaded` adds:
 }
 ```
 
-Android additionally exposes `width`, `widthUnit`, `widthPx`, `heightPx`, and
-`density` on the adaptive `loaded` event. Those diagnostic keys are not a
-cross-platform contract.
+Android additionally exposes `width`, `widthUnit`, `widthPx`, `heightPx`, and `density` on the adaptive `loaded` event. Those diagnostic keys are not a cross-platform contract.
 
 ## Fullscreen proxy
 
@@ -334,10 +309,21 @@ Interstitial, rewarded and app open proxies expose:
 | `isLoaded()` | Boolean | Reports whether a native ad is ready. An app open ad older than four hours is not ready. |
 | `destroy()` | `void` | Terminal, idempotent cleanup; emits `destroyed` once. |
 
-Loads are serialized: calls while loading, loaded, or showing are ignored.
-Common fullscreen payloads always include `adUnitId` and `adType`. Failures
-include `error`, `message`, and `code`. Reward payloads add `rewardType` and
-`rewardAmount`.
+Loads are serialized: calls while loading, loaded, or showing are ignored. Common fullscreen payloads always include `adUnitId` and `adType`. Failures include `error`, `message`, and `code`. Reward payloads add `rewardType` and `rewardAmount`.
+
+### Fullscreen creation properties
+
+All three factories accept:
+
+| Property | Type | Default | Notes |
+|---|---|---|---|
+| `adUnitId` | String | `""` | Required before `load()`. |
+| `autoReload` | Boolean | `false` | Reloads after `closed`, and after nothing else. |
+| `keywords` | String[] | None | Request keywords. |
+| `requestAgent` | String | None | Android only for these three types. The iOS proxies drop it; see [the roadmap](../ROADMAP.md). |
+| `extras` | Object | None | Google ad-network extras. |
+
+`autoReload` covers exactly one case. It does not reload after `failed_to_load` or after `failed_to_show`, because both deserve backoff rather than an immediate retry, and that decision belongs to the application.
 
 See [Fullscreen events](fullscreen.md#events).
 
@@ -366,8 +352,7 @@ Failure adds `error` and `code`.
 }
 ```
 
-The payload also retains deprecated compatibility keys for the `1.2.0`
-transition. Do not consume them in new code.
+The payload also retains deprecated compatibility keys for applications coming from `1.1.0`. Do not consume them in new code.
 
 ### `consent_ready`
 
@@ -399,9 +384,7 @@ Deprecated failure-only compatibility event. Use `consent_complete`.
 }
 ```
 
-On iOS, status values are `0` not determined, `1` restricted, `2` denied, and
-`3` authorized. Android reports `3`, `authorized: true`, and
-`applicable: false` because ATT is not an Android API.
+On iOS, status values are `0` not determined, `1` restricted, `2` denied, and `3` authorized. Android reports `3`, `authorized: true`, and `applicable: false` because ATT is not an Android API.
 
 ### `ad_inspector_closed`
 
@@ -413,9 +396,7 @@ On iOS, status values are `0` not determined, `1` restricted, `2` denied, and
 }
 ```
 
-`success: true` means Ad Inspector was displayed and then closed. A failure
-usually indicates that the SDK is not initialized, the device is not
-registered for testing, or there is no visible activity/controller.
+`success: true` means Ad Inspector was displayed and then closed. A failure usually indicates that the SDK is not initialized, the device is not registered for testing, or there is no visible activity/controller.
 
 ## Constants
 
@@ -444,11 +425,7 @@ An exported type constant does not imply that its format has a working proxy.
 | `ADAPTIVE_ANCHORED` | `"adaptive_anchored"` | iOS, Android |
 | `ADAPTIVE_INLINE` | `"adaptive_inline"` | iOS, Android |
 
-`COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` were removed in `1.3.0`. They held
-`"collapsible_top"` and `"collapsible_bottom"`, values Google's SDK does not
-accept, and the module forwarded them verbatim — so passing them built an
-invalid request. The `collapsible` property is Android-only and takes the
-native string `"top"` or `"bottom"`.
+`COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` were removed in `2.0.0`. They held `"collapsible_top"` and `"collapsible_bottom"`, values Google's SDK does not accept, and the module forwarded them verbatim, so passing them built an invalid request. The `collapsible` property is Android-only and takes the native string `"top"` or `"bottom"`.
 
 ### Ad events
 
@@ -465,8 +442,7 @@ native string `"top"` or `"bottom"`.
 | `AD_SHOWED_FULLSCREEN_CONTENT` | `"showed_fullscreen_content"` |
 | `AD_DESTROYED` | `"destroyed"` |
 
-`AD_SHOWED_FULLSCREEN_CONTENT` and `AD_OPENED` are emitted by both fullscreen
-proxy types on iOS and Android.
+`AD_SHOWED_FULLSCREEN_CONTENT` and `AD_OPENED` are emitted by both fullscreen proxy types on iOS and Android.
 
 ### Consent status
 
@@ -475,9 +451,7 @@ proxy types on iOS and Android.
 - `CONSENT_STATUS_NOT_REQUIRED`
 - `CONSENT_STATUS_OBTAINED`
 
-These constants mirror the native UMP enum. The module does not currently
-export a method that returns the raw consent-status enum; use
-`canRequestAds()` and `isPrivacyOptionsRequired()` for application behavior.
+These constants mirror the native UMP enum. The module does not currently export a method that returns the raw consent-status enum; use `canRequestAds()` and `isPrivacyOptionsRequired()` for application behavior.
 
 ### Debug geography
 
@@ -486,8 +460,7 @@ export a method that returns the raw consent-status enum; use
 - `DEBUG_GEOGRAPHY_REGULATED_US_STATE`
 - `DEBUG_GEOGRAPHY_OTHER`
 
-Use the constants only in `requestConsent()` on registered UMP test devices.
-Do not persist or compare their numeric native values.
+Use the constants only in `requestConsent()` on registered UMP test devices. Do not persist or compare their numeric native values.
 
 ### Maximum ad content rating
 
@@ -520,8 +493,7 @@ Pass these to `initialize({ ageRestrictedTreatment })`.
 | `ERROR_CODE_MEDIATION_NO_FILL` | `9` |
 | `ERROR_CODE_INVALID_AD_SIZE` | `10` |
 
-Native SDKs can return additional codes and domains. Log the complete event
-instead of assuming every error maps to this list.
+Native SDKs can return additional codes and domains. Log the complete event instead of assuming every error maps to this list.
 
 ### Official Google demo ad units
 
@@ -540,14 +512,11 @@ The constant names are portable; their string values are platform-specific:
 
 Use the constant rather than copying a platform value into shared code.
 
-The reserved constants exist so that code written against a future release
-still compiles today. There is nothing to pass them to yet; see
-[Reserved and unavailable APIs](#reserved-and-unavailable-apis).
+The reserved constants exist so that code written against a future release still compiles today. There is nothing to pass them to yet; see [Reserved and unavailable APIs](#reserved-and-unavailable-apis).
 
 ## Mediation diagnostics and compatibility
 
-The module bundles Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize
-(Vungle), and ironSource on iOS and Android.
+The module bundles Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize (Vungle), and ironSource on iOS and Android.
 
 `getMediationStatus()` returns the same object shape on both platforms:
 
@@ -573,11 +542,9 @@ Individual methods return the corresponding value:
 | `isVungleAvailable()` | Liftoff Monetize/Vungle |
 | `isIronSourceAvailable()` | ironSource |
 
-Availability confirms that the native adapter is installed. It does not prove
-that the provider account, AdMob mapping, consent, or inventory can serve an
-ad.
+Availability confirms that the native adapter is installed. It does not prove that the provider account, AdMob mapping, consent, or inventory can serve an ad.
 
-The following legacy methods remain callable for `1.1.x` compatibility:
+The following legacy methods remain callable for `1.1.0` compatibility:
 
 | Method | Behavior |
 |---|---|
@@ -586,12 +553,9 @@ The following legacy methods remain callable for `1.1.x` compatibility:
 | `setVungleGDPRConsent({ enabled })` | Deprecated compatibility no-op. |
 | `enableOptionalMediationNetworks(config)` | Logs adapter availability; adapters are auto-discovered. |
 
-New integrations should use UMP, `canRequestAds()`, and each enabled provider's
-current privacy requirements. They should not manually initialize mediation
-networks. See [AdMob mediation](mediation.md).
+New integrations should use UMP, `canRequestAds()`, and each enabled provider's current privacy requirements. They should not manually initialize mediation networks. See [AdMob mediation](mediation.md).
 
-The legacy setters intentionally do not translate one Boolean into both GDPR
-consent and US-state sale/sharing choices. Those are different legal signals.
+The legacy setters intentionally do not translate one Boolean into both GDPR consent and US-state sale/sharing choices. Those are different legal signals.
 
 ## Reserved and unavailable APIs
 

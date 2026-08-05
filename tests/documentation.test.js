@@ -20,7 +20,7 @@ const documentationPages = [
   'documentation/banners.md',
   'documentation/fullscreen.md',
   'documentation/api-reference.md',
-  'documentation/migration-1.2.0.md'
+  'documentation/migration-2.0.0.md'
 ]
 
 const auxiliaryDocumentation = [
@@ -28,8 +28,7 @@ const auxiliaryDocumentation = [
   'CONTRIBUTING.md',
   'DEPENDENCIES.md',
   'MEDIATION_COMPARISON.md',
-  'ROADMAP.md',
-  'ios/README.md'
+  'ROADMAP.md'
 ]
 
 const allDocumentation = [
@@ -189,12 +188,12 @@ test('states portable banner and fullscreen contracts', () => {
 
   assert.match(banners, /heightUnit: 'dp'/)
   assert.match(banners, /Do not hardcode a height/)
-  // Inline landed on iOS in 1.3.0; collapsible stays Android-only and still
+  // Inline landed on iOS in 2.0.0; collapsible stays Android-only and still
   // takes Google's own placement string, now that the two constants that
   // could never produce one are gone.
   assert.match(banners, /`ADAPTIVE_INLINE` and `maxHeight` work on both platforms/)
   assert.match(banners, /takes Google's native placement string/)
-  assert.match(banners, /were removed in `1\.3\.0`/)
+  assert.match(banners, /were removed in `2\.0\.0`/)
   assert.match(banners, /content\.bottom = dimension/)
   assert.match(banners, /removeEventListener/)
   assert.match(banners, /Do not add a JavaScript renewal timer/)

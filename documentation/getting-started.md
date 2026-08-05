@@ -2,17 +2,17 @@
 
 ## 1. Install the module
 
-Install the `1.3.0` ZIP for every platform you build. Both artifacts must have
-the same module ID and version:
+Install the `2.0.0` ZIP for every platform you build. Both artifacts must have the same module ID and version:
 
 ```xml
 <modules>
-  <module version="1.3.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified</module>
 </modules>
 ```
 
-The current baselines are Titanium `13.4.0.GA`, iOS `15.0+`, and Android API
-`23+`.
+The current baselines are Titanium `13.4.0.GA`, iOS `15.0+`, and Android API `24+`.
+
+Upgrading an app that already uses `1.1.0` requires two code changes. See [Migrating to 2.0.0](migration-2.0.0.md).
 
 ## 2. Configure the AdMob application IDs
 
@@ -28,8 +28,7 @@ An **ad unit ID** contains a slash:
 ca-app-pub-0000000000000000/0000000000
 ```
 
-They are not interchangeable. The application ID belongs in `tiapp.xml`; ad
-unit IDs are supplied to ad factories such as `createAdaptiveBanner()`.
+They are not interchangeable. The application ID belongs in `tiapp.xml`; ad unit IDs are supplied to ad factories such as `createAdaptiveBanner()`.
 
 ### iOS
 
@@ -46,11 +45,7 @@ Add the iOS application ID to the app plist section:
 </ios>
 ```
 
-App Tracking Transparency is **optional and separate from UMP**. Most banner
-applications do not need it: serving ads does not require tracking the user
-across other companies' apps and websites. Add the usage description only when
-the application has a real tracking case it can describe honestly, because
-Apple reviews the prompt against actual behavior.
+App Tracking Transparency is **optional and separate from UMP**. Most banner applications do not need it: serving ads does not require tracking the user across other companies' apps and websites. Add the usage description only when the application has a real tracking case it can describe honestly, because Apple reviews the prompt against actual behavior.
 
 ```xml
 <ios>
@@ -63,13 +58,9 @@ Apple reviews the prompt against actual behavior.
 </ios>
 ```
 
-Omit that key entirely if the application never calls
-`requestTrackingAuthorization()`. UMP still runs and still shows the consent
-form where the region requires one; the two mechanisms are unrelated.
+Omit that key entirely if the application never calls `requestTrackingAuthorization()`. UMP still runs and still shows the consent form where the region requires one; the two mechanisms are unrelated.
 
-Keep any required `SKAdNetworkItems` in the consuming app. Follow Google's
-[iOS setup guide](https://developers.google.com/admob/ios/quick-start) for the
-current list and App Store requirements.
+Keep any required `SKAdNetworkItems` in the consuming app. Follow Google's [iOS setup guide](https://developers.google.com/admob/ios/quick-start) for the current list and App Store requirements.
 
 ### Android
 
@@ -87,29 +78,19 @@ Merge the Android application ID into the application element:
 </android>
 ```
 
-Omitting this metadata causes the native Google Mobile Ads SDK to fail with a
-missing application ID. See Google's
-[Android setup guide](https://developers.google.com/admob/android/quick-start).
+Omitting this metadata causes the native Google Mobile Ads SDK to fail with a missing application ID. See Google's [Android setup guide](https://developers.google.com/admob/android/quick-start).
 
-Do not pass `applicationId` to `initialize()`; the module does not consume
-that property.
+Do not pass `applicationId` to `initialize()`; the module does not consume that property.
 
 ## 3. Configure mediation
 
-The module already includes Meta, InMobi, Unity Ads, AppLovin, Liftoff
-Monetize, and ironSource adapters on both platforms. Add only the networks you
-intend to use to the application's AdMob mediation groups and complete their
-account, placement, privacy, and store-disclosure setup.
+The module already includes Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource adapters on both platforms. Add only the networks you intend to use to the application's AdMob mediation groups and complete their account, placement, privacy, and store-disclosure setup.
 
-No platform-specific JavaScript or manual adapter initialization is required.
-See [AdMob mediation](mediation.md).
+No platform-specific JavaScript or manual adapter initialization is required. See [AdMob mediation](mediation.md).
 
 ### Applications that do not mediate
 
-Adapter auto-discovery has a cost. `initialize()` starts every bundled adapter
-and does not report back until all of them answer or time out, so an adapter
-with no credentials configured can consume its entire timeout and delay the
-first ad by tens of seconds.
+Adapter auto-discovery has a cost. `initialize()` starts every bundled adapter and does not report back until all of them answer or time out, so an adapter with no credentials configured can consume its entire timeout and delay the first ad by tens of seconds.
 
 An application that serves AdMob demand only passes `disableMediation: true`:
 
@@ -117,18 +98,13 @@ An application that serves AdMob demand only passes `disableMediation: true`:
 Admob.initialize({ disableMediation: true })
 ```
 
-The adapters stay bundled and remain available to every other application; the
-SDK simply does not start them in that session. Use this whenever step 3 does
-not apply to your app.
+The adapters stay bundled and remain available to every other application; the SDK simply does not start them in that session. Use this whenever step 3 does not apply to your app.
 
 ## 4. Configure Privacy & messaging
 
-Create the required messages in the **Privacy & messaging** section of the
-AdMob console. UMP resolves the message configuration from the application ID
-in the consuming app.
+Create the required messages in the **Privacy & messaging** section of the AdMob console. UMP resolves the message configuration from the application ID in the consuming app.
 
-The application must request a fresh consent-information update on every
-launch. See [Privacy and initialization](privacy.md) before loading any ad.
+The application must request a fresh consent-information update on every launch. See [Privacy and initialization](privacy.md) before loading any ad.
 
 ## 5. Use official test units
 
@@ -142,8 +118,7 @@ const interstitialId = Admob.TEST_INTERSTITIAL
 const rewardedId = Admob.TEST_REWARDED
 ```
 
-Not every constant has a factory to pass it to. The module exports the full set
-for compatibility, but four of the formats behind them are not implemented:
+Not every constant has a factory to pass it to. The module exports the full set for compatibility, but two of the formats behind them are not implemented:
 
 | Constant | Factory that accepts it |
 |---|---|
@@ -158,13 +133,9 @@ for compatibility, but four of the formats behind them are not implemented:
 
 See [Reserved and unavailable APIs](api-reference.md#reserved-and-unavailable-apis).
 
-Do not copy an Android demo ID into an iOS branch or the reverse. Let the
-module constant select the correct ID.
+Do not copy an Android demo ID into an iOS branch or the reverse. Let the module constant select the correct ID.
 
-Google recommends demo units or explicitly registered test devices during
-development. See the official
-[Android test-ad guide](https://developers.google.com/admob/android/test-ads)
-and [iOS test-ad guide](https://developers.google.com/admob/ios/test-ads).
+Google recommends demo units or explicitly registered test devices during development. See the official [Android test-ad guide](https://developers.google.com/admob/android/test-ads) and [iOS test-ad guide](https://developers.google.com/admob/ios/test-ads).
 
 ## 6. Request consent, then initialize
 
@@ -208,12 +179,9 @@ Admob.requestConsent({
 
 ### Optional: if the application requests ATT
 
-Skip this section unless step 2 added `NSUserTrackingUsageDescription`. ATT is
-not a prerequisite for serving ads, and requesting it without a real tracking
-case invites an App Store rejection.
+Skip this section unless step 2 added `NSUserTrackingUsageDescription`. ATT is not a prerequisite for serving ads, and requesting it without a real tracking case invites an App Store rejection.
 
-An application that does request it waits for the Apple prompt to settle before
-initializing, so that the SDK reads a final tracking status:
+An application that does request it waits for the Apple prompt to settle before initializing, so that the SDK reads a final tracking status:
 
 ```js
 Admob.addEventListener('consent_complete', event => {
@@ -238,24 +206,15 @@ Admob.addEventListener('consent_complete', event => {
 })
 ```
 
-Google Mobile Ads reads `trackingAuthorizationStatus` on its own on iOS. That
-read is not a permission request and does not open Apple's prompt: only
-`requestTrackingAuthorization()` does.
+Google Mobile Ads reads `trackingAuthorizationStatus` on its own on iOS. That read is not a permission request and does not open Apple's prompt: only `requestTrackingAuthorization()` does.
 
-`initialize()` and `requestConsent()` are idempotent native operations.
-Application-level guards are still useful because cached terminal events may
-be emitted again when a caller invokes an already-completed operation.
+`initialize()` and `requestConsent()` are idempotent native operations. Application-level guards are still useful because cached terminal events may be emitted again when a caller invokes an already-completed operation.
 
 ## 7. Create an ad only after the gate opens
 
-A banner needs a host view that is already in the hierarchy, so the native view
-can measure its real width.
+A banner needs a host view that is already in the hierarchy, so the native view can measure its real width.
 
-**Reserve the space before the ad arrives.** Growing the host from zero when
-`loaded` fires shoves the surrounding content upward a second or two after the
-screen appears, which reads as a glitch. Give the host its expected height up
-front, in a background colour that matches the screen, and an empty slot looks
-like a bottom margin instead of a hole:
+**Reserve the space before the ad arrives.** Growing the host from zero when `loaded` fires shoves the surrounding content upward a second or two after the screen appears, which reads as a glitch. Give the host its expected height up front, in a background colour that matches the screen, and an empty slot looks like a bottom margin instead of a hole:
 
 ```js
 const bannerHost = Ti.UI.createView({
@@ -281,18 +240,11 @@ if (Admob.canRequestAds()) {
 }
 ```
 
-A fixed `BANNER` is `50dp` and `FULLBANNER` is `60dp`, so a fixed-size
-placement can reserve its exact height and never move. An adaptive banner
-reports its real height only after loading, so reserve a sensible minimum up
-front and let the loaded event adjust it — a few dp of correction is not the
-same glitch as growing from zero.
+A fixed `BANNER` is `50dp` and `FULLBANNER` is `60dp`, so a fixed-size placement can reserve its exact height and never move. An adaptive banner reports its real height only after loading, so reserve a sensible minimum up front and let the loaded event adjust it — a few dp of correction is not the same glitch as growing from zero.
 
-[Banner ads](banners.md) covers the full placement contract: reserving layout
-space without overlapping bottom-aligned UI, the named-listener lifecycle, and
-`pause()` / `resume()` / `destroy()`.
+[Banner ads](banners.md) covers the full placement contract: reserving layout space without overlapping bottom-aligned UI, the named-listener lifecycle, and `pause()` / `resume()` / `destroy()`.
 
-The module does not enforce the privacy gate inside ad proxies. The consuming
-application owns the order.
+The module does not enforce the privacy gate inside ad proxies. The consuming application owns the order.
 
 ## Common setup mistakes
 
@@ -303,7 +255,5 @@ application owns the order.
 - Hardcoding an adaptive banner height.
 - Keeping banner listeners after destroying or removing a placement.
 - Using a production ad unit while clicking ads during development.
-- Requesting ATT, or shipping `NSUserTrackingUsageDescription`, in an app with
-  no tracking case. UMP does not require either one.
-- Leaving mediation initialization on in an app that serves only AdMob demand,
-  and paying an adapter timeout before the first ad.
+- Requesting ATT, or shipping `NSUserTrackingUsageDescription`, in an app with no tracking case. UMP does not require either one.
+- Leaving mediation initialization on in an app that serves only AdMob demand, and paying an adapter timeout before the first ad.

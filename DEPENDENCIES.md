@@ -1,9 +1,6 @@
 # Dependency inventory
 
-This file records the native dependencies distributed by the module. Direct
-iOS pod versions are pinned in `ios/Podfile`, transitive resolution is locked
-in `ios/Podfile.lock`, and every vendored framework is covered by
-`ios/framework-checksums.sha256`.
+This file records the native dependencies distributed by the module. Direct iOS pod versions are pinned in `ios/Podfile`, transitive resolution is locked in `ios/Podfile.lock`, and every vendored framework is covered by `ios/framework-checksums.sha256`.
 
 ## iOS vendored XCFrameworks
 
@@ -13,7 +10,7 @@ in `ios/Podfile.lock`, and every vendored framework is covered by
 | User Messaging Platform | `UserMessagingPlatform.xcframework` | `3.1.0` |
 | AppLovin adapter | `AppLovinAdapter.xcframework` | `13.6.3.0` |
 | AppLovin SDK | `AppLovinSDK.xcframework` | `13.6.3` |
-| Meta adapter | `MetaAdapter.xcframework` | `6.21.1.1` |
+| Meta adapter | `MetaAdapter.xcframework` | `6.21.1.1.1` |
 | Meta Audience Network SDK | `FBAudienceNetwork.xcframework` | `6.21.1` |
 | InMobi adapter | `InMobiAdapter.xcframework` | `11.4.0.0` |
 | InMobi SDK | `InMobiSDK.xcframework` | `11.4.0` |
@@ -26,13 +23,11 @@ in `ios/Podfile.lock`, and every vendored framework is covered by
 | ironSource SDK | `IronSource.xcframework` | `9.5.0.0` |
 | ironSource Ad Quality SDK | `IronSourceAdQualitySDK.xcframework` | `9.8.1` |
 
-The official CocoaPods specifications resolve the adapter and matching network
-SDK pairs. `ios/install_frameworks.sh` downloads the exact Podfile versions,
-stages the complete framework set, verifies all 16 tree hashes, and restores
-the previous platform directory if validation fails.
+The version column is the pinned CocoaPods version. Google's Meta adapter pod carries a fifth component that its own payload does not: `GoogleMobileAdsMediationFacebook 6.21.1.1.1` unpacks a directory named `MetaAdapter-6.21.1.1`, and the framework inside reports `6.21.1`. All three refer to the same artifact; the pod version is the one to pin and the one `ios/Podfile.lock` records.
 
-The tree checksum is calculated from the sorted list of relative file paths
-and the SHA-256 of every file in the XCFramework:
+The official CocoaPods specifications resolve the adapter and matching network SDK pairs. `ios/install_frameworks.sh` downloads the exact Podfile versions, stages the complete framework set, verifies all 16 tree hashes, and restores the previous platform directory if validation fails.
+
+The tree checksum is calculated from the sorted list of relative file paths and the SHA-256 of every file in the XCFramework:
 
 ```sh
 find . -type f -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 |
@@ -45,21 +40,15 @@ find . -type f -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 |
 |---|---:|
 | `com.google.android.gms:play-services-ads` | 25.4.0 |
 | `com.google.android.ump:user-messaging-platform` | 4.0.0 |
-| `com.google.ads.mediation:facebook` | 6.21.0.4 |
+| `com.google.ads.mediation:facebook` | 6.22.0.0 |
 | `com.google.ads.mediation:inmobi` | 11.4.0.0 |
 | `com.google.ads.mediation:unity` | 4.19.0.0 |
 | `com.google.ads.mediation:applovin` | 13.6.3.0 |
-| `com.google.ads.mediation:vungle` | 7.7.6.0 |
+| `com.google.ads.mediation:vungle` | 7.7.7.0 |
 | `com.google.ads.mediation:ironsource` | 9.5.0.0 |
 
-The six adapter coordinates bring their matching network SDKs transitively.
-The generated module POM is inspected during release validation to ensure all
-coordinates remain present.
+The six adapter coordinates bring their matching network SDKs transitively. The generated module POM is inspected during release validation to ensure all coordinates remain present.
 
 ## Update policy
 
-Adapters are upgraded as matched adapter/network SDK pairs from Google's
-official mediation distributions. An update is accepted only after the module
-builds for iOS device and simulator architectures, Android's four ABI, both
-consumer applications link, and the framework inventory passes checksum
-verification.
+Adapters are upgraded as matched adapter/network SDK pairs from Google's official mediation distributions. An update is accepted only after the module builds for iOS device and simulator architectures, Android's four ABI, both consumer applications link, and the framework inventory passes checksum verification.
