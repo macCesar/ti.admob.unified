@@ -2,9 +2,9 @@
 
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `2.0.0` provides a safe privacy flow, idempotent SDK operations, and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. The same distribution also bundles current AdMob mediation adapters and native SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on both platforms. Applications keep one JavaScript ad API; AdMob selects the configured ad source.
+Version `1.0.0` provides a safe privacy flow, idempotent SDK operations, and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. The same distribution also bundles current AdMob mediation adapters and native SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on both platforms. Applications keep one JavaScript ad API; AdMob selects the configured ad source.
 
-Upgrading from `1.1.0` involves two incompatible changes: `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` were removed, and `smart_banner` no longer produces a full-width banner on iOS. See [Migrating to 2.0.0](documentation/migration-2.0.0.md).
+Replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See [Migrating to ti.admob.unified](documentation/migration.md).
 
 ## Requirements
 
@@ -55,11 +55,11 @@ Standard, adaptive, interstitial, rewarded, and app open proxies use portable li
 
 ## Installation
 
-Install the `2.0.0` ZIP for each target platform and declare the module:
+Install the `1.0.0` ZIP for each target platform and declare the module:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
@@ -183,7 +183,7 @@ See [Fullscreen ads](documentation/fullscreen.md) for examples, cleanup, and the
 - [Banner ads](documentation/banners.md)
 - [Fullscreen ads](documentation/fullscreen.md)
 - [Complete API reference](documentation/api-reference.md)
-- [Migration to 2.0.0](documentation/migration-2.0.0.md)
+- [Migrating to ti.admob.unified](documentation/migration.md)
 - [Dependencies and checksums](DEPENDENCIES.md)
 - [Changelog](CHANGELOG.md)
 - [Roadmap](ROADMAP.md)

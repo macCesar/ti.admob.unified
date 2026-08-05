@@ -1,6 +1,6 @@
 # API reference
 
-This page documents the JavaScript surface exported by `ti.admob.unified` `2.0.0`.
+This page documents the JavaScript surface exported by `ti.admob.unified` `1.0.0`.
 
 ```js
 const Admob = require('ti.admob.unified')
@@ -178,7 +178,7 @@ const banner = Admob.createAdaptiveBanner({
 })
 ```
 
-Anchored and inline are both portable as of `2.0.0`, and `keywords`, `contentUrl`, `requestAgent` and `extras` reach the request on both platforms. `maxHeight` applies to inline only. Android additionally forwards a raw experimental `collapsible: "top" | "bottom"` option, which has no iOS counterpart here. See [Adaptive banner properties](banners.md#creation-properties).
+Anchored and inline are both portable, and `keywords`, `contentUrl`, `requestAgent` and `extras` reach the request on both platforms. `maxHeight` applies to inline only. Android additionally forwards a raw experimental `collapsible: "top" | "bottom"` option, which has no iOS counterpart here. See [Adaptive banner properties](banners.md#creation-properties).
 
 ### `createInterstitial(config)`
 
@@ -352,7 +352,7 @@ Failure adds `error` and `code`.
 }
 ```
 
-The payload also retains deprecated compatibility keys for applications coming from `1.1.0`. Do not consume them in new code.
+The payload also retains deprecated compatibility keys for applications coming from an older AdMob module. Do not consume them in new code.
 
 ### `consent_ready`
 
@@ -425,7 +425,7 @@ An exported type constant does not imply that its format has a working proxy.
 | `ADAPTIVE_ANCHORED` | `"adaptive_anchored"` | iOS, Android |
 | `ADAPTIVE_INLINE` | `"adaptive_inline"` | iOS, Android |
 
-`COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` were removed in `2.0.0`. They held `"collapsible_top"` and `"collapsible_bottom"`, values Google's SDK does not accept, and the module forwarded them verbatim, so passing them built an invalid request. The `collapsible` property is Android-only and takes the native string `"top"` or `"bottom"`.
+There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant. Google's SDK accepts only `"top"` and `"bottom"` as placement strings, so a constant holding anything else could not be passed anywhere. The `collapsible` property is Android-only and takes the native string directly.
 
 ### Ad events
 
@@ -544,7 +544,7 @@ Individual methods return the corresponding value:
 
 Availability confirms that the native adapter is installed. It does not prove that the provider account, AdMob mapping, consent, or inventory can serve an ad.
 
-The following legacy methods remain callable for `1.1.0` compatibility:
+The following legacy methods remain callable so that code written against an older AdMob module keeps compiling:
 
 | Method | Behavior |
 |---|---|

@@ -20,7 +20,7 @@ const documentationPages = [
   'documentation/banners.md',
   'documentation/fullscreen.md',
   'documentation/api-reference.md',
-  'documentation/migration-2.0.0.md'
+  'documentation/migration.md'
 ]
 
 const auxiliaryDocumentation = [
@@ -188,12 +188,12 @@ test('states portable banner and fullscreen contracts', () => {
 
   assert.match(banners, /heightUnit: 'dp'/)
   assert.match(banners, /Do not hardcode a height/)
-  // Inline landed on iOS in 2.0.0; collapsible stays Android-only and still
-  // takes Google's own placement string, now that the two constants that
-  // could never produce one are gone.
+  // Inline adaptive is portable; collapsible is Android-only and takes
+  // Google's own placement string. There is no constant for it, because a
+  // constant would have to carry a value the SDK accepts.
   assert.match(banners, /`ADAPTIVE_INLINE` and `maxHeight` work on both platforms/)
   assert.match(banners, /takes Google's native placement string/)
-  assert.match(banners, /were removed in `2\.0\.0`/)
+  assert.match(banners, /no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant/)
   assert.match(banners, /content\.bottom = dimension/)
   assert.match(banners, /removeEventListener/)
   assert.match(banners, /Do not add a JavaScript renewal timer/)

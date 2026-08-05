@@ -2,17 +2,17 @@
 
 ## 1. Install the module
 
-Install the `2.0.0` ZIP for every platform you build. Both artifacts must have the same module ID and version:
+Install the `1.0.0` ZIP for every platform you build. Both artifacts must have the same module ID and version:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
 The current baselines are Titanium `13.4.0.GA`, iOS `15.0+`, and Android API `24+`.
 
-Upgrading an app that already uses `1.1.0` requires two code changes. See [Migrating to 2.0.0](migration-2.0.0.md).
+Replacing an existing AdMob integration? See [Migrating to ti.admob.unified](migration.md).
 
 ## 2. Configure the AdMob application IDs
 

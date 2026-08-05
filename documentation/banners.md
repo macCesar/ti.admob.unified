@@ -48,11 +48,11 @@ The proxy must be in the Titanium view hierarchy before `load()` so its native v
 
 On iOS, the native implementation always creates a **large** anchored adaptive banner, and that is not a shortcut: Google deprecated the plain anchored functions in favour of the large ones. The large size is between 50 and 150 points tall and never exceeds 20% of the screen; the deprecated one capped at 90 points and 15%. If a shorter fixed strip is what you want, use `createBanner()` with `customAdSize`.
 
-Events echo back the constant you passed, so `event.adaptiveType` can be compared against `ADAPTIVE_ANCHORED` or `ADAPTIVE_INLINE` on either platform. Until `2.0.0` iOS emitted a shortened `"anchored"` while Android emitted `"adaptive_anchored"`, so that comparison worked on one platform and failed on the other.
+Events echo back the constant you passed, so `event.adaptiveType` can be compared against `ADAPTIVE_ANCHORED` or `ADAPTIVE_INLINE` on either platform.
 
-`ADAPTIVE_INLINE` and `maxHeight` work on both platforms as of `2.0.0`. Inline scrolls with your content and you cap its height; anchored sits at a screen edge and Google fixes the height, which is why `maxHeight` only applies to inline.
+`ADAPTIVE_INLINE` and `maxHeight` work on both platforms. Inline scrolls with your content and you cap its height; anchored sits at a screen edge and Google fixes the height, which is why `maxHeight` only applies to inline.
 
-`collapsible` stays Android-only and takes Google's native placement string, `"top"` or `"bottom"`. The `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` constants were removed in `2.0.0`: they carried `"collapsible_top"` and `"collapsible_bottom"`, which the SDK does not accept, and the module passed them through unchanged, so using them built an invalid request.
+`collapsible` is Android-only and takes Google's native placement string, `"top"` or `"bottom"`. There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant to pass here, and that is deliberate: such a constant would have to carry a value the SDK accepts, and Google accepts only those two words.
 
 Google's current requirements are described in the [collapsible banner guide](https://developers.google.com/admob/android/banner/collapsible).
 
@@ -362,7 +362,7 @@ Those are Google's own descriptions in `GADAdSize.h`, and the widths are the par
 
 Give the host view the exact height of the size you asked for. A `FULLBANNER` in a 50 dp box is not a smaller full banner; it is a clipped one.
 
-Unknown values fall back to `BANNER`, and `smart_banner` is now one of them. Google removed the size from the Android SDK and deprecated it on iOS, and until `2.0.0` this module resolved it differently on each platform: a fixed 320×50 on Android against a full-width strip on iOS. One value producing two different ads is the module deciding for you, so the special case is gone. For a full-width strip use `customAdSize`, or `createAdaptiveBanner()` if you want Google to choose the height.
+Unknown values fall back to `BANNER`, and `smart_banner` is one of them. Google removed the size from the Android SDK and deprecated it on iOS, so this module gives it no special case: one value that resolved to a fixed 320×50 on one platform and a full-width strip on the other would be the module deciding for you. For a full-width strip use `customAdSize`, or `createAdaptiveBanner()` if you want Google to choose the height.
 
 Changing `adSize` on an existing iOS native banner is not supported. Destroy and recreate the proxy.
 

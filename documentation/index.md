@@ -1,6 +1,6 @@
 # ti.admob.unified documentation
 
-This documentation describes the public JavaScript contract implemented by `ti.admob.unified` `2.0.0`.
+This documentation describes the public JavaScript contract implemented by `ti.admob.unified` `1.0.0`.
 
 ## Start here
 
@@ -14,7 +14,7 @@ This documentation describes the public JavaScript contract implemented by `ti.a
 ## Reference
 
 - [Complete API reference](api-reference.md) — module methods, proxy methods, events, payloads, constants, compatibility APIs, and platform notes.
-- [Migration to 2.0.0](migration-2.0.0.md) — upgrade from `1.1.0`, including the two removals that require code changes.
+- [Migrating to ti.admob.unified](migration.md) — replace `ti.admob`, `ti.android.admob`, or an internal pre-release build.
 - [Third-party SDK notices](third-party-notices.md) — licenses and terms for the bundled advertising SDKs.
 
 ## Project information

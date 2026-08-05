@@ -1,6 +1,6 @@
 # Privacy and initialization
 
-`ti.admob.unified` exposes Google UMP as an event-based workflow. Callback properties are not part of the `2.0.0` contract.
+`ti.admob.unified` exposes Google UMP as an event-based workflow. Callback properties are not part of the contract.
 
 ## Required order
 

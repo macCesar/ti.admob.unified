@@ -1,16 +1,18 @@
-# Migrating to 2.0.0
+# Migrating to ti.admob.unified
 
-Version `2.0.0` unifies the banner, fullscreen, tracking, and privacy contracts across iOS and Android. It is the first published release after `1.1.0`; the `1.2.0` and `1.3.0` development cycles were folded into it and never shipped on their own.
+This guide covers replacing an existing AdMob integration with `ti.admob.unified` `1.0.0`. Two starting points are common: a platform-specific module such as `ti.admob` on iOS or `ti.android.admob` on Android, and an internal pre-release build of this module.
 
-Most of this guide is additive. Three changes are not, and they come first.
+Most of the work is the same either way. The section below applies only if you are coming from an internal build, since `1.0.0` is the first published release and there is no earlier public version to break.
 
-## Breaking changes
+## If you used an internal pre-release build
 
-### `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` are gone
+Three parts of the surface changed during development and never reached a published release. Code written against an internal ZIP needs these three edits.
 
-Both constants were removed. Reading either one now returns `undefined`, so code that passes `Admob.COLLAPSIBLE_TOP` sends `undefined` to the native layer instead of failing loudly.
+### There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM`
 
-They held `"collapsible_top"` and `"collapsible_bottom"`. Google's SDK accepts only `"top"` and `"bottom"`, and the module forwarded the value unchanged, so every request built from these constants was invalid.
+Neither constant is exported. Reading one returns `undefined`, so code that passes `Admob.COLLAPSIBLE_TOP` sends `undefined` to the native layer instead of failing loudly.
+
+They used to hold `"collapsible_top"` and `"collapsible_bottom"`. Google's SDK accepts only `"top"` and `"bottom"`, and the module forwarded the value unchanged, so every request built from those constants was invalid.
 
 The `collapsible` property itself is unchanged. It stays Android-only and takes Google's native string:
 
@@ -23,11 +25,11 @@ const banner = Admob.createAdaptiveBanner({
 
 ### `smart_banner` no longer produces a full-width banner on iOS
 
-Google removed the size from the Android SDK and deprecated it on iOS. Until now the module resolved the same value into two different ads: a fixed 320×50 on Android, a full-width strip on iOS. The special case is gone and the value falls through to `BANNER` on both platforms, like any other unrecognised size.
+Google removed the size from the Android SDK and deprecated it on iOS. Internal builds resolved the same value into two different ads: a fixed 320×50 on Android, a full-width strip on iOS. That special case is gone, and the value falls through to `BANNER` on both platforms like any other unrecognised size.
 
-Android behaviour does not change. On iOS, a placement that relied on `adSize: 'smart_banner'` for a full-width strip now renders a 320×50 banner.
+Android behaviour is unaffected. On iOS, a placement that relied on `adSize: 'smart_banner'` for a full-width strip now renders a 320×50 banner.
 
-The replacement is `customAdSize`, which iOS accepts as of this release:
+The replacement is `customAdSize`, which both platforms accept:
 
 ```js
 function screenWidthInDp() {
@@ -59,7 +61,7 @@ Replace platform-specific or older AdMob modules with one declaration:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
@@ -141,11 +143,11 @@ On `loaded`, use `event.height` with `event.heightUnit`. Update both the banner 
 
 Do not keep a fixed `50`, `90`, or device-specific height.
 
-`ADAPTIVE_INLINE` and `maxHeight` also work on iOS now. An application that branched on `Ti.Platform.osname` to keep inline banners off iOS can drop the branch.
+`ADAPTIVE_INLINE` and `maxHeight` work on iOS too. An application that branched on `Ti.Platform.osname` to keep inline banners off iOS can drop the branch.
 
 ## Adopt the banner lifecycle
 
-Both standard and adaptive banners now support:
+Both standard and adaptive banners support:
 
 ```js
 banner.load()
@@ -193,7 +195,7 @@ Common events include `adUnitId` and `adType`; failures add `error`, `message`, 
 
 ### App open
 
-`createAppOpen()` returns a working proxy on both platforms. In `1.1.0` it returned nothing on iOS and did not exist on Android, so an application that wanted the format had to build it outside the module.
+`createAppOpen()` returns a working proxy on both platforms. Neither module this one replaces offers it portably: `ti.admob` documents the type on iOS without a factory, and `ti.android.admob` ships an Android-only proxy. An application that wanted the format on both platforms had to build half of it itself.
 
 It follows the fullscreen contract above, with one addition: an app open ad expires four hours after the request. Past that point `isLoaded()` reports `false` and `show()` emits `failed_to_show` with code `1`. See [The four hour window](fullscreen.md#the-four-hour-window).
 

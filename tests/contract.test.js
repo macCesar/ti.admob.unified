@@ -47,8 +47,8 @@ const androidAppOpen = read(
 )
 
 test('pins the unified ads and mediation dependency baseline', () => {
-  assert.match(read('ios/manifest'), /version: 2\.0\.0/)
-  assert.match(read('android/manifest'), /version: 2\.0\.0/)
+  assert.match(read('ios/manifest'), /version: 1\.0\.0/)
+  assert.match(read('android/manifest'), /version: 1\.0\.0/)
 
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.4\.0/)

@@ -2,7 +2,7 @@
 
 ## Current baseline
 
-Version `2.0.0` establishes one portable AdMob and mediation distribution:
+Version `1.0.0` establishes one portable AdMob and mediation distribution:
 
 - Titanium `13.4.0.GA`
 - iOS `15.0+`
@@ -19,7 +19,7 @@ Version `2.0.0` establishes one portable AdMob and mediation distribution:
 - portable tracking-authorization completion on both platforms
 - no manual TCF personalization inference
 
-## Complete in 2.0.0
+## Complete in 1.0.0
 
 ### Privacy contract
 
@@ -41,7 +41,7 @@ Version `2.0.0` establishes one portable AdMob and mediation distribution:
 - Each proxy accepts one active load and at most one deferred load while paused.
 - Application and host-lifecycle pauses are independent causes; neither resumes the other's pause.
 - Inline adaptive banners, `maxHeight`, `customAdSize`, `contentUrl`, and `requestAgent` work on both platforms.
-- `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` are gone, and `smart_banner` resolves to `BANNER` on both platforms.
+- `smart_banner` resolves to `BANNER` on both platforms, with no special case on either.
 
 ### Fullscreen contract
 
@@ -100,7 +100,7 @@ The project's contract is that both platforms expose an identical JavaScript sur
 
 Their constants are already exported, but they do not have working cross-platform factories. Implementing one requires a complete native proxy, shared events and payloads, cleanup semantics, tests, examples, and physical validation.
 
-They are what remains of the gap against the modules this one is meant to replace. Measured on 4 August 2026: `ti.android.admob` `11.1.0` ships proxies for app open, rewarded interstitial and native, and `ti.admob` `8.1.0` on iOS documents an `AD_TYPE_APP_OPEN`. App open closed in `2.0.0` on both platforms, which leaves rewarded interstitial and native.
+They are what remains of the gap against the modules this one is meant to replace. Measured on 4 August 2026: `ti.android.admob` `11.1.0` ships proxies for app open, rewarded interstitial and native, and `ti.admob` `8.1.0` on iOS documents an `AD_TYPE_APP_OPEN`. App open ships here on both platforms, which leaves rewarded interstitial and native.
 
 Decided on 4 August 2026:
 

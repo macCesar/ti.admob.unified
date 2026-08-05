@@ -1,6 +1,6 @@
 # Fullscreen ads
 
-Interstitial, rewarded and app open proxies share one public lifecycle and event contract on iOS and Android. All three were unified in `2.0.0`.
+Interstitial, rewarded and app open proxies share one public lifecycle and event contract on iOS and Android.
 
 ## When to show a fullscreen ad
 

@@ -1,6 +1,6 @@
 # Mediation parity
 
-Version `2.0.0` distributes six AdMob mediation networks on both platforms:
+Version `1.0.0` distributes six AdMob mediation networks on both platforms:
 
 | Ad source | iOS | Android | Shared JavaScript API |
 |---|---|---|---|

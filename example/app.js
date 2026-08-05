@@ -1,5 +1,5 @@
 /**
- * ti.admob.unified 2.0.0 example
+ * ti.admob.unified 1.0.0 example
  *
  * This app uses only Google's official demo ad unit IDs. It demonstrates:
  * - UMP -> canRequestAds -> ATT (iOS) -> initialization
@@ -34,7 +34,7 @@ let appOpen = null
 
 const win = Ti.UI.createWindow({
   backgroundColor: '#f2f2f7',
-  title: 'ti.admob.unified 2.0.0',
+  title: 'ti.admob.unified 1.0.0',
   layout: 'composite',
   // Keep content clear of the Dynamic Island, the notch and the home
   // indicator. It matters for ads: a banner anchored to the bottom would sit
