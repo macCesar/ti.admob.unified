@@ -71,7 +71,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.constant public static final String LEADERBOARD = "leaderboard";
 	@Kroll.constant public static final String ADAPTIVE_ANCHORED = "adaptive_anchored";
 	@Kroll.constant public static final String ADAPTIVE_INLINE = "adaptive_inline";
-	// The two COLLAPSIBLE_* constants were removed in 1.3.0. They carried the
+	// The two COLLAPSIBLE_* constants were removed in 2.0.0. They carried the
 	// legacy collapsible_top / collapsible_bottom values, which Google's SDK
 	// does not accept: the native placement strings are top and bottom, and the
 	// view forwards the value verbatim to setCollapsible(), so passing the

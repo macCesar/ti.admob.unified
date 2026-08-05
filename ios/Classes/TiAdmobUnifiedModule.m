@@ -580,7 +580,7 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 - (NSString *)LEADERBOARD { return @"leaderboard"; }
 - (NSString *)ADAPTIVE_ANCHORED { return @"adaptive_anchored"; }
 - (NSString *)ADAPTIVE_INLINE { return @"adaptive_inline"; }
-// The two COLLAPSIBLE_* constants were removed in 1.3.0. They carried the
+// The two COLLAPSIBLE_* constants were removed in 2.0.0. They carried the
 // legacy collapsible_top / collapsible_bottom values, which Google's SDK does
 // not accept: the native placement strings are top and bottom, and the module
 // forwarded the value verbatim, so passing the constants built an invalid

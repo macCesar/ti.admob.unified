@@ -2,412 +2,168 @@
 
 All notable changes to `ti.admob.unified` will be documented in this file.
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
-project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] — Unreleased
+## [2.0.0] — Unreleased
 
-### Added
-
-- App open ads, on iOS and Android, through `createAppOpen(config)`. It is the
-  only format present in both modules this one replaces, and until now the
-  platforms diverged on it: iOS declared a stub that returned no proxy and
-  Android did not export the symbol at all, so the same JavaScript failed
-  differently on each. The new proxy copies the interstitial contract exactly —
-  `load()`, `show()`, `isLoaded()`, `destroy()`; `adUnitId`, `autoReload`,
-  `keywords`, `extras`; the nine shared events with `adType: "app_open"` — so
-  there is no new surface to learn. `AD_TYPE_APP_OPEN` and `TEST_APP_OPEN` are
-  unchanged and simply stop being reserved.
-- App open ads enforce Google's four hour validity window, which no other
-  fullscreen format has. Google documents that an ad rendered more than four
-  hours after the request is no longer valid and may not earn revenue, so the
-  proxy stamps the load time, reports `isLoaded()` as `false` once the window
-  closes, and answers `show()` on an expired ad by clearing the native
-  reference and emitting `failed_to_show` with code `1` and the message
-  `App open ad expired after four hours`. `load()` discards an expired ad
-  before requesting a new one, so a reload is not swallowed by the
-  duplicate-load guard. There is no timer and no background work: the check is
-  a subtraction performed only when something asks. `autoReload` is unchanged
-  and still reloads after `closed` and nothing else, so reloading after expiry
-  stays the application's decision.
-- `customAdSize` on iOS, closing the gap that made a fixed full-width strip
-  impossible there. Android already accepted `{ width, height }` in dp and
-  built `new AdSize(width, height)`; iOS now builds `GADAdSizeFromCGSize` from
-  the same object, so one placement definition serves both. It takes precedence
-  over `adSize` and is ignored unless both values are positive, matching
-  Android's rejection of an invalid size. Until now the only full-width option
-  on iOS was the adaptive banner, which picks its own height.
-- `contentUrl` on both iOS banner proxies, and `keywords`, `contentUrl` and
-  `extras` on the iOS adaptive banner, which sent a bare request.
-- Inline adaptive banners and `maxHeight` on iOS, through
-  `GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight`. `ADAPTIVE_INLINE` was an
-  exported constant that did nothing on iOS; the format is portable now, with
-  the same `50` default Android uses. `maxHeight` applies to inline only,
-  because anchored banners let Google fix their own height.
-- `requestAgent` on all five placements and both platforms, mapping to
-  `GADRequest.requestAgent` and `AbstractAdRequestBuilder.setRequestAgent`.
-  Google documents it for libraries that wrap the SDK, so an application
-  migrating from `ti.admob` can keep identifying its requests as it did before.
-  It is applied only when non-empty.
-
-### Changed
-
-- The `adaptiveType` event payload is now identical on both platforms. iOS
-  emitted a shortened `"anchored"` while Android echoed the constant back as
-  `"adaptive_anchored"`, so `event.adaptiveType === Admob.ADAPTIVE_ANCHORED`
-  was true on Android and false on iOS. Both return the constant now, and the
-  documentation no longer tells you to distrust the value.
-
-### Removed
-
-- `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM`. They held `"collapsible_top"` and
-  `"collapsible_bottom"`, and both platforms forwarded the value verbatim to
-  Google, which accepts only `"top"` and `"bottom"` — so every use of these
-  constants built an invalid request. A constant that cannot be passed anywhere
-  is not API. The `collapsible` property is unchanged and still takes the native
-  string on Android.
-- The `smart_banner` special case. Google removed the size from the Android SDK
-  and deprecated it on iOS, and the module translated the same value into two
-  different ads: a fixed 320×50 on Android, a full-width strip on iOS. It now
-  falls through to `BANNER` on both, like any other unknown value. **This
-  changes behaviour on iOS**, where the value used to yield a full-width banner;
-  `customAdSize` is the replacement, and it exists on iOS as of this release.
-
-### Fixed
-
-- iOS placements stopped sending untargeted ad requests. `keywords` were folded
-  into `GADExtras.additionalParameters` under a `"keywords"` key on the
-  interstitial, rewarded and app open proxies — but that class is Google's
-  channel for *mediation adapter* parameters, not targeting, so the keywords
-  never reached the request. The fixed banner did not even try: it logged
-  `Keywords specified but not applied (not supported in current GAD version)`
-  and dropped them. That claim was wrong; `GADRequest.keywords` is declared in
-  the bundled GoogleMobileAds 13.7.0 and is the counterpart of Android's
-  `AdRequest.Builder.addKeyword`. All five placements now set it.
-- `banners.md` described the symptom of that bug as the contract, marking
-  `keywords` and `extras` as "Accepted, not applied" on iOS. Both are applied
-  now, and the table says so.
+Two development cycles were prepared as `1.2.0` and `1.3.0` and neither was published. This release ships both under one version number. The major number is required by the removals below: `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` no longer exist, and `smart_banner` no longer produces a full-width banner on iOS. See [Migrating to 2.0.0](documentation/migration-2.0.0.md).
 
 ### Added
 
-- `documentation/integration.md`, the page that was missing between the API
-  reference and a working app: why every consumer ends up writing a small
-  layer, a copyable starter for the generic half of it — events as promises,
-  one start-up sequence, a placement that reserves its own slot, named
-  listeners removed before `destroy()` — and a table separating what is generic
-  from what each application decides for itself.
-- Fullscreen ads document when it is acceptable to interrupt: preload well
-  before the break, present only at a natural one, and the cases Google's
-  guidance rules out — at app open, on the way out, mid-action, as a reward, or
-  back to back.
-- Fullscreen ads document the reload-after-`closed` cycle that keeps the next
-  ad ready, and state the exact scope of `autoReload`: it reloads after
-  `closed` and after nothing else, so load and show failures stay the
-  application's job.
-
-### Fixed
-
-- Banners no longer resume themselves against the application's intent. The
-  activity lifecycle called the same public `pause()`/`resume()` the consuming
-  app calls, so returning from the background resumed a banner the app had
-  deliberately paused — and, worse, ran a load deferred while paused, issuing
-  an ad request for a placement nobody was looking at. Application and
-  lifecycle pauses are now independent causes, and a banner resumes only once
-  every cause has cleared.
-- iOS banners follow the application lifecycle. Android had always paused with
-  its hosting activity while iOS observed nothing, so a backgrounded app left
-  its banner running behind the home screen. iOS observes background and
-  foreground rather than resign/become-active, because a Control Center pull or
-  a call banner resigns active while the ad is still on screen and viewable.
-- Android hides the native `AdView` while paused, matching the `hidden`
-  behaviour iOS already had. It uses `INVISIBLE` rather than `GONE` so the
-  measured slot survives and returning does not reflow the layout. This also
-  engages the SDK's own visibility gate (`Ad is not visible. Not refreshing
-  ad.`), which is what stops the refresh on Android — `BaseAdView` exposes no
-  refresh control of its own.
-
-### Changed
-
-- The getting-started path now reflects what a typical banner integration
-  actually needs: ATT moved out of the main consent flow into an explicitly
-  optional section, `disableMediation` documented at the step where an
-  application decides whether it mediates, and the banner step defines its
-  host view and links to the placement contract in `banners.md`.
-- The README no longer shows App Tracking Transparency as part of safe
-  initialization, and its mediation section states how an AdMob-only
-  application skips adapter startup.
-- Banner placements are documented as reserving their space before the ad
-  arrives. Growing the host from zero on `loaded` shoves surrounding content
-  upward a second or two after the screen appears; a fixed `BANNER` is `50dp`
-  and `FULLBANNER` is `60dp`, so a fixed placement can reserve its exact height
-  and never move.
-- `banners.md` documents who may pause a placement, and that hiding a banner
-  that has not loaded yet prevents it from loading at all on Android.
-- The `TEST_*` constants are documented by whether a factory accepts them.
-  `TEST_REWARDED_INTERSTITIAL` and `TEST_NATIVE` are marked reserved, since the
-  formats behind them are not implemented, and
-  `TEST_INTERSTITIAL_VIDEO` is documented as an ordinary `createInterstitial()`
-  unit with a video creative rather than as a variant with no home.
-- The documentation index leads with integration and gives fullscreen ads the
-  same standing as banners instead of leaving them in the reference section. It
-  no longer claims fullscreen has differences that are not yet unified; the
-  interstitial and rewarded contracts were unified in `1.2.0`.
-- The interstitial example no longer calls `show()` from inside its `loaded`
-  listener, which presented the ad at whatever second the network answered
-  instead of at a moment the application chose. It now separates loading from
-  presenting, matching what `example/app.js` already did with its Load and Show
-  buttons.
-
-## [1.2.0] — Unreleased
-
-### Added
-
+- App open ads, on iOS and Android, through `createAppOpen(config)`. It is the only format present in both modules this one replaces, and until now the platforms diverged on it: iOS declared a stub that returned no proxy and Android did not export the symbol at all, so the same JavaScript failed differently on each. The new proxy copies the interstitial contract exactly — `load()`, `show()`, `isLoaded()`, `destroy()`; `adUnitId`, `autoReload`, `keywords`, `extras`; the nine shared events with `adType: "app_open"` — so there is no new surface to learn. `AD_TYPE_APP_OPEN` and `TEST_APP_OPEN` are unchanged and simply stop being reserved.
+- App open ads enforce Google's four hour validity window, which no other fullscreen format has. Google documents that an ad rendered more than four hours after the request is no longer valid and may not earn revenue, so the proxy stamps the load time, reports `isLoaded()` as `false` once the window closes, and answers `show()` on an expired ad by clearing the native reference and emitting `failed_to_show` with code `1` and the message `App open ad expired after four hours`. `load()` discards an expired ad before requesting a new one, so a reload is not swallowed by the duplicate-load guard. There is no timer and no background work: the check is a subtraction performed only when something asks. `autoReload` is unchanged and still reloads after `closed` and nothing else, so reloading after expiry stays the application's decision.
+- `customAdSize` on iOS, closing the gap that made a fixed full-width strip impossible there. Android already accepted `{ width, height }` in dp and built `new AdSize(width, height)`; iOS now builds `GADAdSizeFromCGSize` from the same object, so one placement definition serves both. It takes precedence over `adSize` and is ignored unless both values are positive, matching Android's rejection of an invalid size. Until now the only full-width option on iOS was the adaptive banner, which picks its own height.
+- `contentUrl` on both iOS banner proxies, and `keywords`, `contentUrl` and `extras` on the iOS adaptive banner, which sent a bare request.
+- Inline adaptive banners and `maxHeight` on iOS, through `GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight`. `ADAPTIVE_INLINE` was an exported constant that did nothing on iOS; the format is portable now, with the same `50` default Android uses. `maxHeight` applies to inline only, because anchored banners let Google fix their own height.
+- `requestAgent`, mapping to `GADRequest.requestAgent` and `AbstractAdRequestBuilder.setRequestAgent`. Google documents it for libraries that wrap the SDK, so an application migrating from `ti.admob` can keep identifying its requests as it did before. It is applied only when non-empty. It reaches the request from both banner types on both platforms, and from the three fullscreen types on Android. The three iOS fullscreen proxies build their configuration by hand instead of through `_initWithProperties:`, and that path does not read the key, so the value is dropped there. Tracked in `ROADMAP.md` as declared parity debt.
+- `documentation/integration.md`, the page that was missing between the API reference and a working app: why every consumer ends up writing a small layer, a copyable starter for the generic half of it — events as promises, one start-up sequence, a placement that reserves its own slot, named listeners removed before `destroy()` — and a table separating what is generic from what each application decides for itself.
+- Fullscreen ads document when it is acceptable to interrupt: preload well before the break, present only at a natural one, and the cases Google's guidance rules out — at app open, on the way out, mid-action, as a reward, or back to back.
+- Fullscreen ads document the reload-after-`closed` cycle that keeps the next ad ready, and state the exact scope of `autoReload`: it reloads after `closed` and after nothing else, so load and show failures stay the application's job.
 - Recoverable pre-change tag and Git bundle for the 1.1.0 baseline.
 - `canRequestAds()` on iOS and Android; `canShowAds()` remains an alias.
-- Terminal `consent_complete` event with `success`, `canRequestAds`,
-  `privacyOptionsRequired`, and optional `error`/`code`.
+- Terminal `consent_complete` event with `success`, `canRequestAds`, `privacyOptionsRequired`, and optional `error`/`code`.
 - Idempotent state machines for native initialization and UMP consent.
 - Age treatment constants and `ageRestrictedTreatment` initialization option.
 - Reproducible iOS dependency inventory with official URLs and checksums.
 - Static contract tests and artifact inventory verification.
 - Shared standard/adaptive banner lifecycle contract tests for iOS and Android.
-- Regression coverage for density-independent adaptive banner heights, dynamic
-  Titanium proxy sizing, and safe native-view teardown on Android.
+- Regression coverage for density-independent adaptive banner heights, dynamic Titanium proxy sizing, and safe native-view teardown on Android.
 - `pause()` and `resume()` on the iOS adaptive banner proxy.
 - Both banner destruction aliases on both iOS proxy types.
-- Complete English documentation for installation, privacy, banners,
-  fullscreen proxies, every exported method and constant, and migration.
-- Documentation contract tests that validate API coverage, internal links, and
-  the executable example's privacy and lifecycle patterns.
-- Portable `requestTrackingAuthorization()` on Android, which completes with
-  `applicable: false` so consumers can use the same UMP → tracking → SDK call
-  sequence on both platforms.
-- Shared interstitial and rewarded lifecycle state: serialized loads, explicit
-  showing state, single-use references, and terminal idempotent destruction.
-- Six-network AdMob mediation distribution on both platforms: Meta, InMobi,
-  Unity Ads, AppLovin, Liftoff Monetize/Vungle, and ironSource.
-- Portable mediation diagnostics with `getMediationStatus()` and individual
-  availability methods for all six networks.
-- Reproducible CocoaPods-based iOS framework staging with a verified inventory
-  of all 16 XCFrameworks.
-- Portable `openAdInspector()` launcher and terminal `ad_inspector_closed`
-  event on iOS and Android.
+- Complete English documentation for installation, privacy, banners, fullscreen proxies, every exported method and constant, and migration.
+- Documentation contract tests that validate API coverage, internal links, and the executable example's privacy and lifecycle patterns.
+- Portable `requestTrackingAuthorization()` on Android, which completes with `applicable: false` so consumers can use the same UMP → tracking → SDK call sequence on both platforms.
+- Shared interstitial and rewarded lifecycle state: serialized loads, explicit showing state, single-use references, and terminal idempotent destruction.
+- Six-network AdMob mediation distribution on both platforms: Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize/Vungle, and ironSource.
+- Portable mediation diagnostics with `getMediationStatus()` and individual availability methods for all six networks.
+- Reproducible CocoaPods-based iOS framework staging with a verified inventory of all 16 XCFrameworks.
+- Portable `openAdInspector()` launcher and terminal `ad_inspector_closed` event on iOS and Android.
 
 ### Changed
 
+- The `adaptiveType` event payload is now identical on both platforms. iOS emitted a shortened `"anchored"` while Android echoed the constant back as `"adaptive_anchored"`, so `event.adaptiveType === Admob.ADAPTIVE_ANCHORED` was true on Android and false on iOS. Both return the constant now, and the documentation no longer tells you to distrust the value.
+- The getting-started path now reflects what a typical banner integration actually needs: ATT moved out of the main consent flow into an explicitly optional section, `disableMediation` documented at the step where an application decides whether it mediates, and the banner step defines its host view and links to the placement contract in `banners.md`.
+- The README no longer shows App Tracking Transparency as part of safe initialization, and its mediation section states how an AdMob-only application skips adapter startup.
+- Banner placements are documented as reserving their space before the ad arrives. Growing the host from zero on `loaded` shoves surrounding content upward a second or two after the screen appears; a fixed `BANNER` is `50dp` and `FULLBANNER` is `60dp`, so a fixed placement can reserve its exact height and never move.
+- `banners.md` documents who may pause a placement, and that hiding a banner that has not loaded yet prevents it from loading at all on Android.
+- The `TEST_*` constants are documented by whether a factory accepts them. `TEST_REWARDED_INTERSTITIAL` and `TEST_NATIVE` are marked reserved, since the formats behind them are not implemented, and `TEST_INTERSTITIAL_VIDEO` is documented as an ordinary `createInterstitial()` unit with a video creative rather than as a variant with no home.
+- The documentation index leads with integration and gives fullscreen ads the same standing as banners instead of leaving them in the reference section. It no longer claims fullscreen has differences that are not yet unified; the interstitial and rewarded contracts are unified in this release.
+- The interstitial example no longer calls `show()` from inside its `loaded` listener, which presented the ad at whatever second the network answered instead of at a moment the application chose. It now separates loading from presenting, matching what `example/app.js` already did with its Load and Show buttons.
 - Titanium baseline: `12.8.0.GA` → `13.4.0.GA`.
 - iOS deployment target: mixed 12/13 → 15.0.
 - Google Mobile Ads iOS: `13.4.0` → `13.7.0`.
 - Google Mobile Ads Android: `25.3.0` → `25.4.0`.
 - UMP remains iOS `3.1.0` and Android `4.0.0`.
-- Mediation adapters and their matching native SDKs were updated as supported
-  pairs for Google Mobile Ads `13.7.0` on iOS and `25.4.0` on Android.
-- Legacy per-network consent setters now behave as portable deprecated no-ops
-  instead of deriving multiple regional privacy choices from one Boolean.
+- Mediation adapters and their matching native SDKs were updated as supported pairs for Google Mobile Ads `13.7.0` on iOS and `25.4.0` on Android.
+- Legacy per-network consent setters now behave as portable deprecated no-ops instead of deriving multiple regional privacy choices from one Boolean.
 - Consent uses UMP's load-and-present-if-required flow.
 - Full-screen iOS presentation uses Titanium's top presented controller.
 - Public privacy documentation is event-based; callback options are deprecated.
-- Standard and adaptive banners now share `load()`, `pause()`, `resume()`,
-  `destroy()`, `isLoaded()`, event names, and common event payload keys.
-- Interstitial and rewarded proxies now share the same load/show/destroy
-  semantics and `adUnitId`/`adType` event payload on iOS and Android.
-- Fullscreen error payloads now consistently include `error`, `message`, and
-  `code`; iOS now emits `showed_fullscreen_content` like Android.
-- Android forwards fullscreen `extras` through `AdMobAdapter`, matching the
-  existing iOS request behavior.
-- Banner events now consistently include `adUnitId`, `adType`, and
-  `isAdaptive`; adaptive banners also include `adaptiveType`.
-- Adaptive `loaded` events report the measured `height` and `heightUnit`
-  (`dp`) on both platforms. Android additionally reports diagnostic
-  `width`, `widthUnit`, pixel dimensions, and display density.
-- Banner loads are serialized to one active request, with at most one request
-  deferred while paused.
-- Android adaptive banners update the Titanium proxy height from the Google
-  Mobile Ads size in density-independent units whenever the native size is
-  created or loaded.
-- Android request-configuration updates preserve previously configured values
-  through `RequestConfiguration.toBuilder()`.
-- The example application now uses only official test constants, the
-  `consent_complete` contract, UMP → ATT → initialization ordering, dynamic
-  banner height, and explicit listener cleanup.
-
-### Fixed
-
-- Corrected the `1.2.0` migration guide, which still claimed that mediation
-  adapters were absent after the six-network distribution was restored.
-- Documented expected adapter initialization warnings for incomplete AdMob
-  mappings without recommending placeholder provider credentials.
-- Every accepted consent operation reaches a terminal event, including errors
-  and missing Android activity.
-- Removed manual parsing of `IABTCF_TCString`.
-- `canShowPersonalizedAds()` no longer claims that ad-request permission
-  represents personalization permission; it remains as a deprecated safe
-  `false` result.
-- `privacy_options_dismissed` now fires regardless of a callback property.
-- Banner load state now reflects native success and failure on iOS.
-- Repeated banner destruction is safe and terminal on both platforms.
-- iOS banner destruction clears delegates, root controllers, paid-event
-  handlers, and native view references.
-- Android banner destruction clears ad listeners, destroys the native `AdView`,
-  releases Titanium views, and unregisters activity lifecycle listeners.
-- Android adaptive banners retain a stable native container, replace or remove
-  only the child `AdView`, and unregister layout listeners during teardown
-  instead of detaching the Titanium native view with `setNativeView(null)`.
-- Adaptive banner height is no longer treated as raw display pixels on Android,
-  preventing density-dependent over-allocation of the host view.
-- Android `isTestDevice()` now delegates to the native ad request instead of
-  returning a permanent compatibility `false`.
-- Fullscreen callbacks arriving after destruction are ignored, and native
-  delegates/callbacks are detached during cleanup.
-- Fullscreen proxies also perform terminal native cleanup when Titanium
-  releases the proxy, matching the banner lifecycle safety net.
+- Standard and adaptive banners now share `load()`, `pause()`, `resume()`, `destroy()`, `isLoaded()`, event names, and common event payload keys.
+- Interstitial and rewarded proxies now share the same load/show/destroy semantics and `adUnitId`/`adType` event payload on iOS and Android.
+- Fullscreen error payloads now consistently include `error`, `message`, and `code`; iOS now emits `showed_fullscreen_content` like Android.
+- Android forwards fullscreen `extras` through `AdMobAdapter`, matching the existing iOS request behavior.
+- Banner events now consistently include `adUnitId`, `adType`, and `isAdaptive`; adaptive banners also include `adaptiveType`.
+- Adaptive `loaded` events report the measured `height` and `heightUnit` (`dp`) on both platforms. Android additionally reports diagnostic `width`, `widthUnit`, pixel dimensions, and display density.
+- Banner loads are serialized to one active request, with at most one request deferred while paused.
+- Android adaptive banners update the Titanium proxy height from the Google Mobile Ads size in density-independent units whenever the native size is created or loaded.
+- Android request-configuration updates preserve previously configured values through `RequestConfiguration.toBuilder()`.
+- The example application now uses only official test constants, the `consent_complete` contract, UMP → ATT → initialization ordering, dynamic banner height, and explicit listener cleanup.
 
 ### Removed
 
+- `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM`. They held `"collapsible_top"` and `"collapsible_bottom"`, and both platforms forwarded the value verbatim to Google, which accepts only `"top"` and `"bottom"` — so every use of these constants built an invalid request. A constant that cannot be passed anywhere is not API. The `collapsible` property is unchanged and still takes the native string on Android.
+- The `smart_banner` special case. Google removed the size from the Android SDK and deprecated it on iOS, and the module translated the same value into two different ads: a fixed 320×50 on Android, a full-width strip on iOS. It now falls through to `BANNER` on both, like any other unknown value. **This changes behaviour on iOS**, where the value used to yield a full-width banner; `customAdSize` is the replacement, and it exists on iOS as of this release.
 - Stale dependency/version claims and unsupported revenue assertions.
+
+### Fixed
+
+- iOS placements stopped sending untargeted ad requests. `keywords` were folded into `GADExtras.additionalParameters` under a `"keywords"` key on the interstitial, rewarded and app open proxies — but that class is Google's channel for *mediation adapter* parameters, not targeting, so the keywords never reached the request. The fixed banner did not even try: it logged `Keywords specified but not applied (not supported in current GAD version)` and dropped them. That claim was wrong; `GADRequest.keywords` is declared in the bundled GoogleMobileAds 13.7.0 and is the counterpart of Android's `AdRequest.Builder.addKeyword`. All five placements now set it.
+- `banners.md` described the symptom of that bug as the contract, marking `keywords` and `extras` as "Accepted, not applied" on iOS. Both are applied now, and the table says so.
+- Banners no longer resume themselves against the application's intent. The activity lifecycle called the same public `pause()`/`resume()` the consuming app calls, so returning from the background resumed a banner the app had deliberately paused — and, worse, ran a load deferred while paused, issuing an ad request for a placement nobody was looking at. Application and lifecycle pauses are now independent causes, and a banner resumes only once every cause has cleared.
+- iOS banners follow the application lifecycle. Android had always paused with its hosting activity while iOS observed nothing, so a backgrounded app left its banner running behind the home screen. iOS observes background and foreground rather than resign/become-active, because a Control Center pull or a call banner resigns active while the ad is still on screen and viewable.
+- Android hides the native `AdView` while paused, matching the `hidden` behaviour iOS already had. It uses `INVISIBLE` rather than `GONE` so the measured slot survives and returning does not reflow the layout. This also engages the SDK's own visibility gate (`Ad is not visible. Not refreshing ad.`), which is what stops the refresh on Android — `BaseAdView` exposes no refresh control of its own.
+- Corrected the migration guide, which still claimed that mediation adapters were absent after the six-network distribution was restored.
+- Documented expected adapter initialization warnings for incomplete AdMob mappings without recommending placeholder provider credentials.
+- Every accepted consent operation reaches a terminal event, including errors and missing Android activity.
+- Removed manual parsing of `IABTCF_TCString`.
+- `canShowPersonalizedAds()` no longer claims that ad-request permission represents personalization permission; it remains as a deprecated safe `false` result.
+- `privacy_options_dismissed` now fires regardless of a callback property.
+- Banner load state now reflects native success and failure on iOS.
+- Repeated banner destruction is safe and terminal on both platforms.
+- iOS banner destruction clears delegates, root controllers, paid-event handlers, and native view references.
+- Android banner destruction clears ad listeners, destroys the native `AdView`, releases Titanium views, and unregisters activity lifecycle listeners.
+- Android adaptive banners retain a stable native container, replace or remove only the child `AdView`, and unregister layout listeners during teardown instead of detaching the Titanium native view with `setNativeView(null)`.
+- Adaptive banner height is no longer treated as raw display pixels on Android, preventing density-dependent over-allocation of the host view.
+- Android `isTestDevice()` now delegates to the native ad request instead of returning a permanent compatibility `false`.
+- Fullscreen callbacks arriving after destruction are ignored, and native delegates/callbacks are detached during cleanup.
+- Fullscreen proxies also perform terminal native cleanup when Titanium releases the proxy, matching the banner lifecycle safety net.
 
 ## [1.1.0] — 2026-05-28
 
-Minor version bump: significant additions (parity constants/methods, iOS rescue),
-breaking changes none. Detailed inventory below.
+Minor version bump: significant additions (parity constants/methods, iOS rescue), breaking changes none. Detailed inventory below.
 
 ### Added — iOS
-- 46 JS constants for parity with Android: `AD_TYPE_*`, banner size names
-  (`BANNER`, `LARGE_BANNER`, `MEDIUM_RECTANGLE`, `FULLBANNER`, `LEADERBOARD`,
-  `ADAPTIVE_ANCHORED`, `ADAPTIVE_INLINE`, `COLLAPSIBLE_TOP`, `COLLAPSIBLE_BOTTOM`),
-  event names (`AD_LOADED`, `AD_FAILED_TO_LOAD`, `AD_OPENED`, `AD_CLOSED`,
-  `AD_CLICKED`, `AD_IMPRESSION`, `AD_REWARDED`, `AD_FAILED_TO_SHOW`,
-  `AD_SHOWED_FULLSCREEN_CONTENT`, `AD_DESTROYED`), consent status, debug geography,
-  max ad content rating, error codes, and test ad unit IDs.
-- 7 module methods for parity with Android: `isAppLovinAvailable`,
-  `isInMobiAvailable`, `isVungleAvailable`, `setAppLovinGDPRConsent`,
-  `setInMobiGDPRConsent`, `setVungleGDPRConsent`, `enableOptionalMediationNetworks`.
-- `pendingLoad` flag in Banner Proxy to defer `load()` until the view is
-  actually instantiated by TitaniumKit's layout pass.
+- 46 JS constants for parity with Android: `AD_TYPE_*`, banner size names (`BANNER`, `LARGE_BANNER`, `MEDIUM_RECTANGLE`, `FULLBANNER`, `LEADERBOARD`, `ADAPTIVE_ANCHORED`, `ADAPTIVE_INLINE`, `COLLAPSIBLE_TOP`, `COLLAPSIBLE_BOTTOM`), event names (`AD_LOADED`, `AD_FAILED_TO_LOAD`, `AD_OPENED`, `AD_CLOSED`, `AD_CLICKED`, `AD_IMPRESSION`, `AD_REWARDED`, `AD_FAILED_TO_SHOW`, `AD_SHOWED_FULLSCREEN_CONTENT`, `AD_DESTROYED`), consent status, debug geography, max ad content rating, error codes, and test ad unit IDs.
+- 7 module methods for parity with Android: `isAppLovinAvailable`, `isInMobiAvailable`, `isVungleAvailable`, `setAppLovinGDPRConsent`, `setInMobiGDPRConsent`, `setVungleGDPRConsent`, `enableOptionalMediationNetworks`.
+- `pendingLoad` flag in Banner Proxy to defer `load()` until the view is actually instantiated by TitaniumKit's layout pass.
 
 ### Added — Android
-- Properly-spelled `destroyAdViewAndCancelRequest()` method on Banner +
-  AdaptiveBanner proxies. The misspelled legacy `destoyAdViewAndCancelRequest()`
-  is kept as deprecated alias for backwards compatibility.
+- Properly-spelled `destroyAdViewAndCancelRequest()` method on Banner + AdaptiveBanner proxies. The misspelled legacy `destoyAdViewAndCancelRequest()` is kept as deprecated alias for backwards compatibility.
 
 ### Changed — Android (SDK bump)
 - `play-services-ads`: 22.6.0 → 25.3.0 (latest stable May 2026).
 - `user-messaging-platform`: 2.1.0 → 4.0.0.
-- Mediation adapters bumped to versions compatible with GMA 25.x:
-  `facebook` 6.20.0.0 → 6.21.0.3, `inmobi` 10.8.7.0 → 11.3.0.0,
-  `unity` 4.16.0.0 → 4.18.0.0, `ironsource` 8.10.0.0 → 9.4.2.0.
-- Re-enabled previously commented adapters: `applovin` 13.6.2.0 + `vungle` 7.7.4.0
-  (GMA 25.x uses reflection-based adapter init; the v22 init delay no longer
-  applies).
-- `AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize` →
-  `AdSize.getLargeAnchoredAdaptiveBannerAdSize` (the deprecated method's
-  replacement, already in 25.x).
+- Mediation adapters bumped to versions compatible with GMA 25.x: `facebook` 6.20.0.0 → 6.21.0.3, `inmobi` 10.8.7.0 → 11.3.0.0, `unity` 4.16.0.0 → 4.18.0.0, `ironsource` 8.10.0.0 → 9.4.2.0.
+- Re-enabled previously commented adapters: `applovin` 13.6.2.0 + `vungle` 7.7.4.0 (GMA 25.x uses reflection-based adapter init; the v22 init delay no longer applies).
+- `AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize` → `AdSize.getLargeAnchoredAdaptiveBannerAdSize` (the deprecated method's replacement, already in 25.x).
 
 ### Changed — iOS (SDK bump, partial)
 - `GoogleMobileAds.xcframework`: 12.9.0 → 13.4.0 (May 2026).
 - `UserMessagingPlatform.xcframework`: → 3.1.0.
-- The 13 bundled mediation adapter xcframeworks are NOT yet bumped — pending
-  a dedicated session to coordinate downloads from each vendor portal.
-- `module.xcconfig`: removed `-framework iAd`, `-framework OpenGLES`,
-  `-framework GLKit` from `OTHER_LDFLAGS`. These frameworks were removed
-  from iOS SDK 26.5 and caused link errors in consumer apps.
+- The 13 bundled mediation adapter xcframeworks are NOT yet bumped — pending a dedicated session to coordinate downloads from each vendor portal.
+- `module.xcconfig`: removed `-framework iAd`, `-framework OpenGLES`, `-framework GLKit` from `OTHER_LDFLAGS`. These frameworks were removed from iOS SDK 26.5 and caused link errors in consumer apps.
 
 ### Fixed — iOS (multiple critical fixes)
-- `ti.admob.unified.xcodeproj/project.pbxproj` did not register the proxy `.m`
-  files in `Sources/Headers` build phases. Result: `libti.admob.unified.a` was
-  missing `TiAdmobUnifiedBannerAdProxy.o`, `TiAdmobUnifiedInterstitialAdProxy.o`,
-  and `TiAdmobUnifiedRewardedAdProxy.o`. Consumer apps failed with
-  `Undefined symbols for architecture arm64`. Added 12 new pbxproj entries
-  (6 BuildFile + 6 FileReference + 6 group children + 3 Headers + 3 Sources).
-- `TiAdmobUnifiedRewardedAdProxy.m` source file was corrupted: from line 89
-  onward the entire `@implementation` body was a single megaline with literal
-  `\n` (escape sequences as text) instead of actual newlines. The file was
-  unparseable by Obj-C compiler. Restored to 241 lines of valid Obj-C.
-- `TiAdmobUnifiedBannerAdProxy.m` overrode a method `configurationSet` that
-  does not exist in TitaniumKit 13.2. Replaced with the standard
-  `_initWithProperties:` lifecycle method.
-- `TiAdmobUnifiedBannerAdProxy.m` setters and public methods (load, destroy,
-  pause, resume, isLoaded) now use `isKindOfClass:` guards before forwarding
-  to the inner `TiAdmobUnifiedBannerAdView`. Previously a C-cast was used
-  unconditionally, leading to `unrecognized selector` crashes when
-  `[self view]` returned a placeholder `TiUIView` during init.
-- `TiAdmobUnifiedBannerAdProxy.m` init no longer sets `self.adSize = @"banner"`
-  (which triggered `setAdSize:` and the placeholder-view crash). Sets the
-  ivar `_adSize` directly.
-- `TiAdmobUnifiedBannerAdProxy.m:275` used `GADAdSizeSmartBannerPortrait`
-  (undeclared identifier); fixed to `kGADAdSizeSmartBannerPortrait`.
+- `ti.admob.unified.xcodeproj/project.pbxproj` did not register the proxy `.m` files in `Sources/Headers` build phases. Result: `libti.admob.unified.a` was missing `TiAdmobUnifiedBannerAdProxy.o`, `TiAdmobUnifiedInterstitialAdProxy.o`, and `TiAdmobUnifiedRewardedAdProxy.o`. Consumer apps failed with `Undefined symbols for architecture arm64`. Added 12 new pbxproj entries (6 BuildFile + 6 FileReference + 6 group children + 3 Headers + 3 Sources).
+- `TiAdmobUnifiedRewardedAdProxy.m` source file was corrupted: from line 89 onward the entire `@implementation` body was a single megaline with literal `\n` (escape sequences as text) instead of actual newlines. The file was unparseable by Obj-C compiler. Restored to 241 lines of valid Obj-C.
+- `TiAdmobUnifiedBannerAdProxy.m` overrode a method `configurationSet` that does not exist in TitaniumKit 13.2. Replaced with the standard `_initWithProperties:` lifecycle method.
+- `TiAdmobUnifiedBannerAdProxy.m` setters and public methods (load, destroy, pause, resume, isLoaded) now use `isKindOfClass:` guards before forwarding to the inner `TiAdmobUnifiedBannerAdView`. Previously a C-cast was used unconditionally, leading to `unrecognized selector` crashes when `[self view]` returned a placeholder `TiUIView` during init.
+- `TiAdmobUnifiedBannerAdProxy.m` init no longer sets `self.adSize = @"banner"` (which triggered `setAdSize:` and the placeholder-view crash). Sets the ivar `_adSize` directly.
+- `TiAdmobUnifiedBannerAdProxy.m:275` used `GADAdSizeSmartBannerPortrait` (undeclared identifier); fixed to `kGADAdSizeSmartBannerPortrait`.
 - `TiAdmobUnifiedBannerAdProxy.m` missing `#import "TiApp.h"` — added.
-- `TiAdmobUnifiedBannerAdView` `createBannerView` was being called from `init`,
-  but `self.proxy` is `nil` at init time (the proxy assignment happens AFTER
-  `init` returns in the Proxy's `createView`). The result was that
-  `bannerView` (GADBannerView) was never created and subsequent `loadAd`
-  calls silently bailed. Moved the `createBannerView` call to the Proxy's
-  `createView` method, where `self.proxy` has just been assigned.
-- `canShowPersonalizedAds` no longer does brittle parsing of the
-  `IABTCF_TCString` from NSUserDefaults. Returns `UMPConsentInformation`'s
-  `canRequestAds` instead — the SDK is the authoritative source.
-- `setAppVolume` is now a documented no-op. `GADMobileAds.applicationVolume`
-  was removed by Google. Method kept for parity/backwards compatibility.
-- `isTestDevice` actually queries `GADMobileAds.sharedInstance.requestConfiguration.testDeviceIdentifiers`
-  (previously returned `@NO` unconditionally).
-- Banner `pauseAd`/`resumeAd` no-ops documented as such (GADBannerView lifecycle
-  is handled automatically by iOS).
+- `TiAdmobUnifiedBannerAdView` `createBannerView` was being called from `init`, but `self.proxy` is `nil` at init time (the proxy assignment happens AFTER `init` returns in the Proxy's `createView`). The result was that `bannerView` (GADBannerView) was never created and subsequent `loadAd` calls silently bailed. Moved the `createBannerView` call to the Proxy's `createView` method, where `self.proxy` has just been assigned.
+- `canShowPersonalizedAds` no longer does brittle parsing of the `IABTCF_TCString` from NSUserDefaults. Returns `UMPConsentInformation`'s `canRequestAds` instead — the SDK is the authoritative source.
+- `setAppVolume` is now a documented no-op. `GADMobileAds.applicationVolume` was removed by Google. Method kept for parity/backwards compatibility.
+- `isTestDevice` actually queries `GADMobileAds.sharedInstance.requestConfiguration.testDeviceIdentifiers` (previously returned `@NO` unconditionally).
+- Banner `pauseAd`/`resumeAd` no-ops documented as such (GADBannerView lifecycle is handled automatically by iOS).
 
 ### Fixed — Android
-- Replaced deprecated `getCurrentOrientationAnchoredAdaptiveBannerAdSize` with
-  `getLargeAnchoredAdaptiveBannerAdSize` per Google's deprecation note.
-- `SMART_BANNER` case in `getAdSizeFromString` now falls back to `AdSize.BANNER`
-  with a logged note suggesting `createAdaptiveBanner()` for full-width.
-- Wrapped legacy `WindowManager.getDefaultDisplay().getMetrics()` fallback (used
-  on Android API <30 where `WindowMetrics` is unavailable) with
-  `@SuppressWarnings("deprecation")` to silence the noise from intentional
-  legacy code paths.
-- Wrapped deprecated `setTagForChildDirectedTreatment` + `setTagForUnderAgeOfConsent`
-  in a `setAgeRestrictionsLegacy` helper with `@SuppressWarnings("deprecation")`.
-  Google docs reference `setAgeRestrictedTreatment(AgeRestrictedTreatment)` as
-  the replacement but the API is not yet shipped in `play-services-ads 25.3.0`.
-  Helper will be replaced when the new API ships.
-- All distribution xcframework files under `ios/platform/` now have writable
-  permissions (`chmod u+w`). Some adapter xcframeworks (AppLovin in particular)
-  ship from Google with `r--r--r--` mode on Info.plist files. When a consumer
-  app re-extracts the module ZIP over an existing install, the overwrite hits
-  EACCES and silently keeps the old install. This was a recurring frustration
-  during the audit. Source files are now writable so the ZIP entries are too,
-  and re-installs no longer require manually `rm -rf modules/iphone/ti.admob.unified/`.
+- Replaced deprecated `getCurrentOrientationAnchoredAdaptiveBannerAdSize` with `getLargeAnchoredAdaptiveBannerAdSize` per Google's deprecation note.
+- `SMART_BANNER` case in `getAdSizeFromString` now falls back to `AdSize.BANNER` with a logged note suggesting `createAdaptiveBanner()` for full-width.
+- Wrapped legacy `WindowManager.getDefaultDisplay().getMetrics()` fallback (used on Android API <30 where `WindowMetrics` is unavailable) with `@SuppressWarnings("deprecation")` to silence the noise from intentional legacy code paths.
+- Wrapped deprecated `setTagForChildDirectedTreatment` + `setTagForUnderAgeOfConsent` in a `setAgeRestrictionsLegacy` helper with `@SuppressWarnings("deprecation")`. Google docs reference `setAgeRestrictedTreatment(AgeRestrictedTreatment)` as the replacement but the API is not yet shipped in `play-services-ads 25.3.0`. Helper will be replaced when the new API ships.
+- All distribution xcframework files under `ios/platform/` now have writable permissions (`chmod u+w`). Some adapter xcframeworks (AppLovin in particular) ship from Google with `r--r--r--` mode on Info.plist files. When a consumer app re-extracts the module ZIP over an existing install, the overwrite hits EACCES and silently keeps the old install. This was a recurring frustration during the audit. Source files are now writable so the ZIP entries are too, and re-installs no longer require manually `rm -rf modules/iphone/ti.admob.unified/`.
 
 ### Build / housekeeping
-- Audit doc: `AUDIT-2026-05.md` records the May 2026 toolchain validation and
-  all the iOS rescue work.
-- Roadmap doc: `ROADMAP.md` describes the 4 unimplemented ad types
-  (App Open, Rewarded Interstitial, Adaptive Banner iOS, Native) with API
-  surface, native classes, files to create, and effort estimates.
-- After this set of changes, `ti build -p android --build-only` and
-  `ti build -p ios --build-only` both produce zero warnings on the module's
-  own code (Android: GMA 25.3 deprecation warnings silenced with documented
-  suppressions; iOS: clean).
+- Audit doc: `AUDIT-2026-05.md` records the May 2026 toolchain validation and all the iOS rescue work.
+- Roadmap doc: `ROADMAP.md` describes the 4 unimplemented ad types (App Open, Rewarded Interstitial, Adaptive Banner iOS, Native) with API surface, native classes, files to create, and effort estimates.
+- After this set of changes, `ti build -p android --build-only` and `ti build -p ios --build-only` both produce zero warnings on the module's own code (Android: GMA 25.3 deprecation warnings silenced with documented suppressions; iOS: clean).
 
 ### Maintenance notes for future xcframework updates
 
-When dropping NEW vendor xcframeworks into `ios/platform/` (e.g. bumping
-GoogleMobileAds, an adapter, or a third-party SDK), vendors typically ship some
-internal files (Info.plist, Mach-O binary) with read-only mode. Before zipping
-the module, run:
+When dropping NEW vendor xcframeworks into `ios/platform/` (e.g. bumping GoogleMobileAds, an adapter, or a third-party SDK), vendors typically ship some internal files (Info.plist, Mach-O binary) with read-only mode. Before zipping the module, run:
 
 ```bash
 ./scripts/prepare-build.sh
 ```
 
-This sets `u+w` on all files in `ios/platform/`. Otherwise the resulting ZIP
-will have read-only entries and consumer apps will hit EACCES on subsequent
-module updates.
+This sets `u+w` on all files in `ios/platform/`. Otherwise the resulting ZIP will have read-only entries and consumer apps will hit EACCES on subsequent module updates.
 
 ### Added — iOS Adaptive Banner (parity with Android)
 
-- New proxy `TiAdmobUnifiedAdaptiveBannerAdProxy` with full-width adaptive
-  banners using `GADLargeAnchoredAdaptiveBannerAdSizeWithWidth`. The size is
-  computed dynamically at `loadAd` time based on the actual container width.
-- `Admob.createAdaptiveBanner({adUnitId})` on iOS now returns a real proxy
-  instead of `nil`. Paridad with the Android implementation. JS API:
+- New proxy `TiAdmobUnifiedAdaptiveBannerAdProxy` with full-width adaptive banners using `GADLargeAnchoredAdaptiveBannerAdSizeWithWidth`. The size is computed dynamically at `loadAd` time based on the actual container width.
+- `Admob.createAdaptiveBanner({adUnitId})` on iOS now returns a real proxy instead of `nil`. Paridad with the Android implementation. JS API:
   ```js
   var ad = Admob.createAdaptiveBanner({ adUnitId: '...', width: Ti.UI.FILL });
   container.add(ad);
@@ -418,17 +174,8 @@ module updates.
 - `TiAdmobUnifiedModule.m` `createAdaptiveBanner:` no longer returns `nil`.
 
 ### Fixed — iOS Banner runtime (the long-running bug)
-- `TiAdmobUnifiedBannerAdProxy` override of `createView` renamed to `newView`.
-  TitaniumKit 13.2 (TiDev era) calls `newView` to obtain the view, not
-  `createView` (the Appcelerator-era name). With `createView`, our override
-  was silently never called and the proxy received a generic `TiUIView`
-  placeholder — the container rendered with the correct frame but no ad
-  content inside. Renaming to `newView` immediately resolved the rendering.
-  Validated runtime on iPad Pro 13-inch simulator.
+- `TiAdmobUnifiedBannerAdProxy` override of `createView` renamed to `newView`. TitaniumKit 13.2 (TiDev era) calls `newView` to obtain the view, not `createView` (the Appcelerator-era name). With `createView`, our override was silently never called and the proxy received a generic `TiUIView` placeholder — the container rendered with the correct frame but no ad content inside. Renaming to `newView` immediately resolved the rendering. Validated runtime on iPad Pro 13-inch simulator.
 
 ### Superseded development notes
 
-Early `1.1.0` development notes listed iOS adaptive banners, mediation adapter
-updates, and a full method audit as unresolved. The final adaptive proxy was
-added later in the same development cycle. Version `1.2.0` removed third-party
-adapters from the core and completed the shared banner lifecycle audit.
+Early `1.1.0` development notes listed iOS adaptive banners, mediation adapter updates, and a full method audit as unresolved. The final adaptive proxy was added later in the same development cycle. Version `2.0.0` completed the shared banner lifecycle audit.

@@ -47,18 +47,18 @@ const androidAppOpen = read(
 )
 
 test('pins the unified ads and mediation dependency baseline', () => {
-  assert.match(read('ios/manifest'), /version: 1\.3\.0/)
-  assert.match(read('android/manifest'), /version: 1\.3\.0/)
+  assert.match(read('ios/manifest'), /version: 2\.0\.0/)
+  assert.match(read('android/manifest'), /version: 2\.0\.0/)
 
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.4\.0/)
   assert.match(androidGradle, /user-messaging-platform:4\.0\.0/)
   for (const coordinate of [
-    'facebook:6.21.0.4',
+    'facebook:6.22.0.0',
     'inmobi:11.4.0.0',
     'unity:4.19.0.0',
     'applovin:13.6.3.0',
-    'vungle:7.7.6.0',
+    'vungle:7.7.7.0',
     'ironsource:9.5.0.0'
   ]) {
     assert.match(
