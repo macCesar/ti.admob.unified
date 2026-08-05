@@ -310,8 +310,10 @@ test('keeps documentation on the implemented API surface', () => {
     assert.match(androidModule, new RegExp(method))
   }
 
-  assert.match(readme, /App Open \| Stable \| Stable/)
-  assert.match(readme, /Native \| Not implemented/)
+  // Tolerate the cell padding a Markdown formatter adds: the claim is which
+  // row says what, not how the table happens to be aligned.
+  assert.match(readme, /App Open\s*\|\s*Stable\s*\|\s*Stable/)
+  assert.match(readme, /Native\s*\|\s*Not implemented/)
   assert.doesNotMatch(readme, /TypeScript Ready|300.?400%/)
 })
 
