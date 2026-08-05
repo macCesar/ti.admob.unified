@@ -10,13 +10,13 @@ Use `createAdaptiveBanner()` for a banner anchored outside scrolling content. It
 
 Use `createBanner()` when the placement explicitly requires a fixed Google ad size such as `BANNER`, `MEDIUM_RECTANGLE`, or `LEADERBOARD`.
 
-| Capability | iOS | Android |
-|---|---|---|
-| Standard fixed-size banner | Yes | Yes |
-| Large anchored adaptive banner | Yes | Yes |
-| Inline adaptive banner | Yes | Yes |
-| Collapsible anchored banner | No | Experimental raw option |
-| Dynamic loaded height | Yes | Yes |
+| Capability                     | iOS | Android                 |
+| ------------------------------ | --- | ----------------------- |
+| Standard fixed-size banner     | Yes | Yes                     |
+| Large anchored adaptive banner | Yes | Yes                     |
+| Inline adaptive banner         | Yes | Yes                     |
+| Collapsible anchored banner    | No  | Experimental raw option |
+| Dynamic loaded height          | Yes | Yes                     |
 
 ## Adaptive banner
 
@@ -35,16 +35,16 @@ The proxy must be in the Titanium view hierarchy before `load()` so its native v
 
 ### Creation properties
 
-| Property | Type | iOS | Android | Notes |
-|---|---|---:|---:|---|
-| `adUnitId` | String | Yes | Yes | Required. |
-| `adaptiveType` | String | Yes | Yes | Defaults to `ADAPTIVE_ANCHORED`. |
-| `maxHeight` | Number | Inline only | Inline only | Maximum inline height in dp; both platforms default to `50`. |
-| `collapsible` | String | No | Experimental | Native placement string: `"top"` or `"bottom"`. |
-| `keywords` | String[] | Yes | Yes | Prefer contextual configuration in AdMob. |
-| `contentUrl` | String | Yes | Yes | URL describing surrounding content. |
-| `requestAgent` | String | Yes | Yes | Identifies what issued the request. |
-| `extras` | Object | Yes | Yes | Google adapter request extras. |
+| Property       | Type     |         iOS |      Android | Notes                                                        |
+| -------------- | -------- | ----------: | -----------: | ------------------------------------------------------------ |
+| `adUnitId`     | String   |         Yes |          Yes | Required.                                                    |
+| `adaptiveType` | String   |         Yes |          Yes | Defaults to `ADAPTIVE_ANCHORED`.                             |
+| `maxHeight`    | Number   | Inline only |  Inline only | Maximum inline height in dp; both platforms default to `50`. |
+| `collapsible`  | String   |          No | Experimental | Native placement string: `"top"` or `"bottom"`.              |
+| `keywords`     | String[] |         Yes |          Yes | Prefer contextual configuration in AdMob.                    |
+| `contentUrl`   | String   |         Yes |          Yes | URL describing surrounding content.                          |
+| `requestAgent` | String   |         Yes |          Yes | Identifies what issued the request.                          |
+| `extras`       | Object   |         Yes |          Yes | Google adapter request extras.                               |
 
 On iOS, the native implementation always creates a **large** anchored adaptive banner, and that is not a shortcut: Google deprecated the plain anchored functions in favour of the large ones. The large size is between 50 and 150 points tall and never exceeds 20% of the screen; the deprecated one capped at 90 points and 15%. If a shorter fixed strip is what you want, use `createBanner()` with `customAdSize`.
 
@@ -178,10 +178,10 @@ Call `pauseBanner()` when the screen that owns the placement stops being shown, 
 
 Two independent causes can hold a banner paused, and the module tracks them separately:
 
-| Cause | Trigger | Platform |
-|---|---|---|
-| Application | your `pause()` / `resume()` calls | Both |
-| Lifecycle | activity `onPause`/`onResume`, app background/foreground | Both, automatic |
+| Cause       | Trigger                                                  | Platform        |
+| ----------- | -------------------------------------------------------- | --------------- |
+| Application | your `pause()` / `resume()` calls                        | Both            |
+| Lifecycle   | activity `onPause`/`onResume`, app background/foreground | Both, automatic |
 
 **Neither cause resumes the other's pause.** A banner you paused because its tab is hidden stays paused when the app returns from the background, and a banner the lifecycle paused stays paused until the app is visible again — even if you called `resume()` meanwhile. A load deferred while paused waits for *every* cause to clear, so it never fires into a placement nobody is looking at.
 
@@ -205,11 +205,11 @@ Idempotently pauses the banner: it hides the native view and suspends the ad vie
 
 One effect is **not** symmetric, and the difference is in Google's SDKs, not in this module:
 
-| | iOS | Android |
-|---|---|---|
-| Hides the native view | Yes | Yes |
-| Suspends ad-view processing | Yes | Yes |
-| Stops the automatic refresh | Yes, via `autoloadEnabled` | **No** |
+|                             | iOS                        | Android |
+| --------------------------- | -------------------------- | ------- |
+| Hides the native view       | Yes                        | Yes     |
+| Suspends ad-view processing | Yes                        | Yes     |
+| Stops the automatic refresh | Yes, via `autoloadEnabled` | **No**  |
 
 `GADBannerView` exposes `autoloadEnabled`, so pausing stops the refresh explicitly on iOS. `BaseAdView` on Android exposes no refresh control at all, and `pause()` is documented only as pausing "extra processing".
 
@@ -318,15 +318,15 @@ banner.load()
 
 ### Creation properties
 
-| Property | Type | iOS | Android | Notes |
-|---|---|---:|---:|---|
-| `adUnitId` | String | Yes | Yes | Required. |
-| `adSize` | String | Yes | Yes | Defaults to `BANNER`. |
-| `customAdSize` | Object | Yes | Yes | `{ width, height }` in dp. Wins over `adSize`. Ignored unless both are positive. |
-| `keywords` | String[] | Yes | Yes | Request keywords. |
-| `contentUrl` | String | Yes | Yes | Surrounding content URL. |
-| `requestAgent` | String | Yes | Yes | Identifies what issued the request. |
-| `extras` | Object | Yes | Yes | Google adapter extras. |
+| Property       | Type     |  iOS | Android | Notes                                                                            |
+| -------------- | -------- | ---: | ------: | -------------------------------------------------------------------------------- |
+| `adUnitId`     | String   |  Yes |     Yes | Required.                                                                        |
+| `adSize`       | String   |  Yes |     Yes | Defaults to `BANNER`.                                                            |
+| `customAdSize` | Object   |  Yes |     Yes | `{ width, height }` in dp. Wins over `adSize`. Ignored unless both are positive. |
+| `keywords`     | String[] |  Yes |     Yes | Request keywords.                                                                |
+| `contentUrl`   | String   |  Yes |     Yes | Surrounding content URL.                                                         |
+| `requestAgent` | String   |  Yes |     Yes | Identifies what issued the request.                                              |
+| `extras`       | Object   |  Yes |     Yes | Google adapter extras.                                                           |
 
 `customAdSize` builds `new AdSize(width, height)` on Android and `GADAdSizeFromCGSize` on iOS, so one object produces the same request on both.
 
@@ -350,13 +350,13 @@ An oversized custom slot does not invent inventory: AdMob fills the sizes it sel
 
 Portable fixed sizes, with the device each one was designed for and the height its host view must reserve:
 
-| Constant | Size | Intended device |
-|---|---|---|
-| `BANNER` | 320×50 | Phone |
-| `LARGE_BANNER` | 320×100 | Phone |
-| `MEDIUM_RECTANGLE` | 300×250 | Tablet |
-| `FULLBANNER` | 468×60 | Tablet |
-| `LEADERBOARD` | 728×90 | Tablet |
+| Constant           | Size    | Intended device |
+| ------------------ | ------- | --------------- |
+| `BANNER`           | 320×50  | Phone           |
+| `LARGE_BANNER`     | 320×100 | Phone           |
+| `MEDIUM_RECTANGLE` | 300×250 | Tablet          |
+| `FULLBANNER`       | 468×60  | Tablet          |
+| `LEADERBOARD`      | 728×90  | Tablet          |
 
 Those are Google's own descriptions in `GADAdSize.h`, and the widths are the part that bites. A phone is 360–430 dp wide, so a `FULLBANNER` asks for 468 dp that the screen does not have: it cannot render at full size no matter what height you give its container. `BANNER` is not an outdated size — it is the phone size. For a full-width strip on a phone use `customAdSize` with the screen width, or an adaptive banner.
 

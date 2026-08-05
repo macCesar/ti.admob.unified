@@ -2,14 +2,14 @@
 
 Version `1.0.0` distributes six AdMob mediation networks on both platforms:
 
-| Ad source | iOS | Android | Shared JavaScript API |
-|---|---|---|---|
-| Meta Audience Network | Included | Included | Yes |
-| InMobi | Included | Included | Yes |
-| Unity Ads | Included | Included | Yes |
-| AppLovin | Included | Included | Yes |
-| Liftoff Monetize (Vungle) | Included | Included | Yes |
-| ironSource | Included | Included | Yes |
+| Ad source                 | iOS      | Android  | Shared JavaScript API |
+| ------------------------- | -------- | -------- | --------------------- |
+| Meta Audience Network     | Included | Included | Yes                   |
+| InMobi                    | Included | Included | Yes                   |
+| Unity Ads                 | Included | Included | Yes                   |
+| AppLovin                  | Included | Included | Yes                   |
+| Liftoff Monetize (Vungle) | Included | Included | Yes                   |
+| ironSource                | Included | Included | Yes                   |
 
 Applications use the normal `createBanner()`, `createAdaptiveBanner()`, `createInterstitial()`, `createRewarded()`, and `createAppOpen()` factories. AdMob discovers the native adapters; no iOS/Android condition is needed to select a mediated network.
 

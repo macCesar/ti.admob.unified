@@ -132,13 +132,13 @@ Google documents that an app open ad expires four hours after it was requested. 
 
 All three factories accept:
 
-| Property | Type | Default | Notes |
-|---|---|---|---|
-| `adUnitId` | String | `""` | Required before `load()`. |
-| `autoReload` | Boolean | `false` | Loads a fresh ad after a successful close, and after nothing else. |
-| `keywords` | String[] | None | Request keywords, applied as targeting on both platforms. |
-| `requestAgent` | String | None | Identifies what issued the request. Android only for these three types; see the note below. |
-| `extras` | Object | None | Forwarded through Google ad-network extras on both platforms. |
+| Property       | Type     | Default | Notes                                                                                       |
+| -------------- | -------- | ------- | ------------------------------------------------------------------------------------------- |
+| `adUnitId`     | String   | `""`    | Required before `load()`.                                                                   |
+| `autoReload`   | Boolean  | `false` | Loads a fresh ad after a successful close, and after nothing else.                          |
+| `keywords`     | String[] | None    | Request keywords, applied as targeting on both platforms.                                   |
+| `requestAgent` | String   | None    | Identifies what issued the request. Android only for these three types; see the note below. |
+| `extras`       | Object   | None    | Forwarded through Google ad-network extras on both platforms.                               |
 
 Do not use `extras` to bypass UMP or synthesize personalization state.
 
@@ -146,12 +146,12 @@ Do not use `extras` to bypass UMP or synthesize personalization state.
 
 ## Shared methods
 
-| Method | Description |
-|---|---|
-| `load()` | Starts one request. Calls while loading, loaded, or showing are ignored. App open discards an expired ad first. |
-| `show()` | Presents the loaded ad or emits `failed_to_show`. |
-| `isLoaded()` | Returns `true` only while an unused ad is ready. For app open, an ad older than four hours is not ready. |
-| `destroy()` | Terminal, idempotent cleanup; emits `destroyed` once. |
+| Method       | Description                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------- |
+| `load()`     | Starts one request. Calls while loading, loaded, or showing are ignored. App open discards an expired ad first. |
+| `show()`     | Presents the loaded ad or emits `failed_to_show`.                                                               |
+| `isLoaded()` | Returns `true` only while an unused ad is ready. For app open, an ad older than four hours is not ready.        |
+| `destroy()`  | Terminal, idempotent cleanup; emits `destroyed` once.                                                           |
 
 Google fullscreen ads are single-use. After a presentation or a show failure the proxy holds no ad: its native reference is cleared and `isLoaded()` turns `false`. Call `load()` again before the next `show()`.
 
@@ -175,18 +175,18 @@ Reloading is not the same as recreating. Reuse the same proxy across loads, and 
 
 ### Common events
 
-| Event | Interstitial | Rewarded | App open | Common payload |
-|---|---:|---:|---:|---|
-| `loaded` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `failed_to_load` | Yes | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
-| `opened` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `showed_fullscreen_content` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `closed` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `clicked` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `impression` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `failed_to_show` | Yes | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
-| `destroyed` | Yes | Yes | Yes | `adUnitId`, `adType` |
-| `rewarded` | No | Yes | No | `adUnitId`, `adType`, `rewardType`, `rewardAmount` |
+| Event                       | Interstitial | Rewarded | App open | Common payload                                     |
+| --------------------------- | -----------: | -------: | -------: | -------------------------------------------------- |
+| `loaded`                    |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `failed_to_load`            |          Yes |      Yes |      Yes | `adUnitId`, `adType`, `error`, `message`, `code`   |
+| `opened`                    |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `showed_fullscreen_content` |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `closed`                    |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `clicked`                   |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `impression`                |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `failed_to_show`            |          Yes |      Yes |      Yes | `adUnitId`, `adType`, `error`, `message`, `code`   |
+| `destroyed`                 |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
+| `rewarded`                  |           No |      Yes |       No | `adUnitId`, `adType`, `rewardType`, `rewardAmount` |
 
 `message` intentionally duplicates `error` for compatibility. New code may use `error`; both keys are portable.
 

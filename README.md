@@ -8,26 +8,26 @@ Replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See 
 
 ## Requirements
 
-| Component | Baseline |
-|---|---|
-| Titanium SDK | `13.4.0.GA` |
-| iOS | `15.0+` |
-| Android | API `24+` |
-| Google Mobile Ads iOS | `13.7.0` |
-| UMP iOS | `3.1.0` |
-| Google Mobile Ads Android | `25.4.0` |
-| UMP Android | `4.0.0` |
+| Component                 | Baseline    |
+| ------------------------- | ----------- |
+| Titanium SDK              | `13.4.0.GA` |
+| iOS                       | `15.0+`     |
+| Android                   | API `24+`   |
+| Google Mobile Ads iOS     | `13.7.0`    |
+| UMP iOS                   | `3.1.0`     |
+| Google Mobile Ads Android | `25.4.0`    |
+| UMP Android               | `4.0.0`     |
 
 ## Mediation
 
-| Ad source | iOS adapter | Android adapter |
-|---|---:|---:|
-| Meta Audience Network | `6.21.1.1.1` | `6.22.0.0` |
-| InMobi | `11.4.0.0` | `11.4.0.0` |
-| Unity Ads | `4.19.0.0` | `4.19.0.0` |
-| AppLovin | `13.6.3.0` | `13.6.3.0` |
-| Liftoff Monetize (Vungle) | `7.7.5.0` | `7.7.7.0` |
-| ironSource | `9.5.0.0.0` | `9.5.0.0` |
+| Ad source                 |  iOS adapter | Android adapter |
+| ------------------------- | -----------: | --------------: |
+| Meta Audience Network     | `6.21.1.1.1` |      `6.22.0.0` |
+| InMobi                    |   `11.4.0.0` |      `11.4.0.0` |
+| Unity Ads                 |   `4.19.0.0` |      `4.19.0.0` |
+| AppLovin                  |   `13.6.3.0` |      `13.6.3.0` |
+| Liftoff Monetize (Vungle) |    `7.7.5.0` |       `7.7.7.0` |
+| ironSource                |  `9.5.0.0.0` |       `9.5.0.0` |
 
 The adapters are discovered automatically by Google Mobile Ads. Do not add platform checks or call a different ad factory for a mediated request. Publisher accounts, ad-source mappings, privacy declarations, and provider credentials are still configured outside the module.
 
@@ -39,17 +39,17 @@ Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level va
 
 ## Supported formats
 
-| Format | iOS | Android |
-|---|---|---|
-| Standard banner | Stable | Stable |
-| Anchored adaptive banner | Stable | Stable |
-| Inline adaptive banner | Stable | Stable |
-| Collapsible banner | Not implemented | Experimental raw option |
-| Interstitial | Stable | Stable |
-| Rewarded | Stable | Stable |
-| App Open | Stable | Stable |
-| Rewarded interstitial | Not implemented | Not implemented |
-| Native | Not implemented | Not implemented |
+| Format                   | iOS             | Android                 |
+| ------------------------ | --------------- | ----------------------- |
+| Standard banner          | Stable          | Stable                  |
+| Anchored adaptive banner | Stable          | Stable                  |
+| Inline adaptive banner   | Stable          | Stable                  |
+| Collapsible banner       | Not implemented | Experimental raw option |
+| Interstitial             | Stable          | Stable                  |
+| Rewarded                 | Stable          | Stable                  |
+| App Open                 | Stable          | Stable                  |
+| Rewarded interstitial    | Not implemented | Not implemented         |
+| Native                   | Not implemented | Not implemented         |
 
 Standard, adaptive, interstitial, rewarded, and app open proxies use portable lifecycle and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md) for the single-use, reward, and four-hour-expiry rules.
 

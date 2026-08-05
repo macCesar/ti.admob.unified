@@ -82,16 +82,16 @@ These improvements can be developed without changing the established banner and 
 
 The project's contract is that both platforms expose an identical JavaScript surface. An audit against the native sources on 5 August 2026 found eight places where they do not. These are code defects, not documentation gaps, and each one needs tests and device validation before it can be closed.
 
-| Divergence | Impact |
-|---|---|
-| `requestAgent` is dropped by the three iOS fullscreen proxies. They configure themselves from the creation dictionary by hand rather than through `_initWithProperties:`, and that code never reads the key. Both banner types read it on both platforms, and all three fullscreen types read it on Android. | High |
-| `extras` is a live property on iOS and creation-only on Android. Assigning it after creating a banner does nothing on Android, and reading it back returns `undefined`. | High |
-| The adaptive `loaded` payload carries seven size keys on Android and two on iOS. Only `height` and `heightUnit` are documented as portable, but the asymmetry invites platform-specific code. | High |
-| Fullscreen proxies expose their internal state as readable properties on iOS and none on Android, and the iOS properties also expose the native handle (`GADInterstitialAd`) to JavaScript. | High |
-| `module_initialized` has no error branch on iOS: a failure inside `startWithCompletionHandler` is reported as `success: true`. | High |
-| `collapsible` is Android-only. | Known, documented as an exception |
-| iOS filters banner events by whether a listener is registered; Android emits them unconditionally. | Low |
-| `DEBUG_GEOGRAPHY_REGULATED_US_STATE` is the literal `@(3)` on iOS instead of the SDK's own enum value. | Low |
+| Divergence                                                                                                                                                                                                                                                                                                   | Impact                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------- |
+| `requestAgent` is dropped by the three iOS fullscreen proxies. They configure themselves from the creation dictionary by hand rather than through `_initWithProperties:`, and that code never reads the key. Both banner types read it on both platforms, and all three fullscreen types read it on Android. | High                              |
+| `extras` is a live property on iOS and creation-only on Android. Assigning it after creating a banner does nothing on Android, and reading it back returns `undefined`.                                                                                                                                      | High                              |
+| The adaptive `loaded` payload carries seven size keys on Android and two on iOS. Only `height` and `heightUnit` are documented as portable, but the asymmetry invites platform-specific code.                                                                                                                | High                              |
+| Fullscreen proxies expose their internal state as readable properties on iOS and none on Android, and the iOS properties also expose the native handle (`GADInterstitialAd`) to JavaScript.                                                                                                                  | High                              |
+| `module_initialized` has no error branch on iOS: a failure inside `startWithCompletionHandler` is reported as `success: true`.                                                                                                                                                                               | High                              |
+| `collapsible` is Android-only.                                                                                                                                                                                                                                                                               | Known, documented as an exception |
+| iOS filters banner events by whether a listener is registered; Android emits them unconditionally.                                                                                                                                                                                                           | Low                               |
+| `DEBUG_GEOGRAPHY_REGULATED_US_STATE` is the literal `@(3)` on iOS instead of the SDK's own enum value.                                                                                                                                                                                                       | Low                               |
 
 ## Deferred formats
 

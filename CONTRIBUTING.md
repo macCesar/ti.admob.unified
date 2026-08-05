@@ -56,14 +56,14 @@ The two native implementations are separate codebases held to one JavaScript con
 
 Sources live in `ios/Classes/`. Five proxy pairs and the module:
 
-| Source | Responsibility |
-|---|---|
-| `TiAdmobUnifiedModule.*` | Module constants, UMP, ATT, initialization, and factories |
-| `TiAdmobUnifiedBannerAdProxy.*` | Standard banner proxy and native view |
+| Source                                  | Responsibility                                            |
+| --------------------------------------- | --------------------------------------------------------- |
+| `TiAdmobUnifiedModule.*`                | Module constants, UMP, ATT, initialization, and factories |
+| `TiAdmobUnifiedBannerAdProxy.*`         | Standard banner proxy and native view                     |
 | `TiAdmobUnifiedAdaptiveBannerAdProxy.*` | Anchored and inline adaptive banner proxy and native view |
-| `TiAdmobUnifiedInterstitialAdProxy.*` | Interstitial proxy |
-| `TiAdmobUnifiedRewardedAdProxy.*` | Rewarded proxy |
-| `TiAdmobUnifiedAppOpenAdProxy.*` | App open proxy and the four hour validity window |
+| `TiAdmobUnifiedInterstitialAdProxy.*`   | Interstitial proxy                                        |
+| `TiAdmobUnifiedRewardedAdProxy.*`       | Rewarded proxy                                            |
+| `TiAdmobUnifiedAppOpenAdProxy.*`        | App open proxy and the four hour validity window          |
 
 Build from the module root:
 
@@ -87,14 +87,14 @@ iOS-specific public behavior:
 
 Sources live in `android/src/ti/admob/unified/`. The banner types split proxy and view; the fullscreen types do not:
 
-| Source | Responsibility |
-|---|---|
-| `TiAdmobUnifiedModule.java` | Module constants, UMP, initialization, and factories |
-| `TiAdmobUnifiedBannerAdProxy.java` / `…AdView.java` | Standard banner proxy and native `AdView` |
-| `TiAdmobUnifiedAdaptiveBannerAdProxy.java` / `…AdView.java` | Adaptive banner proxy and native container |
-| `TiAdmobUnifiedInterstitialAdProxy.java` | Interstitial proxy |
-| `TiAdmobUnifiedRewardedAdProxy.java` | Rewarded proxy |
-| `TiAdmobUnifiedAppOpenAdProxy.java` | App open proxy and the four hour validity window |
+| Source                                                      | Responsibility                                       |
+| ----------------------------------------------------------- | ---------------------------------------------------- |
+| `TiAdmobUnifiedModule.java`                                 | Module constants, UMP, initialization, and factories |
+| `TiAdmobUnifiedBannerAdProxy.java` / `…AdView.java`         | Standard banner proxy and native `AdView`            |
+| `TiAdmobUnifiedAdaptiveBannerAdProxy.java` / `…AdView.java` | Adaptive banner proxy and native container           |
+| `TiAdmobUnifiedInterstitialAdProxy.java`                    | Interstitial proxy                                   |
+| `TiAdmobUnifiedRewardedAdProxy.java`                        | Rewarded proxy                                       |
+| `TiAdmobUnifiedAppOpenAdProxy.java`                         | App open proxy and the four hour validity window     |
 
 Maven coordinates are declared in `android/build.gradle`. Build from the module root:
 

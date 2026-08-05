@@ -22,11 +22,11 @@ Google's UMP guidance also requires a consent-information update every app sessi
 
 Starts the UMP consent-information update and immediately loads/presents a form if one is required.
 
-| Property | Type | Default | Description |
-|---|---|---|---|
-| `geography` | Number | Native default | A `DEBUG_GEOGRAPHY_*` constant. Development only. |
-| `testDeviceIds` | String[] | `[]` | UMP hashed test-device identifiers. Used when `geography` is supplied. |
-| `tagForUnderAgeOfConsent` | Boolean | `false` | Marks the consent request as under age of consent. |
+| Property                  | Type     | Default        | Description                                                            |
+| ------------------------- | -------- | -------------- | ---------------------------------------------------------------------- |
+| `geography`               | Number   | Native default | A `DEBUG_GEOGRAPHY_*` constant. Development only.                      |
+| `testDeviceIds`           | String[] | `[]`           | UMP hashed test-device identifiers. Used when `geography` is supplied. |
+| `tagForUnderAgeOfConsent` | Boolean  | `false`        | Marks the consent request as under age of consent.                     |
 
 Use `{}` when no options are needed:
 
@@ -104,13 +104,13 @@ Google Mobile Ads applies the privacy signals collected by UMP.
 
 Configures the global Google Mobile Ads request settings and initializes the SDK.
 
-| Property | Type | Description |
-|---|---|---|
-| `testDeviceIds` | String[] | Google Mobile Ads test-device identifiers. |
-| `ageRestrictedTreatment` | String | One `AGE_RESTRICTED_TREATMENT_*` constant. |
-| `maxAdContentRating` | String | One `MAX_AD_CONTENT_RATING_*` constant. |
-| `tagForChildDirectedTreatment` | Boolean | Deprecated compatibility input; maps to child/unspecified. |
-| `tagForUnderAgeOfConsent` | Boolean | Deprecated initialization input; maps to child/unspecified. This is distinct from the UMP option with the same name. |
+| Property                       | Type     | Description                                                                                                          |
+| ------------------------------ | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| `testDeviceIds`                | String[] | Google Mobile Ads test-device identifiers.                                                                           |
+| `ageRestrictedTreatment`       | String   | One `AGE_RESTRICTED_TREATMENT_*` constant.                                                                           |
+| `maxAdContentRating`           | String   | One `MAX_AD_CONTENT_RATING_*` constant.                                                                              |
+| `tagForChildDirectedTreatment` | Boolean  | Deprecated compatibility input; maps to child/unspecified.                                                           |
+| `tagForUnderAgeOfConsent`      | Boolean  | Deprecated initialization input; maps to child/unspecified. This is distinct from the UMP option with the same name. |
 
 `applicationId` and `debugGeography` are not initialization properties.
 
@@ -158,12 +158,12 @@ Treat `status` as diagnostic text, not a stable machine-readable value.
 
 On iOS, the numeric status follows Apple's `ATTrackingManagerAuthorizationStatus`:
 
-| Value | Meaning |
-|---:|---|
-| `0` | Not determined |
-| `1` | Restricted |
-| `2` | Denied |
-| `3` | Authorized |
+| Value | Meaning        |
+| ----: | -------------- |
+|   `0` | Not determined |
+|   `1` | Restricted     |
+|   `2` | Denied         |
+|   `3` | Authorized     |
 
 On Android, ATT does not apply. The method completes synchronously with `status: 3`, `authorized: true`, and `applicable: false`, allowing the same listener and call site on both platforms.
 

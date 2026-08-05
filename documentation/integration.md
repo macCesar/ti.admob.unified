@@ -8,12 +8,12 @@ The module owns the native SDKs, the privacy plumbing, and one portable proxy co
 
 Four responsibilities stay with the application, because none of them can be decided from inside a module that does not know your screens:
 
-| Responsibility | Why the module cannot own it |
-|---|---|
-| **Sequence the start-up** | Consent, the `canRequestAds()` gate, `initialize()`, and ad creation must happen in that order, once per session. The module exposes each step and enforces none of the ordering. |
-| **Turn events into promises** | `requestConsent()` and `initialize()` answer through module-level events, not callbacks. Awaiting them is the difference between a readable start-up and a pile of nested listeners. |
-| **Reserve layout space** | Only the application knows which view the banner sits in and what it must not cover. |
-| **Rebuild when the world changes** | A banner cannot be resized and cannot change its ad unit. A rotation, a split-view resize, or a consent change means destroying the proxy and creating a new one. |
+| Responsibility                     | Why the module cannot own it                                                                                                                                                         |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Sequence the start-up**          | Consent, the `canRequestAds()` gate, `initialize()`, and ad creation must happen in that order, once per session. The module exposes each step and enforces none of the ordering.    |
+| **Turn events into promises**      | `requestConsent()` and `initialize()` answer through module-level events, not callbacks. Awaiting them is the difference between a readable start-up and a pile of nested listeners. |
+| **Reserve layout space**           | Only the application knows which view the banner sits in and what it must not cover.                                                                                                 |
+| **Rebuild when the world changes** | A banner cannot be resized and cannot change its ad unit. A rotation, a split-view resize, or a consent change means destroying the proxy and creating a new one.                    |
 
 Everything below is one way to discharge those four, extracted from a shipping application. Copy it and change the parts the next section marks as yours.
 
@@ -285,17 +285,17 @@ Call `pause()` when the screen that owns the placement stops being shown, `resum
 
 ## What is generic and what every application decides
 
-| Piece | Generic | Yours |
-|---|---|---|
-| `waitForEvent()` | Yes | — |
-| Consent → gate → `initialize()` order | Yes | — |
-| `reserve()` moving host, proxy, and content together | Yes | — |
-| Named listeners removed before `destroy()` | Yes | — |
-| Ad unit IDs per build type | — | Test IDs while developing, production IDs behind an explicit switch |
-| `disableMediation` | — | `true` for AdMob-only demand, `false` when the app really mediates. See [mediation](mediation.md) |
-| Banner type and size | — | `createBanner()` with a fixed size, or `createAdaptiveBanner()`. See [banners](banners.md#choose-a-banner-type) |
-| When a placement is paused | — | Which of your screens counts as "not shown" |
-| Platform quirks | — | Anything only your app's layout runs into |
+| Piece                                                | Generic | Yours                                                                                                           |
+| ---------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------- |
+| `waitForEvent()`                                     | Yes     | —                                                                                                               |
+| Consent → gate → `initialize()` order                | Yes     | —                                                                                                               |
+| `reserve()` moving host, proxy, and content together | Yes     | —                                                                                                               |
+| Named listeners removed before `destroy()`           | Yes     | —                                                                                                               |
+| Ad unit IDs per build type                           | —       | Test IDs while developing, production IDs behind an explicit switch                                             |
+| `disableMediation`                                   | —       | `true` for AdMob-only demand, `false` when the app really mediates. See [mediation](mediation.md)               |
+| Banner type and size                                 | —       | `createBanner()` with a fixed size, or `createAdaptiveBanner()`. See [banners](banners.md#choose-a-banner-type) |
+| When a placement is paused                           | —       | Which of your screens counts as "not shown"                                                                     |
+| Platform quirks                                      | —       | Anything only your app's layout runs into                                                                       |
 
 One concrete example of the right-hand column: a personal-finance app shipping this module reads its ad unit IDs from build configuration and refuses to serve production IDs unless every ID is filled in and an explicit flag is set; picks `FULLBANNER` over `BANNER` when the display is at least `468dp` wide, deciding from the display width rather than from the measured host; and collapses the slot while the Android soft keyboard squeezes the container. None of those belong in a starter — they are that application's answers, and yours will differ.
 

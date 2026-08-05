@@ -120,16 +120,16 @@ const rewardedId = Admob.TEST_REWARDED
 
 Not every constant has a factory to pass it to. The module exports the full set for compatibility, but two of the formats behind them are not implemented:
 
-| Constant | Factory that accepts it |
-|---|---|
-| `TEST_BANNER` | `createBanner()` |
-| `TEST_ADAPTIVE_BANNER` | `createAdaptiveBanner()` |
-| `TEST_INTERSTITIAL` | `createInterstitial()` |
-| `TEST_INTERSTITIAL_VIDEO` | `createInterstitial()` — same API, video creative |
-| `TEST_REWARDED` | `createRewarded()` |
-| `TEST_REWARDED_INTERSTITIAL` | None. Reserved; the format is not implemented |
-| `TEST_NATIVE` | None. Reserved; the format is not implemented |
-| `TEST_APP_OPEN` | `createAppOpen()` |
+| Constant                     | Factory that accepts it                           |
+| ---------------------------- | ------------------------------------------------- |
+| `TEST_BANNER`                | `createBanner()`                                  |
+| `TEST_ADAPTIVE_BANNER`       | `createAdaptiveBanner()`                          |
+| `TEST_INTERSTITIAL`          | `createInterstitial()`                            |
+| `TEST_INTERSTITIAL_VIDEO`    | `createInterstitial()` — same API, video creative |
+| `TEST_REWARDED`              | `createRewarded()`                                |
+| `TEST_REWARDED_INTERSTITIAL` | None. Reserved; the format is not implemented     |
+| `TEST_NATIVE`                | None. Reserved; the format is not implemented     |
+| `TEST_APP_OPEN`              | `createAppOpen()`                                 |
 
 See [Reserved and unavailable APIs](api-reference.md#reserved-and-unavailable-apis).
 
