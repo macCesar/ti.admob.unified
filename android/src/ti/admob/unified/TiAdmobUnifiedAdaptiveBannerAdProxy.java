@@ -333,6 +333,23 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 			bannerView.setContentUrl(contentUrl);
 		}
 	}
+
+	@Kroll.getProperty
+	public String getRequestAgent()
+	{
+		return TiConvert.toString(getProperty("requestAgent"));
+	}
+
+	@Kroll.setProperty
+	public void setRequestAgent(String requestAgent)
+	{
+		Log.d(LCAT, "Setting request agent: " + requestAgent);
+		setProperty("requestAgent", requestAgent);
+
+		if (bannerView != null) {
+			bannerView.setRequestAgent(requestAgent);
+		}
+	}
 	
 	// TiLifecycle.OnLifecycleEvent implementation
 	@Override

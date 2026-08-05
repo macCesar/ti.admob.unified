@@ -15,8 +15,15 @@
 // Configuration properties
 @property (nonatomic, strong) NSString *adUnitId;
 @property (nonatomic, strong) NSString *adSize;
+// { width, height } in density-independent points, matching Android. When set
+// and valid, it wins over adSize.
+@property (nonatomic, strong) NSDictionary *customAdSize;
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
+@property (nonatomic, strong) NSString *contentUrl;
+// Identifies what issued the request. Google reserves it for libraries that
+// wrap the SDK, which is exactly what this module is.
+@property (nonatomic, strong) NSString *requestAgent;
 
 // Public methods
 - (void)load:(id)args;
@@ -30,5 +37,6 @@
 // Internal methods
 - (void)fireAdEvent:(NSString *)eventName withData:(NSDictionary *)data;
 + (GADAdSize)getAdSizeFromString:(NSString *)sizeString;
++ (GADAdSize)adSizeForString:(NSString *)sizeString customSize:(NSDictionary *)customSize;
 
 @end

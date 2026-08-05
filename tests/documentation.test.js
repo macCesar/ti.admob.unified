@@ -166,7 +166,21 @@ test('provides a modern, safe executable example', () => {
   assert.doesNotMatch(example, /setTimeout|setInterval/)
   assert.doesNotMatch(example, /applicationId|debugGeography/)
   assert.doesNotMatch(example, /ca-app-pub-\d+\/\d+/)
-  assert.doesNotMatch(example, /height:\s*(50|90|123)\b/)
+
+  // A hardcoded height is only wrong when it guesses what the ad will be. The
+  // height inside customAdSize is the opposite: it is the size being requested,
+  // and the slot can be reserved before the ad arrives precisely because of it.
+  const guessedHeights = example.replace(/customAdSize:\s*\{[^}]*\}/g, '')
+  assert.doesNotMatch(guessedHeights, /height:\s*(50|90|123)\b/)
+
+  // The example must exercise the fixed full-width slot, which is the shape
+  // most applications actually want and the one iOS could not request before.
+  assert.match(example, /customAdSize: \{ width: screenWidthInDp\(\), height: 50 \}/)
+  assert.match(example, /platformWidth \/ caps\.logicalDensityFactor/)
+
+  // platformWidth is pixels on Android and points on iOS. Dividing on both is
+  // the mistake that looks right, so the example must branch.
+  assert.match(example, /Ti\.Platform\.osname === 'android'/)
 })
 
 test('states portable banner and fullscreen contracts', () => {
@@ -175,12 +189,12 @@ test('states portable banner and fullscreen contracts', () => {
 
   assert.match(banners, /heightUnit: 'dp'/)
   assert.match(banners, /Do not hardcode a height/)
-  assert.match(banners, /Inline adaptive banner \| No \| Yes/)
-  assert.match(banners, /requires the native value `"top"` or `"bottom"`/)
-  assert.match(
-    banners,
-    /do not pass\s+those constants to `collapsible`/
-  )
+  // Inline landed on iOS in 1.3.0; collapsible stays Android-only and still
+  // takes Google's own placement string, now that the two constants that
+  // could never produce one are gone.
+  assert.match(banners, /`ADAPTIVE_INLINE` and `maxHeight` work on both platforms/)
+  assert.match(banners, /takes Google's native placement string/)
+  assert.match(banners, /were removed in `1\.3\.0`/)
   assert.match(banners, /content\.bottom = dimension/)
   assert.match(banners, /removeEventListener/)
   assert.match(banners, /Do not add a JavaScript renewal timer/)
@@ -212,8 +226,7 @@ test('marks the test constants that have no factory as reserved', () => {
 
   for (const constant of [
     'TEST_REWARDED_INTERSTITIAL',
-    'TEST_NATIVE',
-    'TEST_APP_OPEN'
+    'TEST_NATIVE'
   ]) {
     const reserved = new RegExp(`\`${constant}\`[^\\n]*None\\. Reserved`)
 

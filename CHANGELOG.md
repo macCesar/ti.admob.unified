@@ -5,7 +5,88 @@ All notable changes to `ti.admob.unified` will be documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the
 project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.1] — Unreleased
+## [1.3.0] — Unreleased
+
+### Added
+
+- App open ads, on iOS and Android, through `createAppOpen(config)`. It is the
+  only format present in both modules this one replaces, and until now the
+  platforms diverged on it: iOS declared a stub that returned no proxy and
+  Android did not export the symbol at all, so the same JavaScript failed
+  differently on each. The new proxy copies the interstitial contract exactly —
+  `load()`, `show()`, `isLoaded()`, `destroy()`; `adUnitId`, `autoReload`,
+  `keywords`, `extras`; the nine shared events with `adType: "app_open"` — so
+  there is no new surface to learn. `AD_TYPE_APP_OPEN` and `TEST_APP_OPEN` are
+  unchanged and simply stop being reserved.
+- App open ads enforce Google's four hour validity window, which no other
+  fullscreen format has. Google documents that an ad rendered more than four
+  hours after the request is no longer valid and may not earn revenue, so the
+  proxy stamps the load time, reports `isLoaded()` as `false` once the window
+  closes, and answers `show()` on an expired ad by clearing the native
+  reference and emitting `failed_to_show` with code `1` and the message
+  `App open ad expired after four hours`. `load()` discards an expired ad
+  before requesting a new one, so a reload is not swallowed by the
+  duplicate-load guard. There is no timer and no background work: the check is
+  a subtraction performed only when something asks. `autoReload` is unchanged
+  and still reloads after `closed` and nothing else, so reloading after expiry
+  stays the application's decision.
+- `customAdSize` on iOS, closing the gap that made a fixed full-width strip
+  impossible there. Android already accepted `{ width, height }` in dp and
+  built `new AdSize(width, height)`; iOS now builds `GADAdSizeFromCGSize` from
+  the same object, so one placement definition serves both. It takes precedence
+  over `adSize` and is ignored unless both values are positive, matching
+  Android's rejection of an invalid size. Until now the only full-width option
+  on iOS was the adaptive banner, which picks its own height.
+- `contentUrl` on both iOS banner proxies, and `keywords`, `contentUrl` and
+  `extras` on the iOS adaptive banner, which sent a bare request.
+- Inline adaptive banners and `maxHeight` on iOS, through
+  `GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight`. `ADAPTIVE_INLINE` was an
+  exported constant that did nothing on iOS; the format is portable now, with
+  the same `50` default Android uses. `maxHeight` applies to inline only,
+  because anchored banners let Google fix their own height.
+- `requestAgent` on all five placements and both platforms, mapping to
+  `GADRequest.requestAgent` and `AbstractAdRequestBuilder.setRequestAgent`.
+  Google documents it for libraries that wrap the SDK, so an application
+  migrating from `ti.admob` can keep identifying its requests as it did before.
+  It is applied only when non-empty.
+
+### Changed
+
+- The `adaptiveType` event payload is now identical on both platforms. iOS
+  emitted a shortened `"anchored"` while Android echoed the constant back as
+  `"adaptive_anchored"`, so `event.adaptiveType === Admob.ADAPTIVE_ANCHORED`
+  was true on Android and false on iOS. Both return the constant now, and the
+  documentation no longer tells you to distrust the value.
+
+### Removed
+
+- `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM`. They held `"collapsible_top"` and
+  `"collapsible_bottom"`, and both platforms forwarded the value verbatim to
+  Google, which accepts only `"top"` and `"bottom"` — so every use of these
+  constants built an invalid request. A constant that cannot be passed anywhere
+  is not API. The `collapsible` property is unchanged and still takes the native
+  string on Android.
+- The `smart_banner` special case. Google removed the size from the Android SDK
+  and deprecated it on iOS, and the module translated the same value into two
+  different ads: a fixed 320×50 on Android, a full-width strip on iOS. It now
+  falls through to `BANNER` on both, like any other unknown value. **This
+  changes behaviour on iOS**, where the value used to yield a full-width banner;
+  `customAdSize` is the replacement, and it exists on iOS as of this release.
+
+### Fixed
+
+- iOS placements stopped sending untargeted ad requests. `keywords` were folded
+  into `GADExtras.additionalParameters` under a `"keywords"` key on the
+  interstitial, rewarded and app open proxies — but that class is Google's
+  channel for *mediation adapter* parameters, not targeting, so the keywords
+  never reached the request. The fixed banner did not even try: it logged
+  `Keywords specified but not applied (not supported in current GAD version)`
+  and dropped them. That claim was wrong; `GADRequest.keywords` is declared in
+  the bundled GoogleMobileAds 13.7.0 and is the counterpart of Android's
+  `AdRequest.Builder.addKeyword`. All five placements now set it.
+- `banners.md` described the symptom of that bug as the contract, marking
+  `keywords` and `extras` as "Accepted, not applied" on iOS. Both are applied
+  now, and the table says so.
 
 ### Added
 
@@ -63,8 +144,8 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - `banners.md` documents who may pause a placement, and that hiding a banner
   that has not loaded yet prevents it from loading at all on Android.
 - The `TEST_*` constants are documented by whether a factory accepts them.
-  `TEST_REWARDED_INTERSTITIAL`, `TEST_NATIVE`, and `TEST_APP_OPEN` are marked
-  reserved, since the formats behind them are not implemented, and
+  `TEST_REWARDED_INTERSTITIAL` and `TEST_NATIVE` are marked reserved, since the
+  formats behind them are not implemented, and
   `TEST_INTERSTITIAL_VIDEO` is documented as an ordinary `createInterstitial()`
   unit with a video creative rather than as a variant with no home.
 - The documentation index leads with integration and gives fullscreen ads the

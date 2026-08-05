@@ -71,8 +71,11 @@ public class TiAdmobUnifiedModule extends KrollModule
 	@Kroll.constant public static final String LEADERBOARD = "leaderboard";
 	@Kroll.constant public static final String ADAPTIVE_ANCHORED = "adaptive_anchored";
 	@Kroll.constant public static final String ADAPTIVE_INLINE = "adaptive_inline";
-	@Kroll.constant public static final String COLLAPSIBLE_TOP = "collapsible_top";
-	@Kroll.constant public static final String COLLAPSIBLE_BOTTOM = "collapsible_bottom";
+	// The two COLLAPSIBLE_* constants were removed in 1.3.0. They carried the
+	// legacy collapsible_top / collapsible_bottom values, which Google's SDK
+	// does not accept: the native placement strings are top and bottom, and the
+	// view forwards the value verbatim to setCollapsible(), so passing the
+	// constants built an invalid request. Pass the native string instead.
 
 	// ===================================================================
 	// EVENT CONSTANTS (UNIFIED NAMING)
@@ -720,6 +723,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 	{
 		Log.d(LCAT, "Creating interstitial ad");
 		return new TiAdmobUnifiedInterstitialAdProxy(config);
+	}
+
+	@Kroll.method
+	public TiAdmobUnifiedAppOpenAdProxy createAppOpen(KrollDict config)
+	{
+		Log.d(LCAT, "Creating app open ad");
+		return new TiAdmobUnifiedAppOpenAdProxy(config);
 	}
 
 	@Kroll.method

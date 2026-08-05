@@ -16,8 +16,18 @@
 @interface TiAdmobUnifiedAdaptiveBannerAdProxy : TiViewProxy <GADBannerViewDelegate>
 
 @property (nonatomic, strong) NSString *adUnitId;
+// ADAPTIVE_ANCHORED (default) or ADAPTIVE_INLINE, same constants as Android.
+@property (nonatomic, strong) NSString *adaptiveType;
+// Inline only. Maximum height in points; Android defaults to 50 as well.
+@property (nonatomic, assign) NSInteger maxHeight;
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
+@property (nonatomic, strong) NSString *contentUrl;
+// Identifies what issued the request. Google reserves it for libraries that
+// wrap the SDK, which is exactly what this module is.
+@property (nonatomic, strong) NSString *requestAgent;
+
+- (BOOL)isInlineAdaptive;
 
 - (void)load:(id)args;
 - (void)destroy:(id)args;

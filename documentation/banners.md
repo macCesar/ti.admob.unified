@@ -20,7 +20,7 @@ size such as `BANNER`, `MEDIUM_RECTANGLE`, or `LEADERBOARD`.
 |---|---|---|
 | Standard fixed-size banner | Yes | Yes |
 | Large anchored adaptive banner | Yes | Yes |
-| Inline adaptive banner | No | Yes |
+| Inline adaptive banner | Yes | Yes |
 | Collapsible anchored banner | No | Experimental raw option |
 | Dynamic loaded height | Yes | Yes |
 
@@ -45,26 +45,36 @@ view can measure the real container width.
 | Property | Type | iOS | Android | Notes |
 |---|---|---:|---:|---|
 | `adUnitId` | String | Yes | Yes | Required. |
-| `adaptiveType` | String | Anchored only | Yes | Defaults to anchored. Use `ADAPTIVE_ANCHORED` for portable code. |
-| `maxHeight` | Number | No | Inline only | Maximum inline height in dp; Android defaults to `50`. |
+| `adaptiveType` | String | Yes | Yes | Defaults to `ADAPTIVE_ANCHORED`. |
+| `maxHeight` | Number | Inline only | Inline only | Maximum inline height in dp; both platforms default to `50`. |
 | `collapsible` | String | No | Experimental | Native placement string: `"top"` or `"bottom"`. |
-| `keywords` | String[] | Accepted, not applied | Yes | Prefer contextual configuration in AdMob. |
-| `contentUrl` | String | No | Yes | URL describing surrounding content. |
-| `extras` | Object | Accepted, not applied | Yes | Google adapter request extras. |
+| `keywords` | String[] | Yes | Yes | Prefer contextual configuration in AdMob. |
+| `contentUrl` | String | Yes | Yes | URL describing surrounding content. |
+| `requestAgent` | String | Yes | Yes | Identifies what issued the request. |
+| `extras` | Object | Yes | Yes | Google adapter request extras. |
 
-On iOS, the native implementation always creates a large anchored adaptive
-banner. It reports `adaptiveType: "anchored"` in events. Portable consumers
-must not branch on the exact `adaptiveType` string; use `isAdaptive`.
+On iOS, the native implementation always creates a **large** anchored adaptive
+banner, and that is not a shortcut: Google deprecated the plain anchored
+functions in favour of the large ones. The large size is between 50 and 150
+points tall and never exceeds 20% of the screen; the deprecated one capped at
+90 points and 15%. If a shorter fixed strip is what you want, use
+`createBanner()` with `customAdSize`.
 
-On Android, `ADAPTIVE_INLINE` and `maxHeight` are exposed. The `collapsible`
-property is also forwarded to Google's request extras, but it currently
-requires the native value `"top"` or `"bottom"`.
+Events echo back the constant you passed, so `event.adaptiveType` can be
+compared against `ADAPTIVE_ANCHORED` or `ADAPTIVE_INLINE` on either platform.
+Until `1.3.0` iOS emitted a shortened `"anchored"` while Android emitted
+`"adaptive_anchored"`, so that comparison worked on one platform and failed on
+the other.
 
-The exported `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` constants contain the
-legacy values `"collapsible_top"` and `"collapsible_bottom"`. Version `1.2.0`
-does not translate them to Google's required placement values, so do not pass
-those constants to `collapsible`. This option remains experimental until the
-constants and cross-platform behavior are corrected and tested.
+`ADAPTIVE_INLINE` and `maxHeight` work on both platforms as of `1.3.0`. Inline
+scrolls with your content and you cap its height; anchored sits at a screen edge
+and Google fixes the height, which is why `maxHeight` only applies to inline.
+
+`collapsible` stays Android-only and takes Google's native placement string,
+`"top"` or `"bottom"`. The `COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` constants
+were removed in `1.3.0`: they carried `"collapsible_top"` and
+`"collapsible_bottom"`, which the SDK does not accept, and the module passed
+them through unchanged, so using them built an invalid request.
 
 Google's current requirements are described in the
 [collapsible banner guide](https://developers.google.com/admob/android/banner/collapsible).
@@ -377,21 +387,72 @@ banner.load()
 |---|---|---:|---:|---|
 | `adUnitId` | String | Yes | Yes | Required. |
 | `adSize` | String | Yes | Yes | Defaults to `BANNER`. |
-| `customAdSize` | Object | No | Yes | `{ width, height }` in dp. |
-| `keywords` | String[] | Accepted, not applied | Yes | Request keywords. |
-| `contentUrl` | String | No | Yes | Surrounding content URL. |
-| `extras` | Object | Accepted, not applied | Yes | Google adapter extras. |
+| `customAdSize` | Object | Yes | Yes | `{ width, height }` in dp. Wins over `adSize`. Ignored unless both are positive. |
+| `keywords` | String[] | Yes | Yes | Request keywords. |
+| `contentUrl` | String | Yes | Yes | Surrounding content URL. |
+| `requestAgent` | String | Yes | Yes | Identifies what issued the request. |
+| `extras` | Object | Yes | Yes | Google adapter extras. |
 
-Portable fixed sizes:
+`customAdSize` builds `new AdSize(width, height)` on Android and
+`GADAdSizeFromCGSize` on iOS, so one object produces the same request on both.
 
-- `BANNER`
-- `LARGE_BANNER`
-- `MEDIUM_RECTANGLE`
-- `FULLBANNER`
-- `LEADERBOARD`
+Both numbers are in density-independent units, and computing the screen width
+is where portable code usually breaks: `Ti.Platform.displayCaps.platformWidth`
+returns **pixels on Android** but **points on iOS**, and points are already the
+unit this property expects. Dividing by `logicalDensityFactor` on both
+platforms is the mistake that looks correct — on a 3x iPhone it asks for a
+third of the screen and you get a small banner floating in a full-width slot.
 
-Unknown values fall back to `BANNER`. Legacy `smart_banner` also falls back to
-`BANNER`; use `createAdaptiveBanner()` instead.
+```js
+function screenWidthInDp() {
+  const caps = Ti.Platform.displayCaps
+
+  if (Ti.Platform.osname === 'android') {
+    return Math.round(caps.platformWidth / caps.logicalDensityFactor)
+  }
+
+  return Math.round(caps.platformWidth)
+}
+```
+
+This conversion belongs to Titanium, not to this module: the module passes the
+two numbers through untouched, which is also why it cannot correct a wrong one
+for you.
+It is applied when the native view is created; changing it afterwards does not
+resize a live banner on iOS, exactly as `adSize` already behaved. Destroy the
+placement and create it again to change size.
+
+An oversized custom slot does not invent inventory: AdMob fills the sizes it
+sells. Ask for a size your ad units actually serve.
+
+Portable fixed sizes, with the device each one was designed for and the height
+its host view must reserve:
+
+| Constant | Size | Intended device |
+|---|---|---|
+| `BANNER` | 320×50 | Phone |
+| `LARGE_BANNER` | 320×100 | Phone |
+| `MEDIUM_RECTANGLE` | 300×250 | Tablet |
+| `FULLBANNER` | 468×60 | Tablet |
+| `LEADERBOARD` | 728×90 | Tablet |
+
+Those are Google's own descriptions in `GADAdSize.h`, and the widths are the
+part that bites. A phone is 360–430 dp wide, so a `FULLBANNER` asks for 468 dp
+that the screen does not have: it cannot render at full size no matter what
+height you give its container. `BANNER` is not an outdated size — it is the
+phone size. For a full-width strip on a phone use `customAdSize` with the
+screen width, or an adaptive banner.
+
+Give the host view the exact height of the size you asked for. A `FULLBANNER`
+in a 50 dp box is not a smaller full banner; it is a clipped one.
+
+Unknown values fall back to `BANNER`, and `smart_banner` is now one of them.
+Google removed the size from the Android SDK and deprecated it on iOS, and
+until `1.3.0` this module resolved it differently on each platform — a fixed
+320×50 on Android against a full-width strip on iOS. One value producing two
+different ads is the module deciding for you, so the special case is gone. For
+a full-width strip use `customAdSize`, or `createAdaptiveBanner()` if you want
+Google to choose the height.
 
 Changing `adSize` on an existing iOS native banner is not supported. Destroy
 and recreate the proxy.

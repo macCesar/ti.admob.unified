@@ -458,6 +458,25 @@
     }
 }
 
+// Android accepts { width, height } in dp and builds `new AdSize(width, height)`.
+// GADAdSizeFromCGSize is the iOS counterpart, so the same JavaScript object
+// produces the same request on both platforms.
++ (GADAdSize)adSizeForString:(NSString *)sizeString customSize:(NSDictionary *)customSize
+{
+    if (customSize != nil) {
+        CGFloat width = [TiUtils floatValue:[customSize objectForKey:@"width"] def:0];
+        CGFloat height = [TiUtils floatValue:[customSize objectForKey:@"height"] def:0];
+
+        if (width > 0 && height > 0) {
+            DebugLog(@"[DEBUG] Custom ad size set to: %.0fx%.0f", width, height);
+            return GADAdSizeFromCGSize(CGSizeMake(width, height));
+        }
+        NSLog(@"[WARN] Ignoring invalid customAdSize value");
+    }
+
+    return [self getAdSizeFromString:sizeString];
+}
+
 + (GADAdSize)getAdSizeFromString:(NSString *)sizeString
 {
     if (!sizeString) {
@@ -476,9 +495,13 @@
         return GADAdSizeFullBanner;
     } else if ([lowerSize isEqualToString:@"leaderboard"]) {
         return GADAdSizeLeaderboard;
-    } else if ([lowerSize isEqualToString:@"smart_banner"]) {
-        return kGADAdSizeSmartBannerPortrait; // Default to portrait
     } else {
+        // smart_banner is intentionally not special-cased. Google removed the
+        // size from the Android SDK and deprecated it on iOS, and the module
+        // used to resolve it differently on each platform: a fixed 320x50 on
+        // Android against a full-width strip on iOS. Translating one value into
+        // two different ads is the module deciding, not bridging. It now falls
+        // through to BANNER on both. For a full-width strip use customAdSize.
         NSLog(@"[WARN] Unknown ad size: %@, using default BANNER", sizeString);
         return GADAdSizeBanner;
     }
@@ -522,8 +545,9 @@
         return;
     }
     
-    GADAdSize adSize = [TiAdmobUnifiedBannerAdProxy getAdSizeFromString:self.proxy.adSize];
-    
+    GADAdSize adSize = [TiAdmobUnifiedBannerAdProxy adSizeForString:self.proxy.adSize
+                                                        customSize:self.proxy.customAdSize];
+
     bannerView = [[GADBannerView alloc] initWithAdSize:adSize];
     bannerView.adUnitID = self.proxy.adUnitId;
     bannerView.delegate = self.proxy;
@@ -570,14 +594,34 @@
     }
     
     GADRequest *request = [GADRequest request];
-    
-    // Add keywords if specified
+
+    // GADRequest.keywords is the counterpart of AdRequest.Builder.addKeyword on
+    // Android. An earlier comment here claimed the SDK had dropped it and only
+    // logged the keywords away; it is declared in GADRequest.h and has been all
+    // along, so the request went out untargeted.
     if (self.proxy.keywords && [self.proxy.keywords count] > 0) {
-        // Note: Keywords are not directly supported in GADRequest in newer versions
-        // They should be handled through targeting or custom parameters if needed
-        DebugLog(@"[DEBUG] Keywords specified but not applied (not supported in current GAD version)");
+        request.keywords = self.proxy.keywords;
+        DebugLog(@"[DEBUG] Added keywords: %@", self.proxy.keywords);
     }
-    
+
+    if (self.proxy.contentUrl && [self.proxy.contentUrl length] > 0) {
+        request.contentURL = self.proxy.contentUrl;
+        DebugLog(@"[DEBUG] Set content URL: %@", self.proxy.contentUrl);
+    }
+
+    // Extras stay in GADExtras: that class is documented as "Ad network extras
+    // sent to Google networks", which is what Android's addNetworkExtrasBundle
+    // does. Keywords do not belong here.
+    if (self.proxy.requestAgent && [self.proxy.requestAgent length] > 0) {
+        request.requestAgent = self.proxy.requestAgent;
+    }
+
+    if (self.proxy.extras) {
+        GADExtras *extras = [[GADExtras alloc] init];
+        extras.additionalParameters = self.proxy.extras;
+        [request registerAdNetworkExtras:extras];
+    }
+
     isLoading = YES;
     isAdLoaded = NO;
     [bannerView loadRequest:request];

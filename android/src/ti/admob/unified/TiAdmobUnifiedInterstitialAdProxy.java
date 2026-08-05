@@ -37,6 +37,9 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 	private String adUnitId;
 	private boolean autoReload;
 	private String[] keywords;
+	// Identifies what issued the request. Google reserves it for libraries that
+	// wrap the SDK, which is exactly what this module is.
+	private String requestAgent;
 	private Map<String, String> extras;
 	
 	// Ad instance (Android requires fresh ads)
@@ -54,6 +57,7 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 		if (config != null) {
 			this.adUnitId = config.optString("adUnitId", "");
 			this.autoReload = config.optBoolean("autoReload", false);
+			this.requestAgent = config.optString("requestAgent", null);
 			
 			// Extract keywords
 			if (config.containsKey("keywords")) {
@@ -129,6 +133,10 @@ public class TiAdmobUnifiedInterstitialAdProxy extends KrollProxy
 			adRequestBuilder.addNetworkExtrasBundle(AdMobAdapter.class, extrasBundle);
 		}
 		
+		if (requestAgent != null && !requestAgent.isEmpty()) {
+			adRequestBuilder.setRequestAgent(requestAgent);
+		}
+
 		AdRequest adRequest = adRequestBuilder.build();
 		
 		// Load interstitial ad

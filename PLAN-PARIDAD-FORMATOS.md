@@ -1,13 +1,13 @@
 # Plan — Paridad de formatos publicitarios
 
-**Nada de lo que sigue está implementado.** Este documento describe trabajo
-*propuesto*: qué faltaría escribir, en qué orden, y cómo se comprobaría. Los
-datos de la sección «Diagnóstico» sí son medidos, y se indica cómo reproducir
-cada medición.
+**Estado: la fase 1 (App Open) está implementada en `1.3.0`; el resto sigue
+siendo trabajo *propuesto*.** Este documento describe qué faltaría escribir, en
+qué orden, y cómo se comprobaría. Los datos de la sección «Diagnóstico» son
+medidos —y anteriores a la fase 1—, y se indica cómo reproducir cada medición.
 
 Fecha del diagnóstico: 4 de agosto de 2026
 Repositorio: `/Users/cesar/Developer/openSource/TiAdmobUnified/ti.admob.unified`
-Versión en curso: `1.2.1`, sin publicar (sin tags de versión ni releases)
+Versión en curso: `1.3.0`, sin publicar (sin tags de versión ni releases)
 
 ## Por qué
 
@@ -33,13 +33,13 @@ entonces, están en [Native, aplazado](#native-aplazado).
 
 ### Formatos, medidos
 
-| Formato | `ti.android.admob` 11.1.0 | `ti.admob` 8.1.0 (iOS) | `ti.admob.unified` 1.2.1 |
+| Formato | `ti.android.admob` 11.1.0 | `ti.admob` 8.1.0 (iOS) | `ti.admob.unified` 1.2.1, medido |
 |---|---|---|---|
 | Banner | Sí | Sí | Sí |
 | Banner adaptativo | Sí | No documentado | Sí |
 | Interstitial | Sí | Sí | Sí |
 | Rewarded | Sí | Sí | Sí |
-| App Open | Sí | Sí | **No** |
+| App Open | Sí | Sí | **No** → Sí desde `1.3.0` |
 | Rewarded Interstitial | Sí | No | **No** |
 | Native | Sí | No | **No** |
 
@@ -76,8 +76,8 @@ Tamaño de los dos que sirven de plantilla:
 
 ### Deuda existente que este trabajo absorbe
 
-`ios/Classes/TiAdmobUnifiedModule.m:458` declara `createAppOpen:`, que no está
-implementado:
+`ios/Classes/TiAdmobUnifiedModule.m:458` declaraba `createAppOpen:` sin
+implementarlo:
 
 ```objc
 DebugLog(@"[DEBUG] Creating app open ad");
@@ -85,9 +85,10 @@ DebugLog(@"[DEBUG] Creating app open ad");
 return nil;
 ```
 
-Android no exporta ese símbolo, así que las plataformas ya divergen: el mismo
-código truena distinto en cada una. La fase 1 lo convierte en una
-implementación real, y con eso la asimetría desaparece sin borrar nada.
+Android no exportaba ese símbolo, así que las plataformas divergían: el mismo
+código tronaba distinto en cada una. La fase 1 convirtió el stub en una
+implementación real y exportó `createAppOpen` en Android, con lo que la
+asimetría desapareció sin borrar nada.
 
 Las constantes `TEST_APP_OPEN`, `TEST_REWARDED_INTERSTITIAL` y `TEST_NATIVE`
 ya existen y apuntan a las unidades demo oficiales de Google. **No se tocan**:
@@ -127,30 +128,37 @@ uso; tras presentar o fallar al mostrar, la referencia nativa se limpia *antes*
 de emitir el evento terminal; los callbacks nativos tardíos se ignoran después
 de `destroy()`.
 
-## Fase 1 — App Open
+## Fase 1 — App Open (hecha en `1.3.0`)
 
 El formato con mayor prioridad: es el único que está en **los dos** módulos a
 reemplazar.
 
-Se escribiría `TiAdmobUnifiedAppOpenAdProxy` en ambas plataformas, tomando el
+Se escribió `TiAdmobUnifiedAppOpenAdProxy` en ambas plataformas, tomando el
 proxy de Interstitial como plantilla y sustituyendo la clase de Google
-(`GADAppOpenAd` en iOS, `AppOpenAd` en Android). En iOS reemplaza el stub de
-`TiAdmobUnifiedModule.m:458`; en Android hay que exportar `createAppOpen` por
-primera vez.
+(`GADAppOpenAd` en iOS, `AppOpenAd` en Android). En iOS reemplazó el stub de
+`TiAdmobUnifiedModule.m`; en Android se exportó `createAppOpen` por primera vez.
 
-Puntos que exigen decisión o verificación antes de escribir:
+Cómo se resolvieron los puntos abiertos:
 
-- **Firma vigente de carga.** Versiones anteriores de GMA pedían orientación al
-  cargar un App Open. Verificar contra los SDK que este módulo empaqueta —
-  iOS `13.7.0`, Android `25.4.0` — y no contra tutoriales viejos.
-- **Caducidad.** Google documenta que un App Open expira a las cuatro horas de
-  solicitado. Hay que decidir si el proxy vigila esa ventana y emite algo, o si
-  se limita a `isLoaded()` y deja la política al consumidor. Recomendación:
-  lo segundo, coherente con que el módulo no impone políticas.
-- **Quién decide cuándo se muestra.** El módulo no debe engancharse solo al
-  regreso a primer plano: eso es política de la app, y mostrarlo encima de otra
-  pantalla completa es justo lo que Google prohíbe. El proxy expone `show()` y
-  el consumidor elige.
+- **Firma vigente de carga.** Verificada contra los binarios que empaqueta este
+  repo, no contra tutoriales: iOS `13.7.0` expone
+  `+loadWithAdUnitID:request:completionHandler:` y Android `25.4.0` expone
+  `AppOpenAd.load(Context, String, AdRequest, AppOpenAdLoadCallback)`. El
+  parámetro de orientación de versiones viejas no existe en ninguna de las dos.
+- **Caducidad.** El proxy sí vigila la ventana de cuatro horas, pero sin
+  temporizadores ni evento nuevo: sella la hora de carga, `isLoaded()` devuelve
+  `false` pasada la ventana, y `show()` sobre un anuncio caducado limpia la
+  referencia nativa y emite `failed_to_show` con código `1`. `load()` descarta
+  el caducado antes de pedir otro, para que la recarga no la trague el guardia
+  de carga duplicada. `autoReload` no cambió: sigue recargando sólo tras
+  `closed`.
+- **Quién decide cuándo se muestra.** Sin cambios respecto a lo propuesto: el
+  proxy expone `show()` y el consumidor elige. El módulo no se engancha al
+  regreso a primer plano.
+
+Se dejó fuera lo que el Interstitial tampoco expone: `setImmersiveMode` e
+`isAdAvailable`/`pollAd` en Android, y `canPresentFromRootViewController:error:`
+en iOS —este último produciría un `failed_to_show` que Android nunca emitiría—.
 
 ## Fase 2 — Rewarded Interstitial
 
@@ -283,7 +291,7 @@ Ninguna fase se daría por terminada sin las cuatro cosas, en orden:
 
 ## Punto de partida
 
-- Rama actual: `main`, con `1.2.1` sin publicar y sin tags de versión.
+- Rama actual: `main`, con `1.3.0` sin publicar y sin tags de versión.
 - Leer antes de escribir: `documentation/fullscreen.md` (el contrato),
   `ios/Classes/TiAdmobUnifiedInterstitialAdProxy.m` y
   `android/src/ti/admob/unified/TiAdmobUnifiedInterstitialAdProxy.java` (la

@@ -21,6 +21,9 @@
 @property (nonatomic, assign) BOOL destroyedEventFired;
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
+// Identifies what issued the request. Google reserves it for libraries that
+// wrap the SDK, which is exactly what this module is.
+@property (nonatomic, strong) NSString *requestAgent;
 
 // Ad management methods
 - (void)load:(id)args;

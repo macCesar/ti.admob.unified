@@ -3,7 +3,7 @@
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads
 and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `1.2.1` provides a safe privacy flow, idempotent SDK operations, and
+Version `1.3.0` provides a safe privacy flow, idempotent SDK operations, and
 shared lifecycle/event contracts for banners, interstitials, and rewarded ads.
 The same distribution also bundles current AdMob mediation adapters and native
 SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on
@@ -61,25 +61,26 @@ validation. See [AdMob mediation](documentation/mediation.md).
 |---|---|---|
 | Standard banner | Stable | Stable |
 | Anchored adaptive banner | Stable | Stable |
-| Inline adaptive banner | Not implemented | Available |
+| Inline adaptive banner | Stable | Stable |
 | Collapsible banner | Not implemented | Experimental raw option |
 | Interstitial | Stable | Stable |
 | Rewarded | Stable | Stable |
-| App Open | Not implemented | Not implemented |
+| App Open | Stable | Stable |
 | Rewarded interstitial | Not implemented | Not implemented |
 | Native | Not implemented | Not implemented |
 
-Standard, adaptive, interstitial, and rewarded proxies use portable lifecycle
-and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md)
-for the single-use and reward rules.
+Standard, adaptive, interstitial, rewarded, and app open proxies use portable
+lifecycle and event payload contracts. See
+[Fullscreen ads](documentation/fullscreen.md) for the single-use, reward, and
+four-hour-expiry rules.
 
 ## Installation
 
-Install the `1.2.1` ZIP for each target platform and declare the module:
+Install the `1.3.0` ZIP for each target platform and declare the module:
 
 ```xml
 <modules>
-  <module version="1.2.1">ti.admob.unified</module>
+  <module version="1.3.0">ti.admob.unified</module>
 </modules>
 ```
 
@@ -190,20 +191,24 @@ Both types emit `loaded`, `failed_to_load`, `clicked`, `impression`, `opened`,
 `closed`, and `destroyed`. Destruction is terminal and safe to repeat.
 
 The public factories are `createBanner()`, `createAdaptiveBanner()`,
-`createInterstitial()`, and `createRewarded()`.
+`createInterstitial()`, `createRewarded()`, and `createAppOpen()`.
 
 See [Banner ads](documentation/banners.md) for layout patterns, payloads,
 lifecycle cleanup, adaptive sizing, and platform-specific options.
 
 ## Fullscreen ads
 
-Interstitial and rewarded proxies expose the same API on iOS and Android:
+Interstitial, rewarded, and app open proxies expose the same API on iOS and
+Android:
 
 - `load()` serializes requests and ignores duplicate calls while loading,
   loaded, or showing.
 - `show()` presents the unused native ad or emits `failed_to_show`.
 - `isLoaded()` reports whether an unused ad is ready.
 - `destroy()` is terminal, idempotent, and emits `destroyed` once.
+
+App open ads expire four hours after the request, as Google documents. Past
+that point `isLoaded()` reports `false` and `show()` emits `failed_to_show`.
 
 Every fullscreen event includes `adUnitId` and `adType`. Failures consistently
 add `error`, `message`, and `code`. Both platforms emit `opened` and

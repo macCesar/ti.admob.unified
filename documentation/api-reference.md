@@ -1,7 +1,7 @@
 # API reference
 
 This page documents the JavaScript surface exported by
-`ti.admob.unified` `1.2.1`.
+`ti.admob.unified` `1.3.0`.
 
 ```js
 const Admob = require('ti.admob.unified')
@@ -23,6 +23,7 @@ const Admob = require('ti.admob.unified')
 | `createAdaptiveBanner(config)` | iOS, Android | Supported |
 | `createInterstitial(config)` | iOS, Android | Supported |
 | `createRewarded(config)` | iOS, Android | Supported |
+| `createAppOpen(config)` | iOS, Android | Supported |
 | `setTestDevice(deviceId)` | iOS, Android | Compatibility utility |
 | `isTestDevice()` | iOS, Android | Supported |
 | `setAppVolume(volume)` | iOS, Android | Platform caveat |
@@ -180,6 +181,10 @@ const banner = Admob.createBanner({
 })
 ```
 
+`customAdSize: { width, height }` in dp requests a non-standard slot on both
+platforms and takes precedence over `adSize`. It is how a fixed full-width
+strip is requested — the adaptive banner picks its own height.
+
 See [Standard banner properties](banners.md#creation-properties-1).
 
 ### `createAdaptiveBanner(config)`
@@ -194,9 +199,11 @@ const banner = Admob.createAdaptiveBanner({
 })
 ```
 
-Anchored adaptive behavior is portable. Inline is Android-only. Android also
-forwards a raw experimental `collapsible: "top" | "bottom"` option; the
-exported `COLLAPSIBLE_*` values are not valid native placements in `1.2.0`.
+Anchored and inline are both portable as of `1.3.0`, and `keywords`,
+`contentUrl`, `requestAgent` and `extras` reach the request on both platforms.
+`maxHeight`
+applies to inline only. Android additionally forwards a raw experimental
+`collapsible: "top" | "bottom"` option, which has no iOS counterpart here.
 See [Adaptive banner properties](banners.md#creation-properties).
 
 ### `createInterstitial(config)`
@@ -209,7 +216,14 @@ terminal `destroy()`.
 Returns a rewarded proxy with `load()`, `show()`, `isLoaded()`, and
 terminal `destroy()`. Grant rewards only from the `rewarded` event.
 
-See [Fullscreen ads](fullscreen.md) for both factories.
+### `createAppOpen(config)`
+
+Returns an app open proxy with `load()`, `show()`, `isLoaded()`, and terminal
+`destroy()`. An app open ad expires four hours after the request: past that
+point `isLoaded()` reports `false` and `show()` emits `failed_to_show` with
+code `1`. See [The four hour window](fullscreen.md#the-four-hour-window).
+
+See [Fullscreen ads](fullscreen.md) for the three factories.
 
 ### `setTestDevice(deviceId)`
 
@@ -311,13 +325,13 @@ cross-platform contract.
 
 ## Fullscreen proxy
 
-Interstitial and rewarded proxies expose:
+Interstitial, rewarded and app open proxies expose:
 
 | Method | Return | Description |
 |---|---|---|
 | `load()` | `void` | Loads one native fullscreen ad. |
 | `show()` | `void` | Presents it or emits `failed_to_show`. |
-| `isLoaded()` | Boolean | Reports whether a native ad is ready. |
+| `isLoaded()` | Boolean | Reports whether a native ad is ready. An app open ad older than four hours is not ready. |
 | `destroy()` | `void` | Terminal, idempotent cleanup; emits `destroyed` once. |
 
 Loads are serialized: calls while loading, loaded, or showing are ignored.
@@ -413,7 +427,7 @@ registered for testing, or there is no visible activity/controller.
 | `AD_TYPE_INTERSTITIAL` | `"interstitial"` | Implemented |
 | `AD_TYPE_REWARDED` | `"rewarded"` | Implemented |
 | `AD_TYPE_REWARDED_INTERSTITIAL` | `"rewarded_interstitial"` | No factory |
-| `AD_TYPE_APP_OPEN` | `"app_open"` | No factory |
+| `AD_TYPE_APP_OPEN` | `"app_open"` | Implemented |
 | `AD_TYPE_NATIVE` | `"native"` | No factory |
 
 An exported type constant does not imply that its format has a working proxy.
@@ -427,14 +441,14 @@ An exported type constant does not imply that its format has a working proxy.
 | `MEDIUM_RECTANGLE` | `"medium_rectangle"` | iOS, Android |
 | `FULLBANNER` | `"fullbanner"` | iOS, Android |
 | `LEADERBOARD` | `"leaderboard"` | iOS, Android |
-| `ADAPTIVE_ANCHORED` | `"adaptive_anchored"` | iOS factory is always anchored; Android honors value |
-| `ADAPTIVE_INLINE` | `"adaptive_inline"` | Android only |
-| `COLLAPSIBLE_TOP` | `"collapsible_top"` | Legacy value; not translated to Google's required `"top"` placement |
-| `COLLAPSIBLE_BOTTOM` | `"collapsible_bottom"` | Legacy value; not translated to Google's required `"bottom"` placement |
+| `ADAPTIVE_ANCHORED` | `"adaptive_anchored"` | iOS, Android |
+| `ADAPTIVE_INLINE` | `"adaptive_inline"` | iOS, Android |
 
-For Android `1.2.0`, the experimental `collapsible` property must receive the
-raw native string `"top"` or `"bottom"`. Do not pass the two
-`COLLAPSIBLE_*` constants until their implementation is corrected.
+`COLLAPSIBLE_TOP` and `COLLAPSIBLE_BOTTOM` were removed in `1.3.0`. They held
+`"collapsible_top"` and `"collapsible_bottom"`, values Google's SDK does not
+accept, and the module forwarded them verbatim — so passing them built an
+invalid request. The `collapsible` property is Android-only and takes the
+native string `"top"` or `"bottom"`.
 
 ### Ad events
 
@@ -522,7 +536,7 @@ The constant names are portable; their string values are platform-specific:
 | `TEST_REWARDED` | `ca-app-pub-3940256099942544/1712485313` | `ca-app-pub-3940256099942544/5224354917` | Rewarded | `createRewarded()` |
 | `TEST_REWARDED_INTERSTITIAL` | `ca-app-pub-3940256099942544/6978759866` | `ca-app-pub-3940256099942544/5354046379` | Rewarded interstitial | None. Reserved |
 | `TEST_NATIVE` | `ca-app-pub-3940256099942544/3986624511` | `ca-app-pub-3940256099942544/2247696110` | Native | None. Reserved |
-| `TEST_APP_OPEN` | `ca-app-pub-3940256099942544/5575463023` | `ca-app-pub-3940256099942544/9257395921` | App open | None. Reserved |
+| `TEST_APP_OPEN` | `ca-app-pub-3940256099942544/5575463023` | `ca-app-pub-3940256099942544/9257395921` | App open | `createAppOpen()` |
 
 Use the constant rather than copying a platform value into shared code.
 
@@ -581,8 +595,5 @@ consent and US-state sale/sharing choices. Those are different legal signals.
 
 ## Reserved and unavailable APIs
 
-- iOS declares `createAppOpen(config)` as a compatibility stub returning no
-  proxy.
-- Android does not export `createAppOpen`.
 - There is no `createRewardedInterstitial`.
 - There is no `createNative`.

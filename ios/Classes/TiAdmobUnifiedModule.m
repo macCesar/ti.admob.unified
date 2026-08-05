@@ -16,6 +16,7 @@
 #import "TiAdmobUnifiedAdaptiveBannerAdProxy.h"
 #import "TiAdmobUnifiedInterstitialAdProxy.h"
 #import "TiAdmobUnifiedBannerAdProxy.h"
+#import "TiAdmobUnifiedAppOpenAdProxy.h"
 
 typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     TiAdmobUnifiedOperationStateNotStarted = 0,
@@ -461,8 +462,7 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     NSDictionary *config = [args objectAtIndex:0];
     
     DebugLog(@"[DEBUG] Creating app open ad");
-    // TODO: Implement app open ad proxy
-    return nil;
+    return [[TiAdmobUnifiedAppOpenAdProxy alloc] _initWithPageContext:[self executionContext] args:@[config]];
 }
 
 // ===================================================================
@@ -580,8 +580,11 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 - (NSString *)LEADERBOARD { return @"leaderboard"; }
 - (NSString *)ADAPTIVE_ANCHORED { return @"adaptive_anchored"; }
 - (NSString *)ADAPTIVE_INLINE { return @"adaptive_inline"; }
-- (NSString *)COLLAPSIBLE_TOP { return @"collapsible_top"; }
-- (NSString *)COLLAPSIBLE_BOTTOM { return @"collapsible_bottom"; }
+// The two COLLAPSIBLE_* constants were removed in 1.3.0. They carried the
+// legacy collapsible_top / collapsible_bottom values, which Google's SDK does
+// not accept: the native placement strings are top and bottom, and the module
+// forwarded the value verbatim, so passing the constants built an invalid
+// request. Pass the native string to `collapsible` instead.
 
 // Event names
 - (NSString *)AD_LOADED { return @"loaded"; }

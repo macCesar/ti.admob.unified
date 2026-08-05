@@ -1,8 +1,8 @@
 # Fullscreen ads
 
-Interstitial and rewarded proxies share one public lifecycle and event contract
-on iOS and Android. That unification landed in `1.2.0` and is unchanged in
-`1.2.1`.
+Interstitial, rewarded and app open proxies share one public lifecycle and event
+contract on iOS and Android. Interstitial and rewarded were unified in `1.2.0`;
+app open joined them in `1.3.0`.
 
 ## When to show a fullscreen ad
 
@@ -23,7 +23,7 @@ when a flow ends. Never in the middle of one.
 Google's guidance rules out the cases that annoy users most:
 
 - Do not show an interstitial as the app opens. That moment belongs to the
-  App Open format, which this module does not implement.
+  App Open format, documented below.
 - Do not show one on the way out, when the user is already leaving.
 - Do not interrupt an action in progress, or place the ad where a button or a
   control the user was about to touch used to be.
@@ -112,15 +112,64 @@ rewarded.load()
 
 Closing a rewarded ad is not proof that the reward was earned.
 
+## App open
+
+An app open ad is the one format meant for the moment the application comes to
+the foreground — a cold start, or a return from the background. Load it before
+that moment arrives, and present it while the application is showing its own
+loading state rather than on top of a screen the user is already using:
+
+```js
+const appOpen = Admob.createAppOpen({
+  adUnitId: Admob.TEST_APP_OPEN,
+  autoReload: false
+})
+
+appOpen.addEventListener(Admob.AD_LOADED, () => {
+  Ti.API.info('App open ad is ready for the next foreground')
+})
+
+appOpen.load()
+```
+
+```js
+function onApplicationResumed() {
+  if (appOpen && appOpen.isLoaded()) {
+    appOpen.show()
+  }
+}
+```
+
+### The four hour window
+
+Google documents that an app open ad expires four hours after it was requested.
+An ad rendered later is no longer valid and may not earn revenue, so the proxy
+enforces the window itself, with no timer and no extra event:
+
+- The load time is recorded when the ad arrives.
+- `isLoaded()` returns `false` once four hours have passed. An expired ad is not
+  ready, which is what that method has always reported.
+- `show()` on an expired ad clears the native reference and emits
+  `failed_to_show` with code `1` and the message
+  `App open ad expired after four hours`.
+- `load()` discards an expired ad before requesting a new one, so a reload after
+  expiry is not swallowed by the duplicate-load guard.
+
+`autoReload` is unchanged: it reloads after `closed` and after nothing else, so
+reloading an expired ad is the application's decision, not the proxy's. The
+check is a subtraction performed when someone asks — nothing polls in the
+background.
+
 ## Creation properties
 
-Both factories accept:
+All three factories accept:
 
 | Property | Type | Default | Notes |
 |---|---|---|---|
 | `adUnitId` | String | `""` | Required before `load()`. |
 | `autoReload` | Boolean | `false` | Loads a fresh ad after a successful close. |
-| `keywords` | String[] | None | Android adds request keywords. iOS encodes them as `GADExtras` parameters. |
+| `keywords` | String[] | None | Request keywords, applied as targeting on both platforms. |
+| `requestAgent` | String | None | Identifies what issued the request. |
 | `extras` | Object | None | Forwarded through Google ad-network extras on both platforms. |
 
 Do not use `extras` to bypass UMP or synthesize personalization state.
@@ -129,9 +178,9 @@ Do not use `extras` to bypass UMP or synthesize personalization state.
 
 | Method | Description |
 |---|---|
-| `load()` | Starts one request. Calls while loading, loaded, or showing are ignored. |
+| `load()` | Starts one request. Calls while loading, loaded, or showing are ignored. App open discards an expired ad first. |
 | `show()` | Presents the loaded ad or emits `failed_to_show`. |
-| `isLoaded()` | Returns `true` only while an unused ad is ready. |
+| `isLoaded()` | Returns `true` only while an unused ad is ready. For app open, an ad older than four hours is not ready. |
 | `destroy()` | Terminal, idempotent cleanup; emits `destroyed` once. |
 
 Google fullscreen ads are single-use. After a presentation or a show failure
@@ -166,18 +215,18 @@ create a new one only after `destroy()`.
 
 ### Common events
 
-| Event | Interstitial | Rewarded | Common payload |
-|---|---:|---:|---|
-| `loaded` | Yes | Yes | `adUnitId`, `adType` |
-| `failed_to_load` | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
-| `opened` | Yes | Yes | `adUnitId`, `adType` |
-| `showed_fullscreen_content` | Yes | Yes | `adUnitId`, `adType` |
-| `closed` | Yes | Yes | `adUnitId`, `adType` |
-| `clicked` | Yes | Yes | `adUnitId`, `adType` |
-| `impression` | Yes | Yes | `adUnitId`, `adType` |
-| `failed_to_show` | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
-| `destroyed` | Yes | Yes | `adUnitId`, `adType` |
-| `rewarded` | No | Yes | `adUnitId`, `adType`, `rewardType`, `rewardAmount` |
+| Event | Interstitial | Rewarded | App open | Common payload |
+|---|---:|---:|---:|---|
+| `loaded` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `failed_to_load` | Yes | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
+| `opened` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `showed_fullscreen_content` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `closed` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `clicked` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `impression` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `failed_to_show` | Yes | Yes | Yes | `adUnitId`, `adType`, `error`, `message`, `code` |
+| `destroyed` | Yes | Yes | Yes | `adUnitId`, `adType` |
+| `rewarded` | No | Yes | No | `adUnitId`, `adType`, `rewardType`, `rewardAmount` |
 
 `message` intentionally duplicates `error` for compatibility. New code may use
 `error`; both keys are portable.
@@ -203,9 +252,7 @@ one again.
 The module exports format-name and test-ID constants for future compatibility,
 but it does not expose working factories for:
 
-- App open
 - Rewarded interstitial
 - Native
 
-The iOS `createAppOpen()` symbol is a reserved compatibility stub that returns
-no proxy. Android does not export it. Do not call it.
+`TEST_REWARDED_INTERSTITIAL` and `TEST_NATIVE` name units no factory accepts.

@@ -48,6 +48,9 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	// Advanced properties
 	private String[] keywords;
 	private String contentUrl;
+	// Identifies what issued the request. Google reserves it for libraries that
+	// wrap the SDK, which is exactly what this module is.
+	private String requestAgent;
 	private Bundle extras;
 	private KrollDict customAdSize;
 	
@@ -191,6 +194,11 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			adRequestBuilder.setContentUrl(contentUrl);
 			Log.d(LCAT, "Set content URL: " + contentUrl);
 		}
+
+		if (requestAgent != null && !requestAgent.isEmpty()) {
+			adRequestBuilder.setRequestAgent(requestAgent);
+			Log.d(LCAT, "Set request agent: " + requestAgent);
+		}
 		
 		// Add network extras
 		if (extras != null && !extras.isEmpty()) {
@@ -253,6 +261,11 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	{
 		this.contentUrl = url;
 		Log.d(LCAT, "Content URL set: " + url);
+	}
+
+	public void setRequestAgent(String agent)
+	{
+		this.requestAgent = agent;
 	}
 	
 	public void setExtras(Bundle bundleExtras)
@@ -407,6 +420,11 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		if (properties.containsKeyAndNotNull("contentUrl")) {
 			setContentUrl(TiConvert.toString(properties.get("contentUrl")));
 		}
+
+		// Handle requestAgent
+		if (properties.containsKeyAndNotNull("requestAgent")) {
+			setRequestAgent(TiConvert.toString(properties.get("requestAgent")));
+		}
 		
 		// Handle extras bundle
 		if (properties.containsKeyAndNotNull("extras")) {
@@ -459,12 +477,12 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 				return AdSize.FULL_BANNER;
 			case "leaderboard":
 				return AdSize.LEADERBOARD;
-			case "smart_banner":
-				// SMART_BANNER removed from GMA 25.x. Google's recommended replacement is
-				// adaptive banners (use createAdaptiveBanner proxy). For legacy callers we
-				// fall back to BANNER (320x50 fixed).
-				Log.w(LCAT, "SMART_BANNER deprecated and removed in newer GMA SDK; falling back to BANNER. Use createAdaptiveBanner() for full-width.");
-				return AdSize.BANNER;
+			// smart_banner is intentionally not special-cased. Google removed the
+			// size from this SDK and deprecated it on iOS, and the module used to
+			// resolve it differently on each platform: a fixed 320x50 here against
+			// a full-width strip on iOS. Translating one value into two different
+			// ads is the module deciding, not bridging. It now falls through to
+			// BANNER on both. For a full-width strip use customAdSize.
 			default:
 				Log.w(LCAT, "Unknown ad size: " + sizeString + ", using BANNER");
 				return AdSize.BANNER;

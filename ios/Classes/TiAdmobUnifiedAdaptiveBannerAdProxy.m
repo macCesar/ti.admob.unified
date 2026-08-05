@@ -63,9 +63,19 @@
 {
     self = [super init];
     if (self) {
+        // Same defaults as the Android view: anchored, and 50 for inline.
+        // Assign the ivars directly; property setters reach [self view], which
+        // is not wired yet during init.
+        _adaptiveType = @"adaptive_anchored";
+        _maxHeight = 50;
         [self startObservingLifecycle];
     }
     return self;
+}
+
+- (BOOL)isInlineAdaptive
+{
+    return [self.adaptiveType isEqualToString:@"adaptive_inline"];
 }
 
 - (void)_initWithProperties:(NSDictionary *)properties
@@ -391,7 +401,10 @@
         @"adUnitId": self.adUnitId ?: @"",
         @"adType": @"banner",
         @"isAdaptive": @YES,
-        @"adaptiveType": @"anchored"
+        // The constant the caller passed, not a shortened label. Android already
+        // echoed the constant back, so comparing against ADAPTIVE_ANCHORED now
+        // works the same on both platforms.
+        @"adaptiveType": [self isInlineAdaptive] ? @"adaptive_inline" : @"adaptive_anchored"
     } mutableCopy];
     if (data != nil) {
         [payload addEntriesFromDictionary:data];
@@ -483,10 +496,48 @@
         width = [UIScreen mainScreen].bounds.size.width;
     }
 
-    GADAdSize adaptiveSize = GADLargeAnchoredAdaptiveBannerAdSizeWithWidth(width);
+    // Anchored sits at a screen edge and Google fixes its height. Inline scrolls
+    // with the content and the app caps it, which is why only inline reads
+    // maxHeight — same split as AdSize.getInlineAdaptiveBannerAdSize on Android.
+    GADAdSize adaptiveSize;
+    if ([self.proxy isInlineAdaptive]) {
+        CGFloat maxHeight = (CGFloat)self.proxy.maxHeight;
+        if (maxHeight <= 0) {
+            maxHeight = 50;
+        }
+        adaptiveSize = GADInlineAdaptiveBannerAdSizeWithWidthAndMaxHeight(width, maxHeight);
+        DebugLog(@"[DEBUG] Creating inline adaptive banner with max height: %.0f", maxHeight);
+    } else {
+        // Large, not plain: Google deprecated the plain anchored functions.
+        adaptiveSize = GADLargeAnchoredAdaptiveBannerAdSizeWithWidth(width);
+    }
     bannerView.adSize = adaptiveSize;
 
+    // Targeting is part of the placement contract, not of the banner type: the
+    // Android adaptive view already forwarded all three, and this one sent a
+    // bare request, so the same JavaScript produced differently targeted ads.
     GADRequest *request = [GADRequest request];
+
+    if (self.proxy.keywords && [self.proxy.keywords count] > 0) {
+        request.keywords = self.proxy.keywords;
+        DebugLog(@"[DEBUG] Added keywords: %@", self.proxy.keywords);
+    }
+
+    if (self.proxy.contentUrl && [self.proxy.contentUrl length] > 0) {
+        request.contentURL = self.proxy.contentUrl;
+        DebugLog(@"[DEBUG] Set content URL: %@", self.proxy.contentUrl);
+    }
+
+    if (self.proxy.requestAgent && [self.proxy.requestAgent length] > 0) {
+        request.requestAgent = self.proxy.requestAgent;
+    }
+
+    if (self.proxy.extras) {
+        GADExtras *extras = [[GADExtras alloc] init];
+        extras.additionalParameters = self.proxy.extras;
+        [request registerAdNetworkExtras:extras];
+    }
+
     isLoading = YES;
     isAdLoaded = NO;
     [bannerView loadRequest:request];

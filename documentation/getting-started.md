@@ -2,12 +2,12 @@
 
 ## 1. Install the module
 
-Install the `1.2.1` ZIP for every platform you build. Both artifacts must have
+Install the `1.3.0` ZIP for every platform you build. Both artifacts must have
 the same module ID and version:
 
 ```xml
 <modules>
-  <module version="1.2.1">ti.admob.unified</module>
+  <module version="1.3.0">ti.admob.unified</module>
 </modules>
 ```
 
@@ -154,7 +154,7 @@ for compatibility, but four of the formats behind them are not implemented:
 | `TEST_REWARDED` | `createRewarded()` |
 | `TEST_REWARDED_INTERSTITIAL` | None. Reserved; the format is not implemented |
 | `TEST_NATIVE` | None. Reserved; the format is not implemented |
-| `TEST_APP_OPEN` | None. Reserved; the format is not implemented |
+| `TEST_APP_OPEN` | `createAppOpen()` |
 
 See [Reserved and unavailable APIs](api-reference.md#reserved-and-unavailable-apis).
 

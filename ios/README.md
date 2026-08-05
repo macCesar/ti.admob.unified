@@ -66,7 +66,8 @@ application values should be hardcoded into the native module.
 - `createAdaptiveBanner()` implements large anchored adaptive banners.
 - Inline adaptive and collapsible banners are not implemented.
 - `setAppVolume()` is a compatibility no-op with Google Mobile Ads `13.x`.
-- The `createAppOpen()` symbol is reserved but returns no proxy.
+- `createAppOpen()` returns a working proxy that enforces Google's four hour
+  validity window, matching Android.
 
 Do not add a public method or constant on iOS without checking and documenting
 the Android surface, payloads, lifecycle, cleanup, and tests.

@@ -123,29 +123,23 @@
 {
     GADRequest *request = [GADRequest request];
     
-    // Add keywords if provided
+    // Keywords are targeting, and GADRequest.keywords is the counterpart of
+    // Android's AdRequest.Builder.addKeyword. Folding them into GADExtras would
+    // send them to mediation adapters instead, which is a different thing.
     if (self.keywords && [self.keywords count] > 0) {
-        // Keywords are set via GADExtras for mediation networks
-        GADExtras *extras = [[GADExtras alloc] init];
-        NSMutableDictionary *extrasDict = [[NSMutableDictionary alloc] init];
-        
-        // Add keywords
-        [extrasDict setObject:[self.keywords componentsJoinedByString:@","] forKey:@"keywords"];
-        
-        // Add any additional extras
-        if (self.extras) {
-            [extrasDict addEntriesFromDictionary:self.extras];
-        }
-        
-        extras.additionalParameters = extrasDict;
-        [request registerAdNetworkExtras:extras];
-    } else if (self.extras) {
-        // Just add extras without keywords
+        request.keywords = self.keywords;
+    }
+
+    if (self.requestAgent && [self.requestAgent length] > 0) {
+        request.requestAgent = self.requestAgent;
+    }
+
+    if (self.extras) {
         GADExtras *extras = [[GADExtras alloc] init];
         extras.additionalParameters = self.extras;
         [request registerAdNetworkExtras:extras];
     }
-    
+
     return request;
 }
 

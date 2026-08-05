@@ -1,7 +1,7 @@
 # ti.admob.unified documentation
 
 This documentation describes the public JavaScript contract implemented by
-`ti.admob.unified` `1.2.1`.
+`ti.admob.unified` `1.3.0`.
 
 ## Start here
 

@@ -56,6 +56,9 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 	// Advanced properties
 	private String[] keywords;
 	private String contentUrl;
+	// Identifies what issued the request. Google reserves it for libraries that
+	// wrap the SDK, which is exactly what this module is.
+	private String requestAgent;
 	private Bundle extras;
 	
 	// Positioning properties
@@ -320,6 +323,11 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 			adRequestBuilder.setContentUrl(contentUrl);
 			Log.d(LCAT, "Set content URL: " + contentUrl);
 		}
+
+		if (requestAgent != null && !requestAgent.isEmpty()) {
+			adRequestBuilder.setRequestAgent(requestAgent);
+			Log.d(LCAT, "Set request agent: " + requestAgent);
+		}
 		
 		// Add network extras (including collapsible if specified)
 		Bundle requestExtras = new Bundle();
@@ -394,6 +402,11 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 	{
 		this.contentUrl = url;
 		Log.d(LCAT, "Content URL set: " + url);
+	}
+
+	public void setRequestAgent(String agent)
+	{
+		this.requestAgent = agent;
 	}
 	
 	public void setExtras(Bundle bundleExtras)
@@ -533,6 +546,11 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		// Handle contentUrl
 		if (properties.containsKeyAndNotNull("contentUrl")) {
 			setContentUrl(TiConvert.toString(properties.get("contentUrl")));
+		}
+
+		// Handle requestAgent
+		if (properties.containsKeyAndNotNull("requestAgent")) {
+			setRequestAgent(TiConvert.toString(properties.get("requestAgent")));
 		}
 		
 		// Handle extras bundle
