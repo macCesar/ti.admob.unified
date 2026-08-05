@@ -114,3 +114,11 @@ coverage/
 *.tmp
 *.temp
 .cache/
+
+# Capturas sueltas en la raíz: llegan al pegar imágenes en una conversación y
+# no forman parte del módulo. Las imágenes de la documentación viven en
+# documentation/ y no las toca esta regla.
+/*.png
+/*.jpg
+/*.jpeg
+/Captura de pantalla*

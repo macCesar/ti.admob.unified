@@ -114,9 +114,9 @@ Decided on 4 August 2026:
   like one more item in a content list, and no application in progress has such
   a list. A content feed in a future app is what would reopen it.
 
-The sequence, the contract each new proxy must satisfy, and the design choice
-that native ads would still require are written up in
-[PLAN-PARIDAD-FORMATOS.md](PLAN-PARIDAD-FORMATOS.md).
+Whichever format comes next has to satisfy the same contract as the ones already
+shipped: a complete native proxy on both platforms, shared events and payloads,
+terminal cleanup, contract tests, an example, and physical validation.
 
 ## Mediation maintenance
 
