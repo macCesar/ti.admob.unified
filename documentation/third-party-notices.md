@@ -1,8 +1,6 @@
 # Third-party SDK notices
 
-`ti.admob.unified` is MIT-licensed. The advertising SDKs and mediation
-adapters distributed with it remain subject to their owners' licenses, terms,
-privacy policies, and publisher agreements.
+`ti.admob.unified` is MIT-licensed. The advertising SDKs and mediation adapters distributed with it remain subject to their owners' licenses, terms, privacy policies, and publisher agreements.
 
 | Component | Owner | Terms or license |
 |---|---|---|
@@ -14,8 +12,4 @@ privacy policies, and publisher agreements.
 | Liftoff Monetize/Vungle SDK | Liftoff Mobile, Inc. | [Liftoff Monetize terms](https://publisher.vungle.com/LICENSE.html) |
 | ironSource and Ad Quality SDKs | Unity Technologies | [ironSource publisher terms](https://developers.is.com/ironsource-mobile/general/publisher-terms-conditions/) |
 
-The exact versions are recorded in
-[the dependency inventory](../DEPENDENCIES.md). Maintainers must review the
-upstream terms whenever a native SDK is added or updated. Application
-publishers must also accept and comply with the terms of every network they
-enable in AdMob.
+The exact versions are recorded in [the dependency inventory](../DEPENDENCIES.md). Maintainers must review the upstream terms whenever a native SDK is added or updated. Application publishers must also accept and comply with the terms of every network they enable in AdMob.
