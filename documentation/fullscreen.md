@@ -137,12 +137,14 @@ All three factories accept:
 | `adUnitId`     | String   | `""`    | Required before `load()`.                                                                   |
 | `autoReload`   | Boolean  | `false` | Loads a fresh ad after a successful close, and after nothing else.                          |
 | `keywords`     | String[] | None    | Request keywords, applied as targeting on both platforms.                                   |
-| `requestAgent` | String   | None    | Identifies what issued the request. Android only for these three types; see the note below. |
+| `requestAgent` | String   | None    | Identifies what issued the request, on both platforms.                                      |
 | `extras`       | Object   | None    | Forwarded through Google ad-network extras on both platforms.                               |
 
 Do not use `extras` to bypass UMP or synthesize personalization state.
 
-`requestAgent` reaches the request from both banner types on both platforms, but the three iOS fullscreen proxies drop it. Setting it here is harmless and portable, and it currently takes effect on Android only. The defect is recorded in [the roadmap](../ROADMAP.md) as declared parity debt.
+The two platforms do not treat the *values* in `extras` identically: Android converts every one of them to a string, while iOS passes them with their original type. Send strings if the receiving adapter distinguishes them — `{ npa: '1' }`, not `{ npa: 1 }`.
+
+Unlike the banner types, these three take their configuration from the creation dictionary. Assigning it afterwards is not portable — iOS honours the new value on the next request and Android keeps the one it was created with — so pass everything to the factory and create a new proxy when the configuration changes.
 
 ## Shared methods
 
@@ -156,6 +158,10 @@ Do not use `extras` to bypass UMP or synthesize personalization state.
 Google fullscreen ads are single-use. After a presentation or a show failure the proxy holds no ad: its native reference is cleared and `isLoaded()` turns `false`. Call `load()` again before the next `show()`.
 
 Late native callbacks are ignored after `destroy()`. A dismissed or failed-to-show ad reference is cleared before the terminal event is emitted.
+
+`load()` after `destroy()` is silent here: it logs a warning and emits nothing, on both platforms. Banners behave differently — they emit `failed_to_load` — so do not write one handler that expects an event from both.
+
+One failure has no iOS counterpart: on Android, `load()` and `show()` need a current activity, and without one they emit `failed_to_load` or `failed_to_show` with the message `No current activity available` and code `-1`. It happens when the application calls in with no activity in the foreground. Code `-1` is the module's own, outside Google's error-code range.
 
 ## Keeping the next ad ready
 
