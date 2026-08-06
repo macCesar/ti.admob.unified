@@ -68,6 +68,11 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
         self.extras = [config objectForKey:@"extras"];
     }
 
+    // Request agent identifying the mediation platform
+    if ([config objectForKey:@"requestAgent"]) {
+        self.requestAgent = [TiUtils stringValue:[config objectForKey:@"requestAgent"]];
+    }
+
     DebugLog(@"[DEBUG] App open ad configured with unit ID: %@, autoReload: %@",
              self.adUnitId, self.autoReload ? @"YES" : @"NO");
 }

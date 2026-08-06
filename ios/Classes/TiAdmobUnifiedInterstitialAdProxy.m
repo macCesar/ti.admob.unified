@@ -61,7 +61,12 @@
     if ([config objectForKey:@"extras"]) {
         self.extras = [config objectForKey:@"extras"];
     }
-    
+
+    // Request agent identifying the mediation platform
+    if ([config objectForKey:@"requestAgent"]) {
+        self.requestAgent = [TiUtils stringValue:[config objectForKey:@"requestAgent"]];
+    }
+
     DebugLog(@"[DEBUG] Interstitial ad configured with unit ID: %@, autoReload: %@", 
              self.adUnitId, self.autoReload ? @"YES" : @"NO");
 }

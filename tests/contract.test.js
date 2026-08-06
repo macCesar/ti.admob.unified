@@ -918,3 +918,16 @@ test('restores banner autoloading when every pause cause is gone', () => {
     )
   }
 })
+
+test('reads requestAgent from the creation dictionary on iOS fullscreen ads', () => {
+  // The property existed and the request used it, but configureWithDict never
+  // read the key, so a value set from JavaScript was silently discarded on iOS
+  // while Android honoured it.
+  for (const source of [iosInterstitial, iosRewarded, iosAppOpen]) {
+    assert.match(
+      source,
+      /if \(\[config objectForKey:@"requestAgent"\]\) \{\s*self\.requestAgent = \[TiUtils stringValue:\[config objectForKey:@"requestAgent"\]\];/
+    )
+  }
+  assert.match(androidInterstitial, /config\.optString\("requestAgent"/)
+})
