@@ -201,17 +201,17 @@ Starts an ad request.
 
 ### `pause()`
 
-Idempotently pauses the banner: it hides the native view and suspends the ad view's processing on both platforms.
+Idempotently pauses the banner: it hides the native view on both platforms.
 
-One effect is **not** symmetric, and the difference is in Google's SDKs, not in this module:
+What happens beyond hiding is **not** symmetric, and the difference is in Google's SDKs, not in this module:
 
-|                             | iOS                        | Android |
-| --------------------------- | -------------------------- | ------- |
-| Hides the native view       | Yes                        | Yes     |
-| Suspends ad-view processing | Yes                        | Yes     |
-| Stops the automatic refresh | Yes, via `autoloadEnabled` | **No**  |
+|                             | iOS                            | Android                 |
+| --------------------------- | ------------------------------ | ----------------------- |
+| Hides the native view       | Yes                            | Yes                     |
+| Suspends ad-view processing | No such call exists            | Yes, via `AdView.pause()` |
+| Stops the automatic refresh | Yes, via `autoloadEnabled`     | **No**                  |
 
-`GADBannerView` exposes `autoloadEnabled`, so pausing stops the refresh explicitly on iOS. `BaseAdView` on Android exposes no refresh control at all, and `pause()` is documented only as pausing "extra processing".
+`BaseAdView` on Android has `pause()`, documented as pausing "extra processing", but no refresh control. `GADBannerView` on iOS has the opposite: `autoloadEnabled` turns the refresh off, and there is no processing-suspension call to make.
 
 In practice the gap is smaller than that table suggests, because the SDK gates refresh on visibility by itself. An off-screen banner logs:
 
@@ -221,7 +221,7 @@ I/Ads: Ad is not visible. Not refreshing ad.
 
 Since `pause()` now hides the native view on both platforms, that gate is what stops the refresh on Android. The mechanism differs — an explicit flag on iOS, a visibility check on Android — but a paused banner should not be refreshing on either. Confirm it with that log line rather than assuming it.
 
-Do not try to close the remaining gap by destroying and recreating the banner. That discards the loaded creative, issues a fresh request, and costs a full load cycle on return. Configure the refresh rate on the ad unit in AdMob.
+Do not try to close the remaining gap by destroying and recreating the banner. That discards the loaded creative, issues a fresh request, and costs a full load cycle on return. The refresh rate itself is configured on the ad unit in AdMob; `pause()` only decides whether the banner participates while it is hidden.
 
 **Never hide a banner that has not loaded yet.** On Android the visibility gate cuts both ways: an `AdView` that is already hidden does not load either, so a placement hidden before its first fill stays empty. The module handles this by deferring `load()` while paused and running it on resume, once the view is visible again — which is why you should call `load()` normally and let the module decide when it runs, rather than gating the call yourself.
 
@@ -230,6 +230,8 @@ On iOS there is no visibility gate at all. A hidden `GADBannerView` keeps loadin
 ### `resume()`
 
 Idempotently resumes the banner and runs one deferred load, if present, but only once every pause cause has cleared. See [Who pauses a banner](#who-pauses-a-banner).
+
+It reverses every effect of `pause()`: the native view becomes visible again, Android resumes the ad view's processing, and iOS restores the `autoloadEnabled` value the banner had before pausing. Because the application lifecycle pauses banners on its own, this matters more than it looks: a `resume()` that did not restore the flag would leave a banner opted out of autoloading the first time the user switched away from the app.
 
 ### `isLoaded()`
 
