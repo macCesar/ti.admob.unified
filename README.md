@@ -6,6 +6,40 @@ Version `1.0.0` provides a safe privacy flow, idempotent SDK operations, and sha
 
 Replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See [Migrating to ti.admob.unified](documentation/migration.md).
 
+## Why one module instead of two
+
+Titanium has had AdMob modules for years, one per platform, each with its own names, its own events and its own payloads. The cost of that is not the install: it is every branch it forces into your application.
+
+**One declaration.** One module in `tiapp.xml` covers both platforms:
+
+```xml
+<modules>
+  <module version="1.0.0">ti.admob.unified</module>
+</modules>
+```
+
+**No platform branches in ad code.** With one module per platform, each one brings its own factory names, property names and constants, so every placement starts with a fork — and both halves have to be kept working. Here there is one call:
+
+```js
+const ad = Admob.createBanner({ adUnitId: unitId, adSize: Admob.BANNER })
+```
+
+The same holds for the reusability rule that differs between the platform modules: fullscreen ads are single-use here on both platforms, and `autoReload: true` reloads the next one for you.
+
+**One event contract.** Event names, payload keys and value types are identical on iOS and Android, so a handler written once works on both:
+
+```js
+ad.addEventListener(Admob.AD_LOADED, event => {
+  // adUnitId, adType, isAdaptive — same keys, same types, both platforms
+})
+```
+
+Where the two SDKs genuinely differ, the difference is named rather than hidden. [The roadmap](ROADMAP.md#differences-that-stay) lists every one of them and why it stays.
+
+**One privacy flow.** UMP consent, the `canRequestAds()` gate and initialization are the same sequence on both platforms. The iOS-only step, App Tracking Transparency, is a portable call that completes immediately on Android with `applicable: false`, so even that needs no branch.
+
+**Mediation parity.** The same six ad sources ship on both platforms, and the adapters are discovered by AdMob. Adding a mediated network changes your AdMob configuration, not your code. See [Mediation parity](MEDIATION_COMPARISON.md).
+
 ## Requirements
 
 | Component                 | Baseline    |
@@ -28,6 +62,8 @@ Replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See 
 | AppLovin                  |   `13.6.3.0` |      `13.6.3.0` |
 | Liftoff Monetize (Vungle) |    `7.7.5.0` |       `7.7.7.0` |
 | ironSource                |  `9.5.0.0.0` |       `9.5.0.0` |
+
+Those are **adapter** versions, not the versions of each network's own SDK. An adapter is versioned as `<network SDK version>.<adapter revision>`, so `13.6.3.0` means AppLovin SDK `13.6.3` with adapter revision `0`. The network SDK each adapter pulls in is listed in [Dependencies and checksums](DEPENDENCIES.md).
 
 The adapters are discovered automatically by Google Mobile Ads. Do not add platform checks or call a different ad factory for a mediated request. Publisher accounts, ad-source mappings, privacy declarations, and provider credentials are still configured outside the module.
 
@@ -140,6 +176,22 @@ bannerHost.add(banner)
 banner.load()
 ```
 
+## Standard banner
+
+A fixed AdMob size. The widths are set by Google's spec, so `BANNER` is 320×50 regardless of the device; use `customAdSize` when you need to fill the width.
+
+```js
+const banner = Admob.createBanner({
+  adUnitId: Admob.TEST_BANNER,
+  adSize: Admob.BANNER
+})
+
+banner.addEventListener(Admob.AD_LOADED, () => Ti.API.info('Banner loaded'))
+
+bannerHost.add(banner)
+banner.load()
+```
+
 Standard and adaptive banners expose the same methods:
 
 - `load()`
@@ -165,6 +217,49 @@ Interstitial, rewarded, and app open proxies expose the same API on iOS and Andr
 - `isLoaded()` reports whether an unused ad is ready.
 - `destroy()` is terminal, idempotent, and emits `destroyed` once.
 
+```js
+const interstitial = Admob.createInterstitial({
+  adUnitId: Admob.TEST_INTERSTITIAL,
+  autoReload: true
+})
+
+interstitial.addEventListener(Admob.AD_LOADED, () => interstitial.show())
+interstitial.load()
+```
+
+Rewarded ads add one event, and it is the only place a reward may be granted:
+
+```js
+const rewarded = Admob.createRewarded({
+  adUnitId: Admob.TEST_REWARDED,
+  autoReload: true
+})
+
+rewarded.addEventListener(Admob.AD_REWARDED, event => {
+  grantReward(event.rewardType, event.rewardAmount)
+})
+
+rewarded.addEventListener(Admob.AD_LOADED, () => rewarded.show())
+rewarded.load()
+```
+
+App open ads are shown when the user returns to a running app, never on a cold start behind your own splash:
+
+```js
+const appOpen = Admob.createAppOpen({
+  adUnitId: Admob.TEST_APP_OPEN,
+  autoReload: true
+})
+
+appOpen.load()
+
+Ti.App.addEventListener('resumed', () => {
+  if (appOpen.isLoaded()) {
+    appOpen.show()
+  }
+})
+```
+
 App open ads expire four hours after the request, as Google documents. Past that point `isLoaded()` reports `false` and `show()` emits `failed_to_show`.
 
 Every fullscreen event includes `adUnitId` and `adType`. Failures consistently add `error`, `message`, and `code`. Both platforms emit `opened` and `showed_fullscreen_content`; rewarded ads additionally emit `rewarded` with `rewardType` and `rewardAmount`.
@@ -175,10 +270,12 @@ See [Fullscreen ads](documentation/fullscreen.md) for examples, cleanup, and the
 
 ## Documentation
 
+- [Documentation index](documentation/index.md)
 - [Getting started](documentation/getting-started.md)
 - [Integrating the module](documentation/integration.md)
 - [Privacy and initialization](documentation/privacy.md)
 - [AdMob mediation](documentation/mediation.md)
+- [Mediation parity across platforms](MEDIATION_COMPARISON.md)
 - [Third-party SDK notices](documentation/third-party-notices.md)
 - [Banner ads](documentation/banners.md)
 - [Fullscreen ads](documentation/fullscreen.md)
