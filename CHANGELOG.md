@@ -23,7 +23,8 @@ Rewarded interstitial and native are not implemented. Their constants are export
 - Fullscreen proxies share `load()`, `show()`, `isLoaded()`, and `destroy()`. Loads are serialized, native ads are single-use, and destruction is terminal and idempotent.
 - Every fullscreen event carries `adUnitId` and `adType`; failures add `error`, `message`, and `code`; rewards add `rewardType` and `rewardAmount`.
 - Application and host-lifecycle pauses are independent causes. Neither resumes the other's pause, so a banner paused because its tab is hidden stays paused when the app returns from the background.
-- `keywords`, `contentUrl`, `requestAgent`, and `extras` reach the ad request from both banner types on both platforms.
+- `keywords`, `contentUrl`, `requestAgent`, `extras`, and the experimental `collapsible` option reach the ad request from both banner types on both platforms, and `requestAgent` and `extras` also from all three fullscreen types.
+- The adaptive `loaded` payload reports the same seven size keys on both platforms: `width`, `height`, `widthUnit`, `heightUnit`, `widthPx`, `heightPx`, and `density`.
 
 ### Privacy
 
@@ -51,6 +52,8 @@ Exact adapter and framework versions, with checksums, are in [DEPENDENCIES.md](D
 
 ### Known gaps
 
-Both platforms are meant to expose an identical JavaScript surface. Eight places where they do not are recorded in [ROADMAP.md](ROADMAP.md). Four matter in practice: `requestAgent` is dropped by the iOS fullscreen proxies, `extras` is a live property on iOS and creation-only on Android, the adaptive `loaded` payload carries five diagnostic keys on Android that iOS does not emit, and `module_initialized` on iOS reports a failed SDK start as a success.
+Rewarded interstitial and native ads are not implemented on either platform.
+
+Both platforms are meant to expose an identical JavaScript surface. An audit against the native sources found ten places where they did not, and all ten were closed before release; they are recorded in [ROADMAP.md](ROADMAP.md) along with the six differences that stay because one platform's SDK cannot offer what the other does.
 
 Physical-device validation is still outstanding on both platforms.
