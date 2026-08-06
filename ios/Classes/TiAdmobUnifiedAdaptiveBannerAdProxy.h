@@ -23,6 +23,9 @@
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
 @property (nonatomic, strong) NSString *contentUrl;
+// "top" or "bottom", the only two values Google's SDK accepts. Travels to AdMob
+// as a network extra, the same key and values Android puts in its Bundle.
+@property (nonatomic, strong) NSString *collapsible;
 // Identifies what issued the request. Google reserves it for libraries that
 // wrap the SDK, which is exactly what this module is.
 @property (nonatomic, strong) NSString *requestAgent;

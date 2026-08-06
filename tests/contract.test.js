@@ -1032,3 +1032,23 @@ test('keeps iOS fullscreen internals off the JavaScript surface', () => {
     )
   }
 })
+
+test('supports collapsible adaptive banners on both platforms', () => {
+  // GADBannerView documents isCollapsible, and the vehicle is a network extra
+  // with the same key and values Android puts in its Bundle.
+  assert.match(iosAdaptiveBannerHeader, /NSString \*collapsible/)
+  assert.match(iosAdaptiveBanner, /additionalParameters\[@"collapsible"\] = self\.proxy\.collapsible/)
+  assert.match(androidAdaptiveBannerView, /requestExtras\.putString\("collapsible", collapsible\)/)
+  assert.match(
+    androidAdaptiveBannerProxy,
+    /@Kroll\.setProperty\s*\n\s*public void setCollapsible/
+  )
+
+  // One GADExtras carries extras and collapsible together: registering a second
+  // one for the same network replaces the first instead of adding to it.
+  assert.equal(iosAdaptiveBanner.match(/\[\[GADExtras alloc\] init\]/g).length, 1)
+  assert.match(
+    iosAdaptiveBanner,
+    /extras\.additionalParameters = additionalParameters;\s*\[request registerAdNetworkExtras:extras\]/
+  )
+})

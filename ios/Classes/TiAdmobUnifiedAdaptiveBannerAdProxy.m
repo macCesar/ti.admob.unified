@@ -552,9 +552,20 @@
         request.requestAgent = self.proxy.requestAgent;
     }
 
+    // One GADExtras carries both: registering a second one for the same network
+    // replaces the first instead of adding to it. Android builds a single Bundle
+    // for the same reason.
+    NSMutableDictionary *additionalParameters = [NSMutableDictionary dictionary];
     if (self.proxy.extras) {
+        [additionalParameters addEntriesFromDictionary:self.proxy.extras];
+    }
+    if (self.proxy.collapsible && [self.proxy.collapsible length] > 0) {
+        additionalParameters[@"collapsible"] = self.proxy.collapsible;
+        DebugLog(@"[DEBUG] Added collapsible setting: %@", self.proxy.collapsible);
+    }
+    if ([additionalParameters count] > 0) {
         GADExtras *extras = [[GADExtras alloc] init];
-        extras.additionalParameters = self.proxy.extras;
+        extras.additionalParameters = additionalParameters;
         [request registerAdNetworkExtras:extras];
     }
 
