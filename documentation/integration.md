@@ -13,7 +13,7 @@ Four responsibilities stay with the application, because none of them can be dec
 | **Sequence the start-up**          | Consent, the `canRequestAds()` gate, `initialize()`, and ad creation must happen in that order, once per session. The module exposes each step and enforces none of the ordering.    |
 | **Turn events into promises**      | `requestConsent()` and `initialize()` answer through module-level events, not callbacks. Awaiting them is the difference between a readable start-up and a pile of nested listeners. |
 | **Reserve layout space**           | Only the application knows which view the banner sits in and what it must not cover.                                                                                                 |
-| **Rebuild when the world changes** | A banner cannot be resized and cannot change its ad unit. A rotation, a split-view resize, or a consent change means destroying the proxy and creating a new one.                    |
+| **Rebuild when the world changes** | Never resize a live banner or point it at another ad unit. A rotation, a split-view resize, or a consent change means destroying the proxy and creating a new one.                   |
 
 Everything below is one way to discharge those four, extracted from a shipping application. Copy it and change the parts the next section marks as yours.
 

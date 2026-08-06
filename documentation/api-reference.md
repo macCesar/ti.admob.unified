@@ -108,7 +108,7 @@ It emits the terminal `consent_complete` event. Calls are idempotent within the 
 
 ### `canRequestAds()`
 
-Returns a Boolean from the native UMP consent-information object. It returns `false` until the current app session has requested a consent-information update.
+Returns a Boolean from the native UMP consent-information object. UMP persists consent across sessions, so on a launch after the user has already answered it can return `true` before this session requests an update. Treat it as "may I request ads right now?", not as a record of what this session has done.
 
 ### `isPrivacyOptionsRequired()`
 
@@ -291,12 +291,17 @@ Adaptive payloads add `adaptiveType`. Adaptive `loaded` adds:
 
 ```js
 {
+  width: Number,
   height: Number,
-  heightUnit: 'dp'
+  widthUnit: 'dp',
+  heightUnit: 'dp',
+  widthPx: Number,
+  heightPx: Number,
+  density: Number
 }
 ```
 
-Android additionally exposes `width`, `widthUnit`, `widthPx`, `heightPx`, and `density` on the adaptive `loaded` event. Those diagnostic keys are not a cross-platform contract.
+All seven keys are present on both platforms. `density` is the one to read with care: it comes from `DisplayMetrics.density` on Android, which reports fractional values such as `2.625`, and from `UIScreen.scale` on iOS, which only ever yields `1`, `2` or `3`. They mean the same thing — points to pixels — but the set of possible values is not identical, so compare against it rather than testing for equality with a constant.
 
 ## Fullscreen proxy
 
@@ -320,7 +325,7 @@ All three factories accept:
 | `adUnitId`     | String   | `""`    | Required before `load()`.                                                                      |
 | `autoReload`   | Boolean  | `false` | Reloads after `closed`, and after nothing else.                                                |
 | `keywords`     | String[] | None    | Request keywords.                                                                              |
-| `requestAgent` | String   | None    | Android only for these three types. The iOS proxies drop it; see [the roadmap](../ROADMAP.md). |
+| `requestAgent` | String   | None    | Identifies what issued the request, on both platforms.                                         |
 | `extras`       | Object   | None    | Google ad-network extras.                                                                      |
 
 `autoReload` covers exactly one case. It does not reload after `failed_to_load` or after `failed_to_show`, because both deserve backoff rather than an immediate retry, and that decision belongs to the application.
