@@ -989,3 +989,14 @@ test('lets iOS banner events bubble to the container', () => {
     assert.doesNotMatch(source, /if \(\[self _hasListeners:/)
   }
 })
+
+test('carries adaptiveType on every adaptive event Android fires', () => {
+  // The view included it; the events the proxy fires on its own — destroyed
+  // with no view, failed_to_load after destruction — did not, so the payload
+  // shape depended on which object happened to fire it.
+  assert.match(
+    androidAdaptiveBannerProxy,
+    /private void fireBannerEvent[\s\S]*?event\.put\("adaptiveType"/
+  )
+  assert.match(androidAdaptiveBannerView, /data\.put\("adaptiveType", adaptiveType\)/)
+})

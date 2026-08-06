@@ -207,6 +207,12 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 		event.put("adUnitId", getAdUnitId() != null ? getAdUnitId() : "");
 		event.put("adType", TiAdmobUnifiedModule.AD_TYPE_BANNER);
 		event.put("isAdaptive", true);
+		// The view fires its own events with adaptiveType; the ones the proxy fires
+		// directly (destroyed with no view, failed_to_load after destruction) carry
+		// it too, so every adaptive event has the same shape. Falls back to the
+		// same default the view uses when the application never set the property.
+		String type = getAdaptiveType();
+		event.put("adaptiveType", type != null ? type : TiAdmobUnifiedModule.ADAPTIVE_ANCHORED);
 		if (error != null) {
 			event.put("error", error);
 			event.put("code", code);
