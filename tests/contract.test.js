@@ -959,3 +959,24 @@ test('reports the reward the SDK granted and nothing else', () => {
   assert.match(androidRewarded, /rewardEvent\.put\("rewardType", rewardItem\.getType\(\)\)/)
   assert.match(androidRewarded, /rewardEvent\.put\("rewardAmount", rewardItem\.getAmount\(\)\)/)
 })
+
+test('exposes network extras as a readable property on Android banners', () => {
+  // iOS carried extras as a live property; on Android it was write-only at
+  // creation and reading it returned undefined.
+  for (const source of [androidBannerProxy, androidAdaptiveBannerProxy]) {
+    assert.match(source, /@Kroll\.getProperty\s*\n\s*public KrollDict getExtras/)
+    assert.match(source, /@Kroll\.setProperty\s*\n\s*public void setExtras\(KrollDict extras\)/)
+    assert.match(source, /bannerView\.setExtras\(TiAdmobUnifiedModule\.toExtrasBundle\(extras\)\)/)
+  }
+
+  // One conversion, shared: a value must not change type depending on which
+  // banner received it.
+  assert.match(androidModule, /static Bundle toExtrasBundle\(KrollDict extrasDict\)/)
+  for (const source of [androidBannerView, androidAdaptiveBannerView]) {
+    assert.match(
+      source,
+      /setExtras\(TiAdmobUnifiedModule\.toExtrasBundle\(\(KrollDict\) properties\.get\("extras"\)\)\)/
+    )
+    assert.doesNotMatch(source, /Bundle extrasBundle = new Bundle\(\)/)
+  }
+})

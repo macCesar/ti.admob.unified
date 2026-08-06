@@ -321,6 +321,34 @@ public class TiAdmobUnifiedBannerAdProxy extends TiViewProxy implements TiLifecy
 	}
 	
 	@Kroll.getProperty
+	public KrollDict getExtras()
+	{
+		Object extrasValue = getProperty("extras");
+		if (extrasValue instanceof KrollDict) {
+			return (KrollDict) extrasValue;
+		}
+		if (extrasValue instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> extrasMap = (Map<String, Object>) extrasValue;
+			return new KrollDict(extrasMap);
+		}
+		return null;
+	}
+
+	// Takes effect on the next load(), not on the ad currently displayed — the same
+	// way requestAgent behaves, because both only reach AdMob through a new AdRequest.
+	@Kroll.setProperty
+	public void setExtras(KrollDict extras)
+	{
+		Log.d(LCAT, "Setting network extras");
+		setProperty("extras", extras);
+
+		if (bannerView != null) {
+			bannerView.setExtras(TiAdmobUnifiedModule.toExtrasBundle(extras));
+		}
+	}
+
+	@Kroll.getProperty
 	public KrollDict getCustomAdSize()
 	{
 		Object customSizeValue = getProperty("customAdSize");

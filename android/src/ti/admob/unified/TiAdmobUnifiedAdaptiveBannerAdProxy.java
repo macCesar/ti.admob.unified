@@ -19,6 +19,8 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
+import java.util.Map;
+
 @Kroll.proxy(creatableInModule = TiAdmobUnifiedModule.class)
 public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements TiLifecycle.OnLifecycleEvent
 {
@@ -350,7 +352,35 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 			bannerView.setRequestAgent(requestAgent);
 		}
 	}
-	
+
+	@Kroll.getProperty
+	public KrollDict getExtras()
+	{
+		Object extrasValue = getProperty("extras");
+		if (extrasValue instanceof KrollDict) {
+			return (KrollDict) extrasValue;
+		}
+		if (extrasValue instanceof Map) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> extrasMap = (Map<String, Object>) extrasValue;
+			return new KrollDict(extrasMap);
+		}
+		return null;
+	}
+
+	// Takes effect on the next load(), not on the ad currently displayed — the same
+	// way requestAgent behaves, because both only reach AdMob through a new AdRequest.
+	@Kroll.setProperty
+	public void setExtras(KrollDict extras)
+	{
+		Log.d(LCAT, "Setting network extras");
+		setProperty("extras", extras);
+
+		if (bannerView != null) {
+			bannerView.setExtras(TiAdmobUnifiedModule.toExtrasBundle(extras));
+		}
+	}
+
 	// TiLifecycle.OnLifecycleEvent implementation
 	@Override
 	public void onDestroy(Activity activity)

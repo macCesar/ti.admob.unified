@@ -555,23 +555,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		
 		// Handle extras bundle
 		if (properties.containsKeyAndNotNull("extras")) {
-			KrollDict extrasDict = (KrollDict) properties.get("extras");
-			Bundle extrasBundle = new Bundle();
-			
-			for (String key : extrasDict.keySet()) {
-				Object value = extrasDict.get(key);
-				if (value instanceof String) {
-					extrasBundle.putString(key, (String) value);
-				} else if (value instanceof Integer) {
-					extrasBundle.putInt(key, (Integer) value);
-				} else if (value instanceof Boolean) {
-					extrasBundle.putBoolean(key, (Boolean) value);
-				} else {
-					extrasBundle.putString(key, value.toString());
-				}
-			}
-			
-			setExtras(extrasBundle);
+			setExtras(TiAdmobUnifiedModule.toExtrasBundle((KrollDict) properties.get("extras")));
 		}
 		
 		// Handle positioning properties

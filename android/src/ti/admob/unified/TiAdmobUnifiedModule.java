@@ -10,6 +10,7 @@ package ti.admob.unified;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.initialization.InitializationStatus;
@@ -342,6 +343,31 @@ public class TiAdmobUnifiedModule extends KrollModule
 		Log.w(LCAT, "setVungleGDPRConsent() is deprecated and intentionally does not "
 			+ "translate one Boolean into regional privacy choices; use UMP and current "
 			+ "provider requirements");
+	}
+
+	// Converts the `extras` dictionary an application passes from JavaScript into the
+	// Bundle AdMob expects. Shared by both banner views so a value keeps the same type
+	// no matter which one receives it. Returns null for a null or empty dictionary.
+	static Bundle toExtrasBundle(KrollDict extrasDict)
+	{
+		if (extrasDict == null || extrasDict.isEmpty()) {
+			return null;
+		}
+
+		Bundle bundle = new Bundle();
+		for (String key : extrasDict.keySet()) {
+			Object value = extrasDict.get(key);
+			if (value instanceof String) {
+				bundle.putString(key, (String) value);
+			} else if (value instanceof Integer) {
+				bundle.putInt(key, (Integer) value);
+			} else if (value instanceof Boolean) {
+				bundle.putBoolean(key, (Boolean) value);
+			} else if (value != null) {
+				bundle.putString(key, value.toString());
+			}
+		}
+		return bundle;
 	}
 
 	// Returns the first of the given class names that is present on the classpath,
