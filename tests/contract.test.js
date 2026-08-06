@@ -901,3 +901,20 @@ test('maps debug geography to the SDK enum rather than a literal', () => {
     )
   }
 })
+
+test('restores banner autoloading when every pause cause is gone', () => {
+  // pause() turned autoloading off and resume() never turned it back on, so a
+  // single trip to the background left the banner opted out for the rest of the
+  // session. The value is remembered rather than forced, so resuming restores
+  // what the banner actually had.
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.match(
+      source,
+      /autoloadEnabledBeforePause = bannerView\.autoloadEnabled;\s*bannerView\.autoloadEnabled = NO;/
+    )
+    assert.match(
+      source,
+      /- \(void\)resumeAd[\s\S]*?bannerView\.autoloadEnabled = autoloadEnabledBeforePause;/
+    )
+  }
+})

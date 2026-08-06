@@ -23,6 +23,9 @@
     BOOL isPaused;
     BOOL isDestroyed;
     BOOL pendingLoad;
+    // Value autoloadEnabled held before pausing, so resuming restores it instead
+    // of leaving the banner permanently opted out of autoloading.
+    BOOL autoloadEnabledBeforePause;
 }
 
 @property (nonatomic, weak) TiAdmobUnifiedBannerAdProxy *proxy;
@@ -656,6 +659,7 @@
     }
     isPaused = YES;
     bannerView.hidden = YES;
+    autoloadEnabledBeforePause = bannerView.autoloadEnabled;
     bannerView.autoloadEnabled = NO;
     DebugLog(@"[DEBUG] Banner paused");
 }
@@ -667,6 +671,7 @@
     }
     isPaused = NO;
     bannerView.hidden = NO;
+    bannerView.autoloadEnabled = autoloadEnabledBeforePause;
     if (pendingLoad) {
         pendingLoad = NO;
         [self loadAd];
