@@ -11,21 +11,37 @@
 #import "TiApp.h"
 #import "TiUtils.h"
 
+// Plain ivars rather than properties: a synthesised getter is reachable from
+// JavaScript through Kroll's key lookup, and Android exposes neither the native
+// ad object nor the loading state. accessInstanceVariablesDirectly closes the
+// remaining path, key-value coding reaching the ivar by name.
 @interface TiAdmobUnifiedRewardedAdProxy ()
+{
+    GADRewardedAd *rewardedAd;
+    BOOL isLoading;
+    BOOL isShowing;
+    BOOL isDestroyed;
+    BOOL destroyedEventFired;
+}
 - (NSDictionary *)baseEvent;
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code;
 @end
 
 @implementation TiAdmobUnifiedRewardedAdProxy
 
++ (BOOL)accessInstanceVariablesDirectly
+{
+    return NO;
+}
+
 - (id)_initWithPageContext:(id<TiEvaluator>)context args:(NSArray *)args
 {
     self = [super _initWithPageContext:context];
     if (self) {
-        self.isLoading = NO;
-        self.isShowing = NO;
-        self.isDestroyed = NO;
-        self.destroyedEventFired = NO;
+        self->isLoading = NO;
+        self->isShowing = NO;
+        self->isDestroyed = NO;
+        self->destroyedEventFired = NO;
         if ([args count] > 0) {
             NSDictionary *config = [args objectAtIndex:0];
             [self configureWithDict:config];
@@ -77,12 +93,12 @@
 {
     DebugLog(@"[DEBUG] Loading rewarded ad: %@", self.adUnitId);
 
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         DebugLog(@"[WARN] Ignoring load after rewarded destruction");
         return;
     }
 
-    if (self.isLoading || self.isShowing || self.rewardedAd != nil) {
+    if (self->isLoading || self->isShowing || self->rewardedAd != nil) {
         DebugLog(@"[WARN] Ignoring duplicate rewarded load");
         return;
     }
@@ -95,17 +111,17 @@
         return;
     }
 
-    self.isLoading = YES;
+    self->isLoading = YES;
     GADRequest *request = [self buildAdRequest];
     
     [GADRewardedAd loadWithAdUnitID:self.adUnitId
                             request:request
                   completionHandler:^(GADRewardedAd *ad, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (self.isDestroyed) {
+            if (self->isDestroyed) {
                 return;
             }
-            self.isLoading = NO;
+            self->isLoading = NO;
             if (error) {
                 DebugLog(@"[ERROR] Rewarded ad failed to load: %@", error.localizedDescription);
                 
@@ -116,8 +132,8 @@
             }
             
             DebugLog(@"[DEBUG] Rewarded ad loaded successfully");
-            self.rewardedAd = ad;
-            self.rewardedAd.fullScreenContentDelegate = self;
+            self->rewardedAd = ad;
+            self->rewardedAd.fullScreenContentDelegate = self;
             
             [self fireEvent:@"loaded" withObject:[self baseEvent]];
         });
@@ -150,13 +166,13 @@
 
 - (void)show:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"Rewarded ad has been destroyed" code:1]];
         return;
     }
 
-    if (!self.rewardedAd) {
+    if (!self->rewardedAd) {
         DebugLog(@"[ERROR] Cannot show rewarded ad - ad not loaded");
 
         [self fireEvent:@"failed_to_show"
@@ -164,7 +180,7 @@
         return;
     }
 
-    if (self.isShowing) {
+    if (self->isShowing) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"Ad is already showing" code:1]];
         return;
@@ -177,15 +193,15 @@
         return;
     }
 
-    self.isShowing = YES;
-    [self.rewardedAd presentFromRootViewController:rootViewController
+    self->isShowing = YES;
+    [self->rewardedAd presentFromRootViewController:rootViewController
                               userDidEarnRewardHandler:^{
         DebugLog(@"[DEBUG] User earned reward");
         
         // Get reward information
-        GADAdReward *reward = self.rewardedAd.adReward;
+        GADAdReward *reward = self->rewardedAd.adReward;
         
-        if (self.isDestroyed) {
+        if (self->isDestroyed) {
             return;
         }
         // Report what the SDK granted, never a substitute: an application that
@@ -199,25 +215,25 @@
 
 - (NSNumber *)isLoaded:(id)args
 {
-    return @(!self.isDestroyed && self.rewardedAd != nil
-             && !self.isLoading && !self.isShowing);
+    return @(!self->isDestroyed && self->rewardedAd != nil
+             && !self->isLoading && !self->isShowing);
 }
 
 - (void)destroy:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Destroying rewarded ad");
 
-    self.isDestroyed = YES;
-    self.rewardedAd.fullScreenContentDelegate = nil;
-    self.rewardedAd = nil;
-    self.isLoading = NO;
-    self.isShowing = NO;
+    self->isDestroyed = YES;
+    self->rewardedAd.fullScreenContentDelegate = nil;
+    self->rewardedAd = nil;
+    self->isLoading = NO;
+    self->isShowing = NO;
 
-    if (!self.destroyedEventFired) {
-        self.destroyedEventFired = YES;
+    if (!self->destroyedEventFired) {
+        self->destroyedEventFired = YES;
         [self fireEvent:@"destroyed" withObject:[self baseEvent]];
     }
 }
@@ -226,7 +242,7 @@
 
 - (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Rewarded ad recorded impression");
@@ -235,7 +251,7 @@
 
 - (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Rewarded ad was clicked");
@@ -244,20 +260,20 @@
 
 - (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[ERROR] Rewarded ad failed to present: %@", error.localizedDescription);
 
-    self.rewardedAd = nil;
-    self.isShowing = NO;
+    self->rewardedAd = nil;
+    self->isShowing = NO;
     [self fireEvent:@"failed_to_show"
          withObject:[self errorEvent:error.localizedDescription code:error.code]];
 }
 
 - (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Rewarded ad will present full screen content");
@@ -269,13 +285,13 @@
 
 - (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Rewarded ad dismissed full screen content");
 
-    self.rewardedAd = nil;
-    self.isShowing = NO;
+    self->rewardedAd = nil;
+    self->isShowing = NO;
     [self fireEvent:@"closed" withObject:[self baseEvent]];
 
     if (self.autoReload) {

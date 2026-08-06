@@ -11,21 +11,37 @@
 #import "TiApp.h"
 #import "TiUtils.h"
 
+// Plain ivars rather than properties: a synthesised getter is reachable from
+// JavaScript through Kroll's key lookup, and Android exposes neither the native
+// ad object nor the loading state. accessInstanceVariablesDirectly closes the
+// remaining path, key-value coding reaching the ivar by name.
 @interface TiAdmobUnifiedInterstitialAdProxy ()
+{
+    GADInterstitialAd *interstitialAd;
+    BOOL isLoading;
+    BOOL isShowing;
+    BOOL isDestroyed;
+    BOOL destroyedEventFired;
+}
 - (NSDictionary *)baseEvent;
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code;
 @end
 
 @implementation TiAdmobUnifiedInterstitialAdProxy
 
++ (BOOL)accessInstanceVariablesDirectly
+{
+    return NO;
+}
+
 - (id)_initWithPageContext:(id<TiEvaluator>)context args:(NSArray *)args
 {
     self = [super _initWithPageContext:context];
     if (self) {
-        self.isLoading = NO;
-        self.isShowing = NO;
-        self.isDestroyed = NO;
-        self.destroyedEventFired = NO;
+        self->isLoading = NO;
+        self->isShowing = NO;
+        self->isDestroyed = NO;
+        self->destroyedEventFired = NO;
         if ([args count] > 0) {
             NSDictionary *config = [args objectAtIndex:0];
             [self configureWithDict:config];
@@ -77,12 +93,12 @@
 {
     DebugLog(@"[DEBUG] Loading interstitial ad: %@", self.adUnitId);
 
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         DebugLog(@"[WARN] Ignoring load after interstitial destruction");
         return;
     }
 
-    if (self.isLoading || self.isShowing || self.interstitialAd != nil) {
+    if (self->isLoading || self->isShowing || self->interstitialAd != nil) {
         DebugLog(@"[WARN] Ignoring duplicate interstitial load");
         return;
     }
@@ -95,17 +111,17 @@
         return;
     }
 
-    self.isLoading = YES;
+    self->isLoading = YES;
     GADRequest *request = [self buildAdRequest];
     
     [GADInterstitialAd loadWithAdUnitID:self.adUnitId
                                 request:request
                       completionHandler:^(GADInterstitialAd *ad, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (self.isDestroyed) {
+            if (self->isDestroyed) {
                 return;
             }
-            self.isLoading = NO;
+            self->isLoading = NO;
             if (error) {
                 DebugLog(@"[ERROR] Interstitial ad failed to load: %@", error.localizedDescription);
                 
@@ -116,8 +132,8 @@
             }
             
             DebugLog(@"[DEBUG] Interstitial ad loaded successfully");
-            self.interstitialAd = ad;
-            self.interstitialAd.fullScreenContentDelegate = self;
+            self->interstitialAd = ad;
+            self->interstitialAd.fullScreenContentDelegate = self;
             
             [self fireEvent:@"loaded" withObject:[self baseEvent]];
         });
@@ -150,13 +166,13 @@
 
 - (void)show:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"Interstitial has been destroyed" code:1]];
         return;
     }
 
-    if (!self.interstitialAd) {
+    if (!self->interstitialAd) {
         DebugLog(@"[ERROR] Cannot show interstitial ad - ad not loaded");
 
         [self fireEvent:@"failed_to_show"
@@ -164,7 +180,7 @@
         return;
     }
 
-    if (self.isShowing) {
+    if (self->isShowing) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"Ad is already showing" code:1]];
         return;
@@ -177,31 +193,31 @@
         return;
     }
 
-    self.isShowing = YES;
-    [self.interstitialAd presentFromRootViewController:rootViewController];
+    self->isShowing = YES;
+    [self->interstitialAd presentFromRootViewController:rootViewController];
 }
 
 - (NSNumber *)isLoaded:(id)args
 {
-    return @(!self.isDestroyed && self.interstitialAd != nil
-             && !self.isLoading && !self.isShowing);
+    return @(!self->isDestroyed && self->interstitialAd != nil
+             && !self->isLoading && !self->isShowing);
 }
 
 - (void)destroy:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Destroying interstitial ad");
 
-    self.isDestroyed = YES;
-    self.interstitialAd.fullScreenContentDelegate = nil;
-    self.interstitialAd = nil;
-    self.isLoading = NO;
-    self.isShowing = NO;
+    self->isDestroyed = YES;
+    self->interstitialAd.fullScreenContentDelegate = nil;
+    self->interstitialAd = nil;
+    self->isLoading = NO;
+    self->isShowing = NO;
 
-    if (!self.destroyedEventFired) {
-        self.destroyedEventFired = YES;
+    if (!self->destroyedEventFired) {
+        self->destroyedEventFired = YES;
         [self fireEvent:@"destroyed" withObject:[self baseEvent]];
     }
 }
@@ -210,7 +226,7 @@
 
 - (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad recorded impression");
@@ -219,7 +235,7 @@
 
 - (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad was clicked");
@@ -228,20 +244,20 @@
 
 - (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[ERROR] Interstitial ad failed to present: %@", error.localizedDescription);
 
-    self.interstitialAd = nil;
-    self.isShowing = NO;
+    self->interstitialAd = nil;
+    self->isShowing = NO;
     [self fireEvent:@"failed_to_show"
          withObject:[self errorEvent:error.localizedDescription code:error.code]];
 }
 
 - (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad will present full screen content");
@@ -253,13 +269,13 @@
 
 - (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad dismissed full screen content");
 
-    self.interstitialAd = nil;
-    self.isShowing = NO;
+    self->interstitialAd = nil;
+    self->isShowing = NO;
     [self fireEvent:@"closed" withObject:[self baseEvent]];
 
     if (self.autoReload) {

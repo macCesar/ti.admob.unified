@@ -527,7 +527,7 @@ test('keeps fullscreen lifecycle terminal and serialized on both platforms', () 
   // file would also accept it from an ordinary discard path and report a leak
   // in destroy() as clean.
   for (const source of [iosInterstitial, iosRewarded, iosAppOpen]) {
-    assert.match(source, /isDestroyed = YES;\s*self\.\w+\.fullScreenContentDelegate = nil;/)
+    assert.match(source, /isDestroyed = YES;\s*self->\w+\.fullScreenContentDelegate = nil;/)
     assert.match(source, /- \(void\)_destroy/)
     assert.match(source, /\[self destroy:nil\];\s*\[super _destroy\];/)
   }
@@ -726,7 +726,7 @@ test('enforces the app open four hour window on both platforms', () => {
   assert.match(androidAppOpen, /4 \* 60 \* 60 \* 1000L/)
 
   // The load time is stamped on arrival and cleared with the ad.
-  assert.match(iosAppOpen, /self\.loadTime = \[NSDate date\]/)
+  assert.match(iosAppOpen, /self->loadTime = \[NSDate date\]/)
   assert.match(androidAppOpen, /loadTime = System\.currentTimeMillis\(\)/)
 
   // `isLoaded()` consults it: an expired ad is not ready.
@@ -999,4 +999,36 @@ test('carries adaptiveType on every adaptive event Android fires', () => {
     /private void fireBannerEvent[\s\S]*?event\.put\("adaptiveType"/
   )
   assert.match(androidAdaptiveBannerView, /data\.put\("adaptiveType", adaptiveType\)/)
+})
+
+test('keeps iOS fullscreen internals off the JavaScript surface', () => {
+  // Android exposes neither the native ad object nor the loading state. A
+  // synthesised getter — even from a class extension — is reachable through
+  // Kroll's key lookup, so these are plain ivars with direct key-value access
+  // turned off.
+  const headers = {
+    'ios/Classes/TiAdmobUnifiedInterstitialAdProxy.h': 'GADInterstitialAd',
+    'ios/Classes/TiAdmobUnifiedRewardedAdProxy.h': 'GADRewardedAd',
+    'ios/Classes/TiAdmobUnifiedAppOpenAdProxy.h': 'GADAppOpenAd'
+  }
+  for (const [file, nativeClass] of Object.entries(headers)) {
+    const header = read(file)
+    assert.doesNotMatch(header, new RegExp(`${nativeClass} \\*`))
+    for (const state of [
+      'isLoading',
+      'isShowing',
+      'isDestroyed',
+      'destroyedEventFired',
+      'loadTime'
+    ]) {
+      assert.doesNotMatch(header, new RegExp(`@property[^\\n]*\\b${state}\\b`))
+    }
+  }
+
+  for (const source of [iosInterstitial, iosRewarded, iosAppOpen]) {
+    assert.match(
+      source,
+      /\+ \(BOOL\)accessInstanceVariablesDirectly\s*\{\s*return NO;\s*\}/
+    )
+  }
 })

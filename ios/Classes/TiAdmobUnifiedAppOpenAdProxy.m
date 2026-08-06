@@ -15,7 +15,21 @@
 // An ad rendered later is no longer valid and may not earn revenue.
 static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
+// Plain ivars rather than properties: a synthesised getter is reachable from
+// JavaScript through Kroll's key lookup, and Android exposes neither the native
+// ad object nor the loading state. accessInstanceVariablesDirectly closes the
+// remaining path, key-value coding reaching the ivar by name.
 @interface TiAdmobUnifiedAppOpenAdProxy ()
+{
+    GADAppOpenAd *appOpenAd;
+    BOOL isLoading;
+    BOOL isShowing;
+    BOOL isDestroyed;
+    BOOL destroyedEventFired;
+    // Timestamp of the last successful load. App open ads expire four hours after
+    // the request, so the proxy has to remember when the ad arrived.
+    NSDate *loadTime;
+}
 - (NSDictionary *)baseEvent;
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code;
 - (BOOL)isAdExpired;
@@ -24,14 +38,19 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 @implementation TiAdmobUnifiedAppOpenAdProxy
 
++ (BOOL)accessInstanceVariablesDirectly
+{
+    return NO;
+}
+
 - (id)_initWithPageContext:(id<TiEvaluator>)context args:(NSArray *)args
 {
     self = [super _initWithPageContext:context];
     if (self) {
-        self.isLoading = NO;
-        self.isShowing = NO;
-        self.isDestroyed = NO;
-        self.destroyedEventFired = NO;
+        self->isLoading = NO;
+        self->isShowing = NO;
+        self->isDestroyed = NO;
+        self->destroyedEventFired = NO;
         if ([args count] > 0) {
             NSDictionary *config = [args objectAtIndex:0];
             [self configureWithDict:config];
@@ -83,18 +102,18 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 {
     DebugLog(@"[DEBUG] Loading app open ad: %@", self.adUnitId);
 
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         DebugLog(@"[WARN] Ignoring load after app open destruction");
         return;
     }
 
     // An expired ad is no longer showable, so it must not block a new request.
-    if (!self.isShowing && [self isAdExpired]) {
+    if (!self->isShowing && [self isAdExpired]) {
         DebugLog(@"[DEBUG] Discarding expired app open ad before reloading");
         [self discardAd];
     }
 
-    if (self.isLoading || self.isShowing || self.appOpenAd != nil) {
+    if (self->isLoading || self->isShowing || self->appOpenAd != nil) {
         DebugLog(@"[WARN] Ignoring duplicate app open load");
         return;
     }
@@ -107,17 +126,17 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
         return;
     }
 
-    self.isLoading = YES;
+    self->isLoading = YES;
     GADRequest *request = [self buildAdRequest];
 
     [GADAppOpenAd loadWithAdUnitID:self.adUnitId
                            request:request
                  completionHandler:^(GADAppOpenAd *ad, NSError *error) {
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (self.isDestroyed) {
+            if (self->isDestroyed) {
                 return;
             }
-            self.isLoading = NO;
+            self->isLoading = NO;
             if (error) {
                 DebugLog(@"[ERROR] App open ad failed to load: %@", error.localizedDescription);
 
@@ -128,9 +147,9 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
             }
 
             DebugLog(@"[DEBUG] App open ad loaded successfully");
-            self.appOpenAd = ad;
-            self.appOpenAd.fullScreenContentDelegate = self;
-            self.loadTime = [NSDate date];
+            self->appOpenAd = ad;
+            self->appOpenAd.fullScreenContentDelegate = self;
+            self->loadTime = [NSDate date];
 
             [self fireEvent:@"loaded" withObject:[self baseEvent]];
         });
@@ -163,13 +182,13 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 - (void)show:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"App open has been destroyed" code:1]];
         return;
     }
 
-    if (!self.appOpenAd) {
+    if (!self->appOpenAd) {
         DebugLog(@"[ERROR] Cannot show app open ad - ad not loaded");
 
         [self fireEvent:@"failed_to_show"
@@ -177,7 +196,7 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
         return;
     }
 
-    if (self.isShowing) {
+    if (self->isShowing) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"Ad is already showing" code:1]];
         return;
@@ -199,32 +218,32 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
         return;
     }
 
-    self.isShowing = YES;
-    [self.appOpenAd presentFromRootViewController:rootViewController];
+    self->isShowing = YES;
+    [self->appOpenAd presentFromRootViewController:rootViewController];
 }
 
 - (NSNumber *)isLoaded:(id)args
 {
-    return @(!self.isDestroyed && self.appOpenAd != nil
-             && !self.isLoading && !self.isShowing && ![self isAdExpired]);
+    return @(!self->isDestroyed && self->appOpenAd != nil
+             && !self->isLoading && !self->isShowing && ![self isAdExpired]);
 }
 
 - (void)destroy:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Destroying app open ad");
 
-    self.isDestroyed = YES;
-    self.appOpenAd.fullScreenContentDelegate = nil;
-    self.appOpenAd = nil;
-    self.loadTime = nil;
-    self.isLoading = NO;
-    self.isShowing = NO;
+    self->isDestroyed = YES;
+    self->appOpenAd.fullScreenContentDelegate = nil;
+    self->appOpenAd = nil;
+    self->loadTime = nil;
+    self->isLoading = NO;
+    self->isShowing = NO;
 
-    if (!self.destroyedEventFired) {
-        self.destroyedEventFired = YES;
+    if (!self->destroyedEventFired) {
+        self->destroyedEventFired = YES;
         [self fireEvent:@"destroyed" withObject:[self baseEvent]];
     }
 }
@@ -233,7 +252,7 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 - (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] App open ad recorded impression");
@@ -242,7 +261,7 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 - (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] App open ad was clicked");
@@ -251,21 +270,21 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 - (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[ERROR] App open ad failed to present: %@", error.localizedDescription);
 
-    self.appOpenAd = nil;
-    self.loadTime = nil;
-    self.isShowing = NO;
+    self->appOpenAd = nil;
+    self->loadTime = nil;
+    self->isShowing = NO;
     [self fireEvent:@"failed_to_show"
          withObject:[self errorEvent:error.localizedDescription code:error.code]];
 }
 
 - (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] App open ad will present full screen content");
@@ -277,14 +296,14 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 - (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
 {
-    if (self.isDestroyed) {
+    if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] App open ad dismissed full screen content");
 
-    self.appOpenAd = nil;
-    self.loadTime = nil;
-    self.isShowing = NO;
+    self->appOpenAd = nil;
+    self->loadTime = nil;
+    self->isShowing = NO;
     [self fireEvent:@"closed" withObject:[self baseEvent]];
 
     if (self.autoReload) {
@@ -297,17 +316,17 @@ static const NSTimeInterval TiAdmobUnifiedAppOpenValidityWindow = 4 * 60 * 60;
 
 - (BOOL)isAdExpired
 {
-    if (self.appOpenAd == nil || self.loadTime == nil) {
+    if (self->appOpenAd == nil || self->loadTime == nil) {
         return NO;
     }
-    return [[NSDate date] timeIntervalSinceDate:self.loadTime] >= TiAdmobUnifiedAppOpenValidityWindow;
+    return [[NSDate date] timeIntervalSinceDate:self->loadTime] >= TiAdmobUnifiedAppOpenValidityWindow;
 }
 
 - (void)discardAd
 {
-    self.appOpenAd.fullScreenContentDelegate = nil;
-    self.appOpenAd = nil;
-    self.loadTime = nil;
+    self->appOpenAd.fullScreenContentDelegate = nil;
+    self->appOpenAd = nil;
+    self->loadTime = nil;
 }
 
 - (NSDictionary *)baseEvent

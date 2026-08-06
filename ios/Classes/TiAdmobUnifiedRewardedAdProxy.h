@@ -12,13 +12,11 @@
 
 @interface TiAdmobUnifiedRewardedAdProxy : TiProxy <GADFullScreenContentDelegate>
 
-@property (nonatomic, strong) GADRewardedAd *rewardedAd;
+// Only the configuration an application supplies is declared here. The native ad
+// object and the internal state live in a class extension in the .m, so the
+// JavaScript surface matches Android's, which exposes neither.
 @property (nonatomic, strong) NSString *adUnitId;
 @property (nonatomic, assign) BOOL autoReload;
-@property (nonatomic, assign) BOOL isLoading;
-@property (nonatomic, assign) BOOL isShowing;
-@property (nonatomic, assign) BOOL isDestroyed;
-@property (nonatomic, assign) BOOL destroyedEventFired;
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
 // Identifies what issued the request. Google reserves it for libraries that
