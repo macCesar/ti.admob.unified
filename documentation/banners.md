@@ -189,6 +189,35 @@ This means you only have to own the reason you know about — which screen is sh
 
 The lifecycle cause is automatic on both platforms: Android follows the hosting activity, and iOS observes application background/foreground. iOS deliberately uses background/foreground rather than resign/become-active, because a Control Center pull or a call banner resigns active while the ad is still on screen and still viewable.
 
+## Runtime properties
+
+Banner proxies are not write-once. Both platforms expose their creation properties for reading and writing after the proxy exists, and they fall into three groups with different timing.
+
+**Applied on the next `load()`.** `keywords`, `contentUrl`, `requestAgent`, `extras` and `collapsible` only reach AdMob through a new ad request, so assigning them does nothing to the creative currently on screen:
+
+```js
+banner.extras = { collapsible: 'bottom' }
+banner.requestAgent = 'my-app/2.1'
+banner.load()  // now they travel
+```
+
+**Applied immediately, and not recommended.** `adSize` and `customAdSize` rebuild the native `AdView` on Android, discarding the loaded creative, and do nothing on iOS. Destroy the proxy and create a new one instead — that is the only path that behaves the same on both platforms.
+
+**Never assign after creation.** `adUnitId` is propagated to the live native view on Android, and Google's SDK throws there: *"The ad unit ID can only be set once on AdView."* A banner that has already loaded once will crash the application rather than switch units. Create a second proxy for a second placement.
+
+### What Android writes back
+
+Android overwrites the proxy's own `height` when the ad size is known, and the two banner types write different types into it:
+
+| Banner   | What Android assigns   | Example  |
+| -------- | ---------------------- | -------- |
+| Standard | A number, in dp        | `50`     |
+| Adaptive | A string, in dp        | `"64dp"` |
+
+iOS assigns neither. If you read `banner.height` back, handle both a number and a `"…dp"` string, or read `event.height` from the `loaded` payload instead — that one is a number on both platforms.
+
+Android also treats `top`, `left` and `right` as native padding on the `AdView`, on top of the Titanium layout meaning. iOS applies only the Titanium layout.
+
 ## Shared methods
 
 ### `load()`
