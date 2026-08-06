@@ -40,7 +40,7 @@ The proxy must be in the Titanium view hierarchy before `load()` so its native v
 | `adUnitId`     | String   |         Yes |          Yes | Required.                                                    |
 | `adaptiveType` | String   |         Yes |          Yes | Defaults to `ADAPTIVE_ANCHORED`.                             |
 | `maxHeight`    | Number   | Inline only |  Inline only | Maximum inline height in dp; both platforms default to `50`. |
-| `collapsible`  | String   |          No | Experimental | Native placement string: `"top"` or `"bottom"`.              |
+| `collapsible`  | String   | Experimental | Experimental | Native placement string: `"top"` or `"bottom"`.             |
 | `keywords`     | String[] |         Yes |          Yes | Prefer contextual configuration in AdMob.                    |
 | `contentUrl`   | String   |         Yes |          Yes | URL describing surrounding content.                          |
 | `requestAgent` | String   |         Yes |          Yes | Identifies what issued the request.                          |
@@ -52,9 +52,11 @@ Events echo back the constant you passed, so `event.adaptiveType` can be compare
 
 `ADAPTIVE_INLINE` and `maxHeight` work on both platforms. Inline scrolls with your content and you cap its height; anchored sits at a screen edge and Google fixes the height, which is why `maxHeight` only applies to inline.
 
-`collapsible` is Android-only and takes Google's native placement string, `"top"` or `"bottom"`. There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant to pass here, and that is deliberate: such a constant would have to carry a value the SDK accepts, and Google accepts only those two words.
+`collapsible` works on both platforms and takes Google's native placement string, `"top"` or `"bottom"`. There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant to pass here, and that is deliberate: such a constant would have to carry a value the SDK accepts, and Google accepts only those two words.
 
-Google's current requirements are described in the [collapsible banner guide](https://developers.google.com/admob/android/banner/collapsible).
+It travels as an ad-network extra on both sides — a Bundle on Android, a `GADExtras` on iOS — under the same key, so the same JavaScript produces the same request. Whether the ad actually collapses is decided by the ad unit and the creative, not by the module: an ad unit that is not configured as collapsible in AdMob ignores the option.
+
+Google's current requirements are described in the collapsible banner guide, published per platform: [Android](https://developers.google.com/admob/android/banner/collapsible), [iOS](https://developers.google.com/admob/ios/banner/collapsible).
 
 ## Reserve real layout space
 

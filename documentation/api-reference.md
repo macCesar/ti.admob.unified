@@ -178,7 +178,7 @@ const banner = Admob.createAdaptiveBanner({
 })
 ```
 
-Anchored and inline are both portable, and `keywords`, `contentUrl`, `requestAgent` and `extras` reach the request on both platforms. `maxHeight` applies to inline only. Android additionally forwards a raw experimental `collapsible: "top" | "bottom"` option, which has no iOS counterpart here. See [Adaptive banner properties](banners.md#creation-properties).
+Anchored and inline are both portable, and `keywords`, `contentUrl`, `requestAgent`, `extras` and the raw experimental `collapsible: "top" | "bottom"` option reach the request on both platforms. `maxHeight` applies to inline only. See [Adaptive banner properties](banners.md#creation-properties).
 
 ### `createInterstitial(config)`
 
@@ -257,13 +257,13 @@ Both factories return a `TiViewProxy`, so the creation dictionary also accepts t
 | `customAdSize` | Object   | Yes              | —                        | `{ width, height }` in dp. Wins over `adSize`.                      |
 | `adaptiveType` | String   | —                | Yes                      | `ADAPTIVE_ANCHORED` or `ADAPTIVE_INLINE`. Defaults to anchored.     |
 | `maxHeight`    | Number   | —                | Yes                      | Inline only, in dp. Defaults to `50` on both platforms.             |
-| `collapsible`  | String   | —                | Android                  | Google's raw placement string, `"top"` or `"bottom"`. Experimental. |
+| `collapsible`  | String   | —                | Yes                      | Google's raw placement string, `"top"` or `"bottom"`. Experimental. |
 | `keywords`     | String[] | Yes              | Yes                      | Request keywords.                                                   |
 | `contentUrl`   | String   | Yes              | Yes                      | URL describing the surrounding content.                             |
 | `requestAgent` | String   | Yes              | Yes                      | Identifies what issued the request.                                 |
 | `extras`       | Object   | Yes              | Yes                      | Google ad-network extras.                                           |
 
-A banner cannot be resized after creation. Changing `adSize` or `customAdSize` on a live proxy does not re-request the ad; destroy the placement and create a new one. See [Banner ads](banners.md#creation-properties).
+Do not resize a banner after creation. The two platforms do different things: on Android `adSize` and `customAdSize` destroy and rebuild the native `AdView`, discarding the loaded creative; on iOS the assignment does not re-request the ad at all. Destroy the placement and create a new one instead. See [Banner ads](banners.md#creation-properties).
 
 Banner events:
 
@@ -425,7 +425,7 @@ An exported type constant does not imply that its format has a working proxy.
 | `ADAPTIVE_ANCHORED` | `"adaptive_anchored"` | iOS, Android |
 | `ADAPTIVE_INLINE`   | `"adaptive_inline"`   | iOS, Android |
 
-There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant. Google's SDK accepts only `"top"` and `"bottom"` as placement strings, so a constant holding anything else could not be passed anywhere. The `collapsible` property is Android-only and takes the native string directly.
+There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant. Google's SDK accepts only `"top"` and `"bottom"` as placement strings, so a constant holding anything else could not be passed anywhere. The `collapsible` property takes the native string directly, on both platforms.
 
 ### Ad events
 
@@ -442,7 +442,7 @@ There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant. Google's SDK acc
 | `AD_SHOWED_FULLSCREEN_CONTENT` | `"showed_fullscreen_content"` |
 | `AD_DESTROYED`                 | `"destroyed"`                 |
 
-`AD_SHOWED_FULLSCREEN_CONTENT` and `AD_OPENED` are emitted by both fullscreen proxy types on iOS and Android.
+`AD_SHOWED_FULLSCREEN_CONTENT` and `AD_OPENED` are emitted by all three fullscreen proxy types — interstitial, rewarded and app open — on iOS and Android.
 
 ### Consent status
 

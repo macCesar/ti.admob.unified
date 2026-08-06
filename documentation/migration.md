@@ -14,7 +14,7 @@ Neither constant is exported. Reading one returns `undefined`, so code that pass
 
 They used to hold `"collapsible_top"` and `"collapsible_bottom"`. Google's SDK accepts only `"top"` and `"bottom"`, and the module forwarded the value unchanged, so every request built from those constants was invalid.
 
-The `collapsible` property itself is unchanged. It stays Android-only and takes Google's native string:
+The `collapsible` property itself is unchanged and now works on both platforms. It takes Google's native string:
 
 ```js
 const banner = Admob.createAdaptiveBanner({

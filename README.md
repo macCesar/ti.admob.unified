@@ -44,7 +44,7 @@ Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level va
 | Standard banner          | Stable          | Stable                  |
 | Anchored adaptive banner | Stable          | Stable                  |
 | Inline adaptive banner   | Stable          | Stable                  |
-| Collapsible banner       | Not implemented | Experimental raw option |
+| Collapsible banner       | Experimental    | Experimental            |
 | Interstitial             | Stable          | Stable                  |
 | Rewarded                 | Stable          | Stable                  |
 | App Open                 | Stable          | Stable                  |

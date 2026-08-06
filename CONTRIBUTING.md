@@ -78,7 +78,7 @@ iOS-specific public behavior:
 
 - `requestTrackingAuthorization()` requests or retrieves ATT and emits `tracking_authorization_completed`.
 - `createAdaptiveBanner()` implements anchored and inline adaptive banners. Anchored always uses the large variant, because Google deprecated the plain anchored functions.
-- Collapsible banners are not implemented. `collapsible` is Android-only.
+- `collapsible` travels as a `GADExtras` network extra, merged with `extras` into one registration. Registering a second `GADExtras` for the same network replaces the first rather than adding to it.
 - `customAdSize` builds `GADAdSizeFromCGSize`, which is how a fixed full-width strip is requested.
 - `smart_banner` no longer yields a full-width banner. It falls through to `BANNER`, as it does on Android.
 - `setAppVolume()` is a compatibility no-op with Google Mobile Ads `13.x`.
