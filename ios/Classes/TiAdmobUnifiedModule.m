@@ -605,13 +605,12 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 - (NSNumber *)CONSENT_STATUS_NOT_REQUIRED { return @(UMPConsentStatusNotRequired); }
 - (NSNumber *)CONSENT_STATUS_OBTAINED { return @(UMPConsentStatusObtained); }
 
-// UMP debug geography — bundled iOS UMP has only Disabled/EEA/NotEEA.
-// OTHER maps to NotEEA (closest match in this SDK version).
-// REGULATED_US_STATE is hardcoded to 3 — will work after UMP SDK bump in Fase 2.
+// UMP debug geography — values mirror Android's ConsentDebugSettings.DebugGeography
+// (DISABLED=0, EEA=1, REGULATED_US_STATE=3, OTHER=4).
 - (NSNumber *)DEBUG_GEOGRAPHY_DISABLED { return @(UMPDebugGeographyDisabled); }
 - (NSNumber *)DEBUG_GEOGRAPHY_EEA { return @(UMPDebugGeographyEEA); }
-- (NSNumber *)DEBUG_GEOGRAPHY_OTHER { return @(UMPDebugGeographyNotEEA); }
-- (NSNumber *)DEBUG_GEOGRAPHY_REGULATED_US_STATE { return @(3); }
+- (NSNumber *)DEBUG_GEOGRAPHY_OTHER { return @(UMPDebugGeographyOther); }
+- (NSNumber *)DEBUG_GEOGRAPHY_REGULATED_US_STATE { return @(UMPDebugGeographyRegulatedUSState); }
 
 // Max ad content ratings
 - (NSString *)MAX_AD_CONTENT_RATING_GENERAL { return @"G"; }

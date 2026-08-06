@@ -877,3 +877,27 @@ test('hides the native banner view while paused on both platforms', () => {
     assert.match(source, /adView\.setVisibility\(View\.VISIBLE\)/)
   }
 })
+
+test('maps debug geography to the SDK enum rather than a literal', () => {
+  // OTHER used to return the deprecated NotEEA (2) while Android sent 4, so the
+  // same public constant produced two different requests.
+  assert.match(iosModule, /DEBUG_GEOGRAPHY_OTHER \{ return @\(UMPDebugGeographyOther\); \}/)
+  assert.match(
+    iosModule,
+    /DEBUG_GEOGRAPHY_REGULATED_US_STATE \{ return @\(UMPDebugGeographyRegulatedUSState\); \}/
+  )
+  assert.doesNotMatch(iosModule, /UMPDebugGeographyNotEEA/)
+  assert.doesNotMatch(iosModule, /DEBUG_GEOGRAPHY_REGULATED_US_STATE \{ return @\(3\)/)
+
+  for (const constant of [
+    'DEBUG_GEOGRAPHY_DISABLED',
+    'DEBUG_GEOGRAPHY_EEA',
+    'DEBUG_GEOGRAPHY_REGULATED_US_STATE',
+    'DEBUG_GEOGRAPHY_OTHER'
+  ]) {
+    assert.match(
+      androidModule,
+      new RegExp(`${constant} = ConsentDebugSettings\\.DebugGeography\\.${constant}`)
+    )
+  }
+})
