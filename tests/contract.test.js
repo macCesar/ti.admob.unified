@@ -931,3 +931,13 @@ test('reads requestAgent from the creation dictionary on iOS fullscreen ads', ()
   }
   assert.match(androidInterstitial, /config\.optString\("requestAgent"/)
 })
+
+test('reports the reward the SDK granted and nothing else', () => {
+  // iOS substituted "coins"/1 when the SDK gave no values, so an application
+  // could credit a reward on iOS that Android never granted.
+  assert.doesNotMatch(iosRewarded, /@"coins"/)
+  assert.match(iosRewarded, /rewardEvent\[@"rewardType"\] = reward\.type \?: \[NSNull null\]/)
+  assert.match(iosRewarded, /rewardEvent\[@"rewardAmount"\] = reward\.amount \?: \[NSNull null\]/)
+  assert.match(androidRewarded, /rewardEvent\.put\("rewardType", rewardItem\.getType\(\)\)/)
+  assert.match(androidRewarded, /rewardEvent\.put\("rewardAmount", rewardItem\.getAmount\(\)\)/)
+})

@@ -188,9 +188,11 @@
         if (self.isDestroyed) {
             return;
         }
+        // Report what the SDK granted, never a substitute: an application that
+        // credits a made-up reward pays for something nobody earned.
         NSMutableDictionary *rewardEvent = [[self baseEvent] mutableCopy];
-        rewardEvent[@"rewardType"] = reward.type ?: @"coins";
-        rewardEvent[@"rewardAmount"] = reward.amount ?: @(1);
+        rewardEvent[@"rewardType"] = reward.type ?: [NSNull null];
+        rewardEvent[@"rewardAmount"] = reward.amount ?: [NSNull null];
         [self fireEvent:@"rewarded" withObject:rewardEvent];
     }];
 }
