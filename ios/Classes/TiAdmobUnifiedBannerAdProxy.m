@@ -456,9 +456,9 @@
     if (data != nil) {
         [payload addEntriesFromDictionary:data];
     }
-    if ([self _hasListeners:eventName]) {
-        [self fireEvent:eventName withObject:payload];
-    }
+    // No _hasListeners guard: this is a TiViewProxy, and its events bubble to the
+    // parent view. Dropping them here hides them from a listener on the container.
+    [self fireEvent:eventName withObject:payload];
 }
 
 // Android accepts { width, height } in dp and builds `new AdSize(width, height)`.

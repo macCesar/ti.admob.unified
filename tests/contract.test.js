@@ -980,3 +980,12 @@ test('exposes network extras as a readable property on Android banners', () => {
     assert.doesNotMatch(source, /Bundle extrasBundle = new Bundle\(\)/)
   }
 })
+
+test('lets iOS banner events bubble to the container', () => {
+  // Banner proxies descend from TiViewProxy, whose events bubble to the parent.
+  // A _hasListeners guard drops the event before it can rise, so a listener on
+  // the containing window never sees it. Android has no such guard.
+  for (const source of [iosBanner, iosAdaptiveBanner]) {
+    assert.doesNotMatch(source, /if \(\[self _hasListeners:/)
+  }
+})
