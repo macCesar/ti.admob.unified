@@ -351,11 +351,28 @@
             [tiView layoutIfNeeded];
         });
     }
-    [self fireAdEvent:@"loaded" withData:@{
+    [self fireAdEvent:@"loaded" withData:[self sizeEventForBannerView:bannerView]];
+}
+
+// Mirrors Android's buildSizeEvent (TiAdmobUnifiedAdaptiveBannerAdView.java):
+// the same seven keys, with the same meaning. GADAdSize is expressed in points,
+// which is what Android calls density-independent pixels.
+- (NSDictionary *)sizeEventForBannerView:(GADBannerView *)bannerView
+{
+    CGSize size = bannerView.adSize.size;
+    UIScreen *screen = bannerView.window.screen ?: [UIScreen mainScreen];
+    CGFloat density = screen.scale;
+
+    return @{
         @"adUnitId": self.adUnitId ?: @"",
-        @"height": @(bannerView.adSize.size.height),
-        @"heightUnit": @"dp"
-    }];
+        @"width": @(size.width),
+        @"height": @(size.height),
+        @"widthUnit": @"dp",
+        @"heightUnit": @"dp",
+        @"widthPx": @((NSInteger)lround(size.width * density)),
+        @"heightPx": @((NSInteger)lround(size.height * density)),
+        @"density": @(density)
+    };
 }
 
 - (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error

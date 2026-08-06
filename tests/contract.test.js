@@ -481,11 +481,29 @@ test('adaptive loaded events expose the real banner height on both platforms', (
   assert.match(androidAdaptiveBannerView, /event\.put\("heightUnit", "dp"\)/)
   assert.match(androidAdaptiveBannerView, /adSize\.getHeightInPixels\(activity\)/)
   assert.match(androidAdaptiveBannerView, /adSize\.getHeight\(\) \+ "dp"/)
+  // iOS reports the same seven keys Android's buildSizeEvent does. A payload
+  // with fewer keys forces the application to branch by platform, which is the
+  // one thing this module exists to avoid.
+  assert.match(iosAdaptiveBanner, /- \(NSDictionary \*\)sizeEventForBannerView:/)
+  for (const key of [
+    'width',
+    'height',
+    'widthUnit',
+    'heightUnit',
+    'widthPx',
+    'heightPx',
+    'density'
+  ]) {
+    assert.match(iosAdaptiveBanner, new RegExp(`@"${key}":`))
+  }
+  assert.match(iosAdaptiveBanner, /@"heightUnit": @"dp"/)
+  assert.match(iosAdaptiveBanner, /@"widthUnit": @"dp"/)
+  // The pixel counts derive from the screen the banner is on, falling back to
+  // the main screen while the view has no window yet.
   assert.match(
     iosAdaptiveBanner,
-    /@"height": @\(bannerView\.adSize\.size\.height\)/
+    /bannerView\.window\.screen \?: \[UIScreen mainScreen\]/
   )
-  assert.match(iosAdaptiveBanner, /@"heightUnit": @"dp"/)
 })
 
 test('keeps fullscreen lifecycle terminal and serialized on both platforms', () => {
