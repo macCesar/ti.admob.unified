@@ -136,7 +136,7 @@ Privacy changes require extra care:
 
 - `canRequestAds()` remains the only ad-request gate.
 - Do not parse TCF storage or infer a personalization Boolean.
-- Do not replace UMP with ATT; the iOS order is UMP, gate, ATT, initialize.
+- Do not replace UMP with ATT, and do not make ATT a step in the start-up flow. It is optional; an application that resolves it does so before `initialize()`.
 - Every accepted asynchronous operation must emit one modern terminal event.
 - Errors must remain non-blocking to the host application.
 - Debug geography and consent reset belong only in controlled testing.

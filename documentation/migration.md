@@ -117,15 +117,17 @@ Admob.requestConsent({})
 
 Callback properties passed inside the config object are not invoked.
 
-## Request UMP before tracking authorization and initialization
+## Request UMP before initialization
 
 The recommended order is:
 
 ```text
-UMP -> canRequestAds -> requestTrackingAuthorization -> initialize -> load ads
+UMP -> canRequestAds -> initialize -> load ads
 ```
 
-Use that same sequence on both platforms. iOS resolves ATT; Android emits `tracking_authorization_completed` immediately with `applicable: false`. Do not initialize before UMP has updated the current session.
+Use that same sequence on both platforms. Do not initialize before UMP has updated the current session.
+
+App Tracking Transparency is optional and sits outside this sequence. If your application has its own tracking case, resolve it before `initialize()`; it is not an ad-request gate, and `canRequestAds()` remains the only one. The call is portable: iOS resolves ATT, and Android emits `tracking_authorization_completed` immediately with `applicable: false`.
 
 ## Adopt adaptive banner sizing
 

@@ -10,9 +10,10 @@ Use this order on every app launch:
 2. Call `requestConsent({ ... })`.
 3. Wait for the terminal `consent_complete` event.
 4. Check `event.canRequestAds` or `canRequestAds()`.
-5. Call the portable tracking-authorization step. iOS resolves ATT; Android completes immediately with `applicable: false`.
-6. Call `initialize({ ... })` once.
-7. Create and load ads only after initialization succeeds.
+5. Call `initialize({ ... })` once.
+6. Create and load ads only after initialization succeeds.
+
+App Tracking Transparency is **not** a step in this order. It is optional, it does not replace UMP, and it is not a second ad-request gate — `canRequestAds()` stays the only one. An application that has a real tracking case of its own resolves ATT before `initialize()`; one that does not can skip it entirely. See [Optional: if the application requests ATT](getting-started.md#optional-if-the-application-requests-att).
 
 UMP remains authoritative if the consent operation reports an error. A previous-session state may still allow requests, so an error is non-blocking to the application but `canRequestAds` remains the only gate.
 
