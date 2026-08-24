@@ -204,6 +204,8 @@ Standard and adaptive banners expose the same methods:
 
 Both types emit `loaded`, `failed_to_load`, `clicked`, `impression`, `opened`, `closed`, and `destroyed`. Destruction is terminal and safe to repeat.
 
+`pause()` and `resume()` preserve the same proxy, creative, visual state and layout slot. The module owns host background/foreground; the app uses those calls only when its own tab or same-activity navigation stops showing the placement.
+
 The public factories are `createBanner()`, `createAdaptiveBanner()`, `createInterstitial()`, `createRewarded()`, and `createAppOpen()`.
 
 See [Banner ads](documentation/banners.md) for layout patterns, payloads, lifecycle cleanup, adaptive sizing, and platform-specific options.

@@ -883,16 +883,19 @@ test('follows the host lifecycle on both platforms', () => {
   }
 })
 
-test('hides the native banner view while paused on both platforms', () => {
+test('pauses banners without mutating their visual state', () => {
   for (const source of [iosBanner, iosAdaptiveBanner]) {
-    assert.match(source, /bannerView\.hidden = YES/)
-    assert.match(source, /bannerView\.hidden = NO/)
+    assert.doesNotMatch(source, /bannerView\.hidden\s*=/)
+    assert.match(source, /bannerView\.autoloadEnabled = NO/)
+    assert.match(source, /bannerView\.autoloadEnabled = autoloadEnabledBeforePause/)
   }
 
-  // INVISIBLE, not GONE: it matches iOS `hidden` and keeps the measured slot.
+  // Visibility and layout belong to the Titanium application. The native
+  // lifecycle methods must preserve the same creative, host and measured slot.
   for (const source of [androidBannerView, androidAdaptiveBannerView]) {
-    assert.match(source, /adView\.setVisibility\(View\.INVISIBLE\)/)
-    assert.match(source, /adView\.setVisibility\(View\.VISIBLE\)/)
+    assert.doesNotMatch(source, /adView\.setVisibility/)
+    assert.match(source, /public void pause\(\)[\s\S]*?adView\.pause\(\)/)
+    assert.match(source, /public void resume\(\)[\s\S]*?adView\.resume\(\)/)
   }
 })
 

@@ -163,6 +163,8 @@ banner.destroy()
 
 The host lifecycle pauses banners on its own: the Android activity, and the iOS application entering the background. An application migrating from a module where it wired those by hand can drop that wiring and keep only the pauses it alone can know about, such as a tab it stopped showing or a window it covered. See [Who pauses a banner](banners.md#who-pauses-a-banner).
 
+Do not carry forward code that changes `visible`, opacity, height, or the banner host during pause/resume. TiAdMobUnified preserves the same visual slot and creative; navigation owns only the application pause cause.
+
 Replace both historical aliases when practical:
 
 ```js

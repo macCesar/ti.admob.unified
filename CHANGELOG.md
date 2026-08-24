@@ -23,6 +23,7 @@ Rewarded interstitial and native are not implemented. Their constants are export
 - Fullscreen proxies share `load()`, `show()`, `isLoaded()`, and `destroy()`. Loads are serialized, native ads are single-use, and destruction is terminal and idempotent.
 - Every fullscreen event carries `adUnitId` and `adType`; failures add `error`, `message`, and `code`; rewards add `rewardType` and `rewardAmount`.
 - Application and host-lifecycle pauses are independent causes. Neither resumes the other's pause, so a banner paused because its tab is hidden stays paused when the app returns from the background.
+- Banner pause/resume never changes native visibility, opacity, host, or layout. Android delegates processing to `AdView.pause()`/`resume()` and iOS disables/restores native autoload while preserving the creative on screen.
 - `keywords`, `contentUrl`, `requestAgent`, `extras`, and the experimental `collapsible` option reach the ad request from both banner types on both platforms, and `requestAgent` and `extras` also from all three fullscreen types.
 - The adaptive `loaded` payload reports the same seven size keys on both platforms: `width`, `height`, `widthUnit`, `heightUnit`, `widthPx`, `heightPx`, and `density`.
 

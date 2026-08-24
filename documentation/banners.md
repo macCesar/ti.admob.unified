@@ -189,7 +189,7 @@ Two independent causes can hold a banner paused, and the module tracks them sepa
 
 This means you only have to own the reason you know about — which screen is showing — and never have to mirror the app's background state to keep the two from fighting.
 
-The lifecycle cause is automatic on both platforms: Android follows the hosting activity, and iOS observes application background/foreground. iOS deliberately uses background/foreground rather than resign/become-active, because a Control Center pull or a call banner resigns active while the ad is still on screen and still viewable.
+The lifecycle cause is automatic on both platforms: Android follows the hosting activity, and iOS observes application background/foreground. An Android secondary window backed by another activity therefore needs no manual pause/resume wiring. Use the public methods only for navigation that hides a placement while its host lifecycle remains active, such as a custom same-activity overlay. iOS deliberately uses background/foreground rather than resign/become-active, because a Control Center pull or a call banner resigns active while the ad is still on screen and still viewable.
 
 ## Runtime properties
 
@@ -232,37 +232,29 @@ Starts an ad request.
 
 ### `pause()`
 
-Idempotently pauses the banner: it hides the native view on both platforms.
+Idempotently records an application-owned pause. It does not change `visible`, `opacity`, height, or its host, and it does not replace the native proxy or loaded creative.
 
-What happens beyond hiding is **not** symmetric, and the difference is in Google's SDKs, not in this module:
+The native mechanisms are not symmetric because Google's SDKs are not symmetric:
 
-|                             | iOS                            | Android                 |
-| --------------------------- | ------------------------------ | ----------------------- |
-| Hides the native view       | Yes                            | Yes                     |
-| Suspends ad-view processing | No such call exists            | Yes, via `AdView.pause()` |
-| Stops the automatic refresh | Yes, via `autoloadEnabled`     | **No**                  |
+| Behavior | iOS | Android |
+| --- | --- | --- |
+| Changes visual state or layout | No | No |
+| Suspends ad-view processing | No equivalent API | Yes, via `AdView.pause()` |
+| Stops native autoload directly | Yes, via `autoloadEnabled = NO` | No direct refresh switch |
 
-`BaseAdView` on Android has `pause()`, documented as pausing "extra processing", but no refresh control. `GADBannerView` on iOS has the opposite: `autoloadEnabled` turns the refresh off, and there is no processing-suspension call to make.
+On Android, `AdView.pause()` is documented as pausing extra processing; it is not a public refresh-control API. Google Mobile Ads separately refreshes only a banner it considers visible on screen. Therefore call `pause()` when the owning tab is deselected or another opaque window covers it — states in which it is genuinely not on screen — and keep the proxy visually unchanged. If custom navigation leaves the banner actually visible to the user, do not pause it merely because a controller flag changed.
 
-In practice the gap is smaller than that table suggests, because the SDK gates refresh on visibility by itself. An off-screen banner logs:
+On iOS, the module stores the banner's existing `autoloadEnabled` value and sets it to `NO`. This prevents native autoload while leaving the same view and creative intact.
 
-```text
-I/Ads: Ad is not visible. Not refreshing ad.
-```
+A `load()` requested during either pause cause is deferred. This prevents the first request from being issued into a placement the application is not showing, without relying on a visibility mutation.
 
-Since `pause()` now hides the native view on both platforms, that gate is what stops the refresh on Android. The mechanism differs — an explicit flag on iOS, a visibility check on Android — but a paused banner should not be refreshing on either. Confirm it with that log line rather than assuming it.
-
-Do not try to close the remaining gap by destroying and recreating the banner. That discards the loaded creative, issues a fresh request, and costs a full load cycle on return. The refresh rate itself is configured on the ad unit in AdMob; `pause()` only decides whether the banner participates while it is hidden.
-
-**Never hide a banner that has not loaded yet.** On Android the visibility gate cuts both ways: an `AdView` that is already hidden does not load either, so a placement hidden before its first fill stays empty. The module handles this by deferring `load()` while paused and running it on resume, once the view is visible again — which is why you should call `load()` normally and let the module decide when it runs, rather than gating the call yourself.
-
-On iOS there is no visibility gate at all. A hidden `GADBannerView` keeps loading and refreshing, and those loads count as impressions nobody saw. That is why `pause()` sets `autoloadEnabled = NO` there instead of relying on the SDK: on iOS it is the only defence, not an optimisation.
+Do not destroy/recreate to simulate a pause. That discards the creative, creates a new request on return, and makes ordinary navigation visibly slower.
 
 ### `resume()`
 
 Idempotently resumes the banner and runs one deferred load, if present, but only once every pause cause has cleared. See [Who pauses a banner](#who-pauses-a-banner).
 
-It reverses every effect of `pause()`: the native view becomes visible again, Android resumes the ad view's processing, and iOS restores the `autoloadEnabled` value the banner had before pausing. Because the application lifecycle pauses banners on its own, this matters more than it looks: a `resume()` that did not restore the flag would leave a banner opted out of autoloading the first time the user switched away from the app.
+It reverses only the native pause: Android resumes ad-view processing and iOS restores the `autoloadEnabled` value the banner had before pausing. There is no visibility or layout transition to undo. Because application lifecycle is tracked separately, `resume()` cannot accidentally clear a background pause.
 
 ### `isLoaded()`
 

@@ -108,7 +108,7 @@ Android-specific public behavior:
 - The adaptive `loaded` event carries diagnostic `width`, `widthUnit`, `widthPx`, `heightPx`, and `density` keys that iOS does not emit. Only `height` and `heightUnit` are contract fields.
 - `setAppVolume()` accepts a percentage string such as `"50%"` and forwards a normalized value.
 - `isTestDevice()` delegates to `AdRequest.isTestDevice(context)`.
-- Pausing hides the native `AdView` with `INVISIBLE`, which engages the SDK's own visibility gate. A hidden `AdView` also refuses to load, which is why the module defers a load requested while paused.
+- Pausing calls the native `AdView.pause()` without changing visibility or layout. Loads requested while paused are deferred until every application/lifecycle pause cause clears. Automatic refresh eligibility still depends on whether Android actually considers the banner visible on screen.
 
 ### Consumer configuration
 

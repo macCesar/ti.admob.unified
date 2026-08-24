@@ -601,7 +601,6 @@
         return;
     }
     isPaused = YES;
-    bannerView.hidden = YES;
     autoloadEnabledBeforePause = bannerView.autoloadEnabled;
     bannerView.autoloadEnabled = NO;
 }
@@ -612,7 +611,6 @@
         return;
     }
     isPaused = NO;
-    bannerView.hidden = NO;
     bannerView.autoloadEnabled = autoloadEnabledBeforePause;
     if (pendingLoad) {
         pendingLoad = NO;
@@ -630,7 +628,6 @@
     if (!isDestroyed) {
         isLoading = NO;
         isAdLoaded = YES;
-        bannerView.hidden = isPaused;
     }
 }
 

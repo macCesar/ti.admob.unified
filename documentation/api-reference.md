@@ -237,14 +237,16 @@ The standard and adaptive proxies expose the same methods:
 | Method                            | Return  | Behavior                                                                                                 |
 | --------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- |
 | `load()`                          | `void`  | Starts one request or defers one while paused.                                                           |
-| `pause()`                         | `void`  | Idempotently pauses and hides the native banner.                                                         |
-| `resume()`                        | `void`  | Clears the application's pause. Resumes and runs one deferred load only once every pause cause is clear. |
+| `pause()`                         | `void`  | Idempotently records the application's pause without changing visibility, opacity, host, or layout.      |
+| `resume()`                        | `void`  | Clears the application's pause and runs one deferred load only once every pause cause is clear.          |
 | `isLoaded()`                      | Boolean | Reports the current native load state.                                                                   |
 | `destroy()`                       | `void`  | Terminal, idempotent native cleanup.                                                                     |
 | `destroyAdViewAndCancelRequest()` | `void`  | Compatibility alias of `destroy()`.                                                                      |
 | `destoyAdViewAndCancelRequest()`  | `void`  | Deprecated misspelled alias.                                                                             |
 
 The host lifecycle, meaning the Android activity and the iOS application entering the background, pauses banners on its own as a cause independent from these calls. Neither cause resumes the other's pause. See [Who pauses a banner](banners.md#who-pauses-a-banner).
+
+On Android pause/resume delegates only to the native `AdView` processing methods. On iOS it disables and restores `autoloadEnabled`. Neither platform changes the banner's visual properties. Automatic refresh remains owned by Google Mobile Ads and the refresh policy configured for the ad unit.
 
 ### Banner creation properties
 

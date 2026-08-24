@@ -498,21 +498,16 @@ function onAppOpenClosed() {
   appOpenButton.reset()
 }
 
-// The module already pauses banners when the host goes away: the Android
-// activity, and the iOS application entering the background. These handlers are
-// therefore redundant for backgrounding, and are kept only to exercise the
-// public methods.
-//
-// What an application does have to own is its own screens — a tab it stopped
-// showing, a window it covered — because the module cannot see that. Those call
-// the same pause()/resume(), and the two causes never resume each other.
-function onAppPause() {
+// The module owns application/activity backgrounding. The app calls these only
+// when its own navigation stops showing this placement, such as an inactive tab
+// or a child window covering it. Neither call changes visibility or layout.
+function pauseBannerForCoveredScreen() {
   if (banner) {
     banner.pause()
   }
 }
 
-function onAppResume() {
+function resumeBannerForVisibleScreen() {
   if (banner) {
     banner.resume()
   }
@@ -539,6 +534,22 @@ createAdButton('Destroy banner', {
   onLoad: button => {
     destroyBanner()
     setStatus('Banner destroyed and host collapsed')
+    button.reset()
+  }
+})
+
+createAdButton('Pause banner for covered screen', {
+  onLoad: button => {
+    pauseBannerForCoveredScreen()
+    setStatus('Banner paused without hiding or changing its slot')
+    button.reset()
+  }
+})
+
+createAdButton('Resume banner for visible screen', {
+  onLoad: button => {
+    resumeBannerForVisibleScreen()
+    setStatus('The same banner instance resumed')
     button.reset()
   }
 })
@@ -633,14 +644,9 @@ Admob.addEventListener(
 win.add(content)
 win.add(bannerHost)
 
-Ti.App.addEventListener('pause', onAppPause)
-Ti.App.addEventListener('resume', onAppResume)
-
 win.addEventListener('close', () => {
   windowClosed = true
 
-  Ti.App.removeEventListener('pause', onAppPause)
-  Ti.App.removeEventListener('resume', onAppResume)
   Admob.removeEventListener('module_initialized', onModuleInitialized)
   Admob.removeEventListener('consent_complete', onConsentComplete)
   Admob.removeEventListener(

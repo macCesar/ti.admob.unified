@@ -163,6 +163,7 @@ test('provides a modern, safe executable example', () => {
   assert.doesNotMatch(example, /consent_ready|consent_error/)
   assert.doesNotMatch(example, /canShowPersonalizedAds|isGDPR|canShowAds/)
   assert.doesNotMatch(example, /setTimeout|setInterval/)
+  assert.doesNotMatch(example, /Ti\.App\.addEventListener\(['"](?:pause|resume)/)
   assert.doesNotMatch(example, /applicationId|debugGeography/)
   assert.doesNotMatch(example, /ca-app-pub-\d+\/\d+/)
 
@@ -197,6 +198,7 @@ test('states portable banner and fullscreen contracts', () => {
   assert.match(banners, /content\.bottom = dimension/)
   assert.match(banners, /removeEventListener/)
   assert.match(banners, /Do not add a JavaScript renewal timer/)
+  assert.match(banners, /does not change `visible`, `opacity`, height, or its host/)
 
   assert.match(fullscreen, /showed_fullscreen_content/)
   assert.match(fullscreen, /Terminal, idempotent cleanup/)
