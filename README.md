@@ -6,6 +6,8 @@ Version `1.0.0` provides a safe privacy flow, idempotent SDK operations, and sha
 
 Replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See [Migrating to ti.admob.unified](documentation/migration.md).
 
+Want the application-side integration ready-made? Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/`. It sequences privacy and initialization, manages standard/adaptive banners plus interstitial, rewarded and app-open ads, and performs deterministic cleanup without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
+
 ## Why one module instead of two
 
 Titanium has had AdMob modules for years, one per platform, each with its own names, its own events and its own payloads. The cost of that is not the install: it is every branch it forces into your application.

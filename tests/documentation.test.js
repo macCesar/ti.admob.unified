@@ -14,6 +14,7 @@ const documentationPages = [
   'documentation/index.md',
   'documentation/getting-started.md',
   'documentation/integration.md',
+  'documentation/library.md',
   'documentation/privacy.md',
   'documentation/mediation.md',
   'documentation/third-party-notices.md',
@@ -38,6 +39,8 @@ const allDocumentation = [
 
 const apiReference = read('documentation/api-reference.md')
 const example = read('example/app.js')
+const reusableLibrary = read('example/lib/ads.js')
+const libraryExample = read('example/library-usage.js')
 
 test('ships a complete English documentation set', () => {
   for (const relativePath of allDocumentation) {
@@ -181,6 +184,31 @@ test('provides a modern, safe executable example', () => {
   // platformWidth is pixels on Android and points on iOS. Dividing on both is
   // the mistake that looks right, so the example must branch.
   assert.match(example, /Ti\.Platform\.osname === 'android'/)
+})
+
+test('ships a copy-ready integration library for every implemented ad format', () => {
+  for (const factory of [
+    'createBanner',
+    'createAdaptiveBanner',
+    'createInterstitial',
+    'createRewarded',
+    'createAppOpen'
+  ]) {
+    assert.match(reusableLibrary, new RegExp(`\\b${factory}\\b`))
+    assert.match(libraryExample, new RegExp(`\\b${factory}\\b`))
+  }
+
+  assert.match(reusableLibrary, /requestConsent/)
+  assert.match(reusableLibrary, /canRequestAds/)
+  assert.match(reusableLibrary, /module_initialized/)
+  assert.match(reusableLibrary, /presentPrivacyOptions/)
+  assert.match(reusableLibrary, /openAdInspector/)
+  assert.match(reusableLibrary, /pause\(\)/)
+  assert.match(reusableLibrary, /resume\(\)/)
+  assert.match(reusableLibrary, /destroyAll/)
+  assert.doesNotMatch(reusableLibrary, /setTimeout|setInterval/)
+  assert.doesNotMatch(reusableLibrary, /\.visible\s*=|\.opacity\s*=|\.height\s*=\s*0/)
+  assert.doesNotMatch(reusableLibrary, /ca-app-pub-\d+\/\d+/)
 })
 
 test('states portable banner and fullscreen contracts', () => {

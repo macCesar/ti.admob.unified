@@ -397,8 +397,8 @@ function loadAdaptiveBanner() {
 }
 
 // ---------------------------------------------------------------------------
-// Fullscreen formats. Each one presents itself on `loaded` and hands its button
-// back on `closed`, so the button is never left stuck on "loading…".
+// Fullscreen formats. Loading and presenting stay separate: the first tap
+// prepares the ad and the next tap presents it at a moment chosen by the app.
 // ---------------------------------------------------------------------------
 
 function destroyInterstitial() {

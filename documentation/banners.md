@@ -395,4 +395,6 @@ Changing `adSize` on an existing iOS native banner is not supported. Destroy and
 
 ## Refresh behavior
 
-Do not add a JavaScript renewal timer. Google Mobile Ads respects the banner refresh rate configured for the ad unit in AdMob. The application should load when creating the placement and let the SDK/ad-unit configuration own refresh.
+Do not add a JavaScript renewal timer. Google Mobile Ads respects the banner refresh rate configured for the ad unit in AdMob. The application requests the initial load and lets the SDK/ad-unit configuration own later refreshes.
+
+That is the intended delegation: TiAdMobUnified supplies one native banner proxy and protects its lifecycle; it does not periodically destroy or reload it. Google documents that Android automatic refresh occurs only while the banner is visible on screen. Configure the interval or disable refresh in AdMob, and use screen-level `pause()`/`resume()` only when application navigation really stops/starts showing that placement.

@@ -182,6 +182,8 @@ banner.destroy()
 
 Delete `setTimeout`/`setInterval` banner renewal loops. Configure refresh in AdMob and let the native SDK own it.
 
+The application issues the initial `load()`. Google Mobile Ads owns later automatic refresh requests; TiAdMobUnified owns lifecycle, not a competing refresh schedule.
+
 ## Adopt the fullscreen lifecycle
 
 Interstitial, rewarded, and app open proxies share the same methods and event payloads on iOS and Android:
