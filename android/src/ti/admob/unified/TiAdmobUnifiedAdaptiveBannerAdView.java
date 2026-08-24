@@ -470,6 +470,26 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		bannerProxy.onBannerViewDestroyed(this);
 	}
 
+	void releaseForActivityRecreation()
+	{
+		if (isDestroyed) {
+			return;
+		}
+		isDestroyed = true;
+		isLoading = false;
+		isAdLoaded = false;
+		pendingLoad = false;
+		AdView viewToDestroy = adView;
+		adView = null;
+		if (viewToDestroy != null) {
+			removeLayoutChangeListener(viewToDestroy);
+			viewToDestroy.setAdListener(null);
+			nativeContainer.removeView(viewToDestroy);
+			viewToDestroy.destroy();
+		}
+		Log.d(LCAT, "Adaptive banner native view released for Activity recreation");
+	}
+
 	@Override
 	public void release()
 	{
@@ -564,6 +584,8 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		if (properties.containsKey("right")) {
 			propRight = TiConvert.toInt(properties.get("right"));
 		}
+
+		bannerProxy.onBannerViewReady(this);
 	}
 
 	private void fireAdEvent(String eventName, Map<String, Object> data)

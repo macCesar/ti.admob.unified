@@ -191,6 +191,8 @@ This means you only have to own the reason you know about — which screen is sh
 
 The lifecycle cause is automatic on both platforms: Android follows the hosting activity, and iOS observes application background/foreground. An Android secondary window backed by another activity therefore needs no manual pause/resume wiring. Use the public methods only for navigation that hides a placement while its host lifecycle remains active, such as a custom same-activity overlay. iOS deliberately uses background/foreground rather than resign/become-active, because a Control Center pull or a call banner resigns active while the ad is still on screen and still viewable.
 
+Android may recreate its activity for a configuration change such as light/dark appearance. That is not terminal destruction: the module releases the stale native `AdView`, keeps the JavaScript proxy alive, and requests a replacement banner after Titanium creates the new native view. It does not emit `destroyed` for this transition. The creative itself cannot be carried between activities because an Android `View` belongs to the activity that created it.
+
 ## Runtime properties
 
 Banner proxies are not write-once. Both platforms expose their creation properties for reading and writing after the proxy exists, and they fall into three groups with different timing.

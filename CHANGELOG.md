@@ -24,6 +24,7 @@ Rewarded interstitial and native are not implemented. Their constants are export
 - Every fullscreen event carries `adUnitId` and `adType`; failures add `error`, `message`, and `code`; rewards add `rewardType` and `rewardAmount`.
 - Application and host-lifecycle pauses are independent causes. Neither resumes the other's pause, so a banner paused because its tab is hidden stays paused when the app returns from the background.
 - Banner pause/resume never changes native visibility, opacity, host, or layout. Android delegates processing to `AdView.pause()`/`resume()` and iOS disables/restores native autoload while preserving the creative on screen.
+- Android activity recreation for configuration changes, including light/dark appearance, now releases only the stale native `AdView`. The JavaScript proxy remains usable, does not emit `destroyed`, and reloads after Titanium creates its replacement view.
 - `keywords`, `contentUrl`, `requestAgent`, `extras`, and the experimental `collapsible` option reach the ad request from both banner types on both platforms, and `requestAgent` and `extras` also from all three fullscreen types.
 - The adaptive `loaded` payload reports the same seven size keys on both platforms: `width`, `height`, `widthUnit`, `heightUnit`, `widthPx`, `heightPx`, and `density`.
 

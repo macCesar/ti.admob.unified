@@ -246,6 +246,8 @@ The standard and adaptive proxies expose the same methods:
 
 The host lifecycle, meaning the Android activity and the iOS application entering the background, pauses banners on its own as a cause independent from these calls. Neither cause resumes the other's pause. See [Who pauses a banner](banners.md#who-pauses-a-banner).
 
+An Android activity recreation caused by a configuration change is non-terminal. The module preserves the proxy, releases the stale native view without emitting `destroyed`, and reloads after Titanium creates the replacement view.
+
 On Android pause/resume delegates only to the native `AdView` processing methods. On iOS it disables and restores `autoloadEnabled`. Neither platform changes the banner's visual properties. Automatic refresh remains owned by Google Mobile Ads and the refresh policy configured for the ad unit.
 
 ### Banner creation properties

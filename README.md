@@ -206,6 +206,8 @@ Both types emit `loaded`, `failed_to_load`, `clicked`, `impression`, `opened`, `
 
 `pause()` and `resume()` preserve the same proxy, creative, visual state and layout slot. The module owns host background/foreground; the app uses those calls only when its own tab or same-activity navigation stops showing the placement.
 
+On Android, a configuration change such as light/dark appearance recreates the hosting activity. The module preserves the JavaScript proxy across that recreation and requests a replacement native banner after Titanium rebuilds its view; `destroyed` remains reserved for a real terminal cleanup.
+
 The public factories are `createBanner()`, `createAdaptiveBanner()`, `createInterstitial()`, `createRewarded()`, and `createAppOpen()`.
 
 See [Banner ads](documentation/banners.md) for layout patterns, payloads, lifecycle cleanup, adaptive sizing, and platform-specific options.

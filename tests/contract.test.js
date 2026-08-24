@@ -883,6 +883,34 @@ test('follows the host lifecycle on both platforms', () => {
   }
 })
 
+test('preserves Android banner proxies across Activity configuration recreation', () => {
+  const pairs = [
+    [androidBannerProxy, androidBannerView],
+    [androidAdaptiveBannerProxy, androidAdaptiveBannerView]
+  ]
+
+  for (const [proxy, view] of pairs) {
+    assert.match(proxy, /activity\.isChangingConfigurations\(\)/)
+    assert.match(proxy, /reloadAfterActivityRecreation = loadRequested/)
+    assert.match(proxy, /pausedByLifecycle = true/)
+    assert.match(proxy, /releaseForActivityRecreation\(\)/)
+    assert.match(proxy, /void onBannerViewReady\([\s\S]*?readyView\.loadAd\(\)/)
+
+    // Releasing the stale native view must neither fire AD_DESTROYED nor mark
+    // the JavaScript proxy as permanently destroyed.
+    const temporaryRelease = view.match(
+      /void releaseForActivityRecreation\(\)([\s\S]*?)\n\t\}/
+    )
+    assert.ok(temporaryRelease)
+    assert.match(temporaryRelease[1], /viewToDestroy\.destroy\(\)/)
+    assert.doesNotMatch(temporaryRelease[1], /AD_DESTROYED/)
+    assert.doesNotMatch(temporaryRelease[1], /onBannerViewDestroyed/)
+
+    // A real close still follows the public permanent-destruction path.
+    assert.match(proxy, /Activity destroyed, cleaning up[\s\S]*?destroy\(\)/)
+  }
+})
+
 test('pauses banners without mutating their visual state', () => {
   for (const source of [iosBanner, iosAdaptiveBanner]) {
     assert.doesNotMatch(source, /bannerView\.hidden\s*=/)
