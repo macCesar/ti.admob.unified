@@ -1,6 +1,6 @@
 # API reference
 
-This page documents the JavaScript surface exported by `ti.admob.unified` `1.0.0`.
+This page documents the JavaScript surface exported by `ti.admob.unified` `2.0.0`.
 
 ```js
 const Admob = require('ti.admob.unified')
@@ -70,9 +70,11 @@ It emits `module_initialized`. Calls are idempotent and the first accepted confi
 
 #### `disableMediation`
 
-`initialize()` does not complete until every bundled adapter reports back, and an adapter with no credentials configured can take its full timeout to answer. An application that does not use mediation pays that wait for nothing: on one measured Android launch it was `30,755 ms`, of which the Liftoff Monetize adapter alone accounted for the timeout.
+`initialize()` does not complete until every installed adapter reports back, and an adapter with no credentials configured can take its full timeout to answer. An application that does not use mediation pays that wait for nothing: on one measured Android launch it was `30,755 ms`, of which the Liftoff Monetize adapter alone accounted for the timeout.
 
-Set `disableMediation: true` and the SDK starts without initializing the adapters. They remain bundled and available; they are simply not started, so a network that never answers cannot hold back the first ad request.
+Set `disableMediation: true` and the SDK starts without initializing the adapters. They remain installed and available; they are simply not started, so a network that never answers cannot hold back the first ad request.
+
+An application that never mediates does not need this flag at all: it leaves the `ti.admob.unified.mediation` module out, and there are no adapters to wait on.
 
 ```js
 Admob.initialize({ disableMediation: true })
@@ -525,7 +527,7 @@ The reserved constants exist so that code written against a future release still
 
 ## Mediation diagnostics and compatibility
 
-The module bundles Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize (Vungle), and ironSource on iOS and Android.
+Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize (Vungle), and ironSource are distributed by the optional `ti.admob.unified.mediation` module on iOS and Android. These diagnostics stay in `ti.admob.unified` and answer whether or not that pack is installed. See [AdMob mediation](mediation.md).
 
 `getMediationStatus()` returns the same object shape on both platforms:
 
@@ -539,6 +541,8 @@ The module bundles Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize (Vungle),
   ironSource: Boolean
 }
 ```
+
+Every key is `false` when the mediation pack is not installed. That is an installation diagnostic, not a fill result: six `false` values in an application that is supposed to mediate mean the pack is missing from the build.
 
 Individual methods return the corresponding value:
 

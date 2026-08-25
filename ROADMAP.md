@@ -2,7 +2,7 @@
 
 ## Current baseline
 
-Version `1.0.0` establishes one portable AdMob and mediation distribution:
+Version `2.0.0` establishes one portable AdMob distribution plus an optional mediation pack:
 
 - Titanium `13.4.0.GA`
 - iOS `15.0+`
@@ -11,7 +11,7 @@ Version `1.0.0` establishes one portable AdMob and mediation distribution:
 - Android API `24+`, the floor the Titanium module template sets
 - Google Mobile Ads Android `25.4.0`
 - User Messaging Platform Android `4.0.0`
-- six matched mediation networks on iOS and Android
+- six matched mediation networks on iOS and Android, in the separate `ti.admob.unified.mediation` module
 - idempotent initialization and consent
 - terminal `consent_complete` events
 - one standard/adaptive banner lifecycle on both platforms
@@ -19,7 +19,7 @@ Version `1.0.0` establishes one portable AdMob and mediation distribution:
 - portable tracking-authorization completion on both platforms
 - no manual TCF personalization inference
 
-## Complete in 1.0.0
+## Complete in 2.0.0
 
 ### Privacy contract
 
@@ -54,7 +54,8 @@ Version `1.0.0` establishes one portable AdMob and mediation distribution:
 
 ### Distribution
 
-- Artifacts contain Google Mobile Ads, UMP, and current adapters/SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource.
+- The `ti.admob.unified` artifacts contain Google Mobile Ads and UMP alone: ~14 MB on iOS, ~325 KB on Android, and no network SDK in the consuming application's POM.
+- The `ti.admob.unified.mediation` artifacts (`mediation/` in this repository) carry current adapters/SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource: fourteen XCFrameworks on iOS, six Maven coordinates on Android. Installing it is what an application opts into.
 - Dependency versions and iOS checksums are reproducible.
 - Static contract tests cover privacy, lifecycle, payload, cleanup, artifacts, and documentation.
 
@@ -125,7 +126,10 @@ Whichever format comes next has to satisfy the same contract as the ones already
 
 ## Mediation maintenance
 
+The pack lives in `mediation/` in this repository and ships at the same version as the core, in the same release.
+
 - Keep the six shared adapter/network SDK pairs current on both platforms.
+- Keep every adapter out of the core module. A contract test fails if `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory names a network again.
 - Preserve one JavaScript ad contract and portable diagnostics.
 - Track privacy manifests, resource bundles, SKAdNetwork guidance, and store disclosure changes with every dependency update.
 - Require consumer builds, physical-device tests, and Ad Inspector evidence before release.

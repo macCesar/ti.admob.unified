@@ -24,7 +24,7 @@ The library is optional. The native module remains usable directly, as shown by 
 | Rewarded | `createRewarded()` | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()` |
 | App open | `createAppOpen()` | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()` |
 
-Rewarded interstitial and native ads are not included because version `1.0.0` does not implement those factories.
+Rewarded interstitial and native ads are not included because version `2.0.0` does not implement those factories.
 
 ## Start once
 

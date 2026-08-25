@@ -1,6 +1,6 @@
 # Third-party SDK notices
 
-`ti.admob.unified` is MIT-licensed. The advertising SDKs and mediation adapters distributed with it remain subject to their owners' licenses, terms, privacy policies, and publisher agreements.
+`ti.admob.unified` and `ti.admob.unified.mediation` are MIT-licensed. The advertising SDKs and mediation adapters they distribute remain subject to their owners' licenses, terms, privacy policies, and publisher agreements. Only Google Mobile Ads and UMP ship in `ti.admob.unified`; every network SDK below, and Google's adapters for them, ship in the optional mediation module. An application that does not install it distributes none of those.
 
 | Component                                             | Owner                      | Terms or license                                                                                              |
 | ----------------------------------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------- |

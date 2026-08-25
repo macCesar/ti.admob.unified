@@ -29,7 +29,8 @@ const auxiliaryDocumentation = [
   'CONTRIBUTING.md',
   'DEPENDENCIES.md',
   'MEDIATION_COMPARISON.md',
-  'ROADMAP.md'
+  'ROADMAP.md',
+  'mediation/README.md'
 ]
 
 const allDocumentation = [
@@ -277,7 +278,7 @@ test('marks the test constants that have no factory as reserved', () => {
   assert.match(gettingStarted, video)
 })
 
-test('documents bundled mediation without revenue promises', () => {
+test('documents mediation without revenue promises', () => {
   const mediation = read('documentation/mediation.md')
   const readme = read('README.md')
 
@@ -299,4 +300,43 @@ test('documents bundled mediation without revenue promises', () => {
     `${mediation}\n${readme}`,
     /300.?400%|guaranteed revenue|guaranteed fill/i
   )
+})
+
+test('documents how to install the optional mediation pack', () => {
+  const mediation = read('documentation/mediation.md')
+  const gettingStarted = read('documentation/getting-started.md')
+  const migration = read('documentation/migration.md')
+
+  // The pack is a second <module> line and nothing else. A page that names it
+  // without showing that line leaves the reader to guess.
+  for (const page of [mediation, gettingStarted, migration]) {
+    assert.match(page, /<module version="2\.0\.0">ti\.admob\.unified\.mediation<\/module>/)
+  }
+
+  // The premise this whole split corrects: an adapter is not a network.
+  assert.match(
+    mediation,
+    /Installing an adapter is not the same as enabling a network/
+  )
+
+  // Upgrading from 1.x without the pack is silent, so migration.md has to say
+  // both how to install it and how to check the build actually has it.
+  assert.match(migration, /getMediationStatus/)
+
+  // The diagnostics stay in the core module: a page that documents them as
+  // belonging to the pack sends applications to require() something with no
+  // JavaScript API.
+  const apiSurface = read('documentation/api-reference.md')
+  for (const method of [
+    'getMediationStatus',
+    'isAppLovinAvailable',
+    'isMetaAvailable',
+    'isInMobiAvailable',
+    'isVungleAvailable',
+    'isUnityAvailable',
+    'isIronSourceAvailable'
+  ]) {
+    assert.match(apiSurface, new RegExp(`\\b${method}\\b`))
+  }
+  assert.doesNotMatch(mediation, /require\('ti\.admob\.unified\.mediation'\)/)
 })

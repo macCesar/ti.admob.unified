@@ -4,7 +4,7 @@ The native module owns Google Mobile Ads, UMP, portable proxy behavior, and host
 
 ## Recommended path
 
-Copy the maintained [`example/lib/ads.js`](../example/lib/ads.js) into the consuming application's `lib/` directory. It covers every format implemented by version `1.0.0` and prevents each app from rebuilding the same startup, cleanup, and placement machinery.
+Copy the maintained [`example/lib/ads.js`](../example/lib/ads.js) into the consuming application's `lib/` directory. It covers every format implemented by version `2.0.0` and prevents each app from rebuilding the same startup, cleanup, and placement machinery.
 
 The complete API and examples are in [Copy-ready JavaScript library](library.md). A compact runnable wiring is in [`example/library-usage.js`](../example/library-usage.js).
 

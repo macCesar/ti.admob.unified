@@ -30,21 +30,29 @@ Dependency versions are pinned in [DEPENDENCIES.md](DEPENDENCIES.md).
 
 Create a focused branch and keep unrelated local changes intact. Before editing a native dependency, establish a recoverable Git baseline and record the upstream source and checksum.
 
-Run the static checks from the module root:
+This repository holds two modules. `ti.admob.unified` is at the repository root and is the only one an application calls; `ti.admob.unified.mediation` is in `mediation/` and carries the mediation adapters and nothing else. They are versioned and released together. Both `scripts/` helpers take the module directory as an optional argument, defaulting to the core.
+
+Run the static checks from the repository root:
 
 ```sh
 npm test
 ./scripts/verify-artifacts.sh
+./scripts/verify-artifacts.sh mediation
 node --check example/app.js
 ```
 
-Build both native modules for API or native changes:
+Build all four artifacts for API or native changes:
 
 ```sh
 ./scripts/prepare-build.sh
+./scripts/prepare-build.sh mediation
 ti build -p ios --build-only --project-dir ios --no-prompt
 ti build -p android --build-only --project-dir android --no-prompt
+ti build -p ios --build-only --project-dir mediation/ios --no-prompt
+ti build -p android --build-only --project-dir mediation/android --no-prompt
 ```
+
+Never add a mediation network to the core module. Its `-framework` flags belong in `mediation/ios/module.xcconfig` and its Maven coordinate in `mediation/android/build.gradle`; a contract test fails if a network name reaches `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory. The core exists so that an application that does not mediate carries none of it.
 
 The `example/app.js` file is the module test-harness entry point. It is not a standalone Titanium project.
 
@@ -65,14 +73,14 @@ Sources live in `ios/Classes/`. Five proxy pairs and the module:
 | `TiAdmobUnifiedRewardedAdProxy.*`       | Rewarded proxy                                            |
 | `TiAdmobUnifiedAppOpenAdProxy.*`        | App open proxy and the four hour validity window          |
 
-Build from the module root:
+Build from the repository root:
 
 ```sh
 ./ios/install_frameworks.sh
 ti build -p ios --build-only --project-dir ios --no-prompt
 ```
 
-`install_frameworks.sh` resolves the pinned CocoaPods dependencies, stages all 16 XCFrameworks, verifies their tree hashes, and prepares them for packaging. A new `.m` file also has to be registered in `ios/ti.admob.unified.xcodeproj` before it reaches the static library; a file that compiles but is not registered links fine here and fails in the consuming app.
+`install_frameworks.sh` resolves the pinned CocoaPods dependencies, stages that module's XCFrameworks, verifies their tree hashes, and prepares them for packaging: two frameworks for the core, and fourteen for `mediation/ios/install_frameworks.sh`. A new `.m` file also has to be registered in `ios/ti.admob.unified.xcodeproj` before it reaches the static library; a file that compiles but is not registered links fine here and fails in the consuming app.
 
 iOS-specific public behavior:
 
@@ -168,7 +176,8 @@ Static tests are necessary but not sufficient for native UI and SDK behavior. Fo
 - background/resume and repeated window lifecycle;
 - orientation, density, safe areas, keyboard, lists, navigation, and snackbars;
 - absence of duplicate ads and retained listeners;
-- official test IDs and Ad Inspector request evidence.
+- official test IDs and Ad Inspector request evidence;
+- `getMediationStatus()` reporting six `false` values without the pack installed and six `true` values with it, on a real application on both platforms. That is the only check that proves Titanium concatenated the two modules' link flags and found the pack's XCFrameworks.
 
 Never click production ads while developing.
 

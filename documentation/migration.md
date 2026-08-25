@@ -1,8 +1,40 @@
 # Migrating to ti.admob.unified
 
-This guide covers replacing an existing AdMob integration with `ti.admob.unified` `1.0.0`. Two starting points are common: a platform-specific module such as `ti.admob` on iOS or `ti.android.admob` on Android, and an internal pre-release build of this module.
+This guide covers replacing an existing AdMob integration with `ti.admob.unified` `2.0.0`. Three starting points are common: `1.x` of this module, a platform-specific module such as `ti.admob` on iOS or `ti.android.admob` on Android, and an internal pre-release build of this module.
 
-Most of the work is the same either way. The section below applies only if you are coming from an internal build, since `1.0.0` is the first published release and there is no earlier public version to break.
+Most of the work is the same either way. The two sections below apply only to the first and third starting points.
+
+## From 1.x: mediation moved to its own module
+
+`2.0.0` changes one thing, and it is the reason for the major version. The six mediation adapters no longer ship inside `ti.admob.unified`; they ship in a separate `ti.admob.unified.mediation` module.
+
+**No JavaScript changes.** Not one method, constant, event name, or payload key differs from `1.x`. `getMediationStatus()`, the six `isXxxAvailable()` probes, `enableOptionalMediationNetworks()`, and `disableMediation` all still live in `ti.admob.unified` and behave the same way.
+
+**If the application does not mediate**, update the version and you are done. The iOS artifact drops from 89 MB to 14 MB, and the Android build stops inheriting six third-party network SDKs it never used.
+
+**If the application does mediate**, install the pack as well or it will silently stop mediating. Google Mobile Ads keeps serving AdMob demand with no error, no exception, and no failed request — the mediated sources simply never participate, and the revenue difference is the only symptom.
+
+```xml
+<modules>
+  <module version="2.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified.mediation</module>
+</modules>
+```
+
+Verify it before publishing, on a build of the real application, on both platforms:
+
+```js
+Admob.addEventListener('module_initialized', () => {
+  Ti.API.info(JSON.stringify(Admob.getMediationStatus()))
+  // Expected with the pack installed:
+  // {"appLovin":true,"meta":true,"inMobi":true,"unity":true,
+  //  "liftoffMonetize":true,"ironSource":true}
+})
+```
+
+Six `false` values mean the pack is not in the build. Fix that before shipping; do not read it as a fill problem.
+
+The two modules are released together and must be installed at the same version. See [AdMob mediation](mediation.md).
 
 ## If you used an internal pre-release build
 
@@ -61,9 +93,11 @@ Replace platform-specific or older AdMob modules with one declaration:
 
 ```xml
 <modules>
-  <module version="1.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified</module>
 </modules>
 ```
+
+Add `<module version="2.0.0">ti.admob.unified.mediation</module>` only if the application mediates.
 
 Update JavaScript imports:
 
@@ -207,11 +241,11 @@ It follows the fullscreen contract above, with one addition: an app open ad expi
 
 ## Mediation
 
-The artifacts bundle matching adapters and native SDKs for AppLovin, InMobi, Liftoff Monetize/Vungle, Meta, ironSource, and Unity on both platforms. Google Mobile Ads discovers them automatically; applications keep using the same banner, interstitial, and rewarded factories.
+The optional `ti.admob.unified.mediation` pack carries matching adapters and native SDKs for AppLovin, InMobi, Liftoff Monetize/Vungle, Meta, ironSource, and Unity on both platforms. Google Mobile Ads discovers them automatically; applications keep using the same banner, interstitial, and rewarded factories and never call the pack.
 
-Availability probes remain for portable diagnostics. Legacy provider consent setters are deprecated no-ops because UMP and each provider's current requirements must drive privacy configuration. Bundling an adapter does not create an account or enable a mediation source: configure mappings and credentials in AdMob, then validate with Ad Inspector.
+Availability probes remain in `ti.admob.unified` for portable diagnostics, and report `false` for every network when the pack is not installed. Legacy provider consent setters are deprecated no-ops because UMP and each provider's current requirements must drive privacy configuration. Installing an adapter does not create an account or enable a mediation source: configure mappings and credentials in AdMob, then validate with Ad Inspector.
 
-An application that serves AdMob demand only should pass `disableMediation: true` to `initialize()`. Adapter auto-discovery waits for every bundled adapter to answer or time out, which can delay the first ad by tens of seconds.
+An application that serves AdMob demand only leaves the pack out. One that has it installed but wants to skip adapter startup in a given session passes `disableMediation: true` to `initialize()`, because auto-discovery waits for every installed adapter to answer or time out, which can delay the first ad by tens of seconds.
 
 ## Development checklist
 
@@ -223,4 +257,5 @@ An application that serves AdMob demand only should pass `disableMediation: true
 - Test interstitial, rewarded, and app open duplicate loads, show failures, close, reward delivery, and repeated destruction.
 - Confirm no duplicate banners or retained listeners.
 - Inspect requests with Ad Inspector.
+- Confirm `getMediationStatus()` matches what the build is supposed to contain.
 - Run `npm test` and `./scripts/verify-artifacts.sh`.

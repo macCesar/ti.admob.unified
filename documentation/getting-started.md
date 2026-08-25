@@ -1,14 +1,27 @@
 # Getting started
 
-## 1. Install the module
+## 1. Install the modules
 
-Install the `1.0.0` ZIP for every platform you build. Both artifacts must have the same module ID and version:
+Install the `2.0.0` ZIP of `ti.admob.unified` for every platform you build. All artifacts of a given module must have the same module ID and version:
 
 ```xml
 <modules>
-  <module version="1.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified</module>
 </modules>
 ```
+
+That is everything an application that serves AdMob demand needs: ~14 MB on iOS, ~325 KB on Android, and no third-party network SDK anywhere in the build.
+
+If the application mediates, install the optional `ti.admob.unified.mediation` pack at the same version and declare it too:
+
+```xml
+<modules>
+  <module version="2.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified.mediation</module>
+</modules>
+```
+
+The pack has no JavaScript API. It carries the six mediation adapters and their network SDKs, and it costs ~75 MB on iOS plus six third-party SDKs in the Android build — so install it only after step 3 applies. See [AdMob mediation](mediation.md).
 
 The current baselines are Titanium `13.4.0.GA`, iOS `15.0+`, and Android API `24+`.
 
@@ -82,23 +95,25 @@ Omitting this metadata causes the native Google Mobile Ads SDK to fail with a mi
 
 Do not pass `applicationId` to `initialize()`; the module does not consume that property.
 
-## 3. Configure mediation
+## 3. Configure mediation — only if you mediate
 
-The module already includes Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource adapters on both platforms. Add only the networks you intend to use to the application's AdMob mediation groups and complete their account, placement, privacy, and store-disclosure setup.
+Skip this step unless the application already has, or is about to have, an AdMob mediation group with real ad sources in it. Installing adapters does not raise fill on its own: a network participates only once its publisher account is approved, it is added as an ad source, and its credentials are mapped to the ad unit.
 
-No platform-specific JavaScript or manual adapter initialization is required. See [AdMob mediation](mediation.md).
+If that describes the application, install the `ti.admob.unified.mediation` pack from step 1. It brings Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource adapters on both platforms. Add only the networks you intend to use to the AdMob mediation groups and complete their account, placement, privacy, and store-disclosure setup.
 
-### Applications that do not mediate
+No platform-specific JavaScript or manual adapter initialization is required. Verify the build actually contains the pack with `getMediationStatus()` before publishing. See [AdMob mediation](mediation.md).
 
-Adapter auto-discovery has a cost. `initialize()` starts every bundled adapter and does not report back until all of them answer or time out, so an adapter with no credentials configured can consume its entire timeout and delay the first ad by tens of seconds.
+### Applications that install the pack but skip it in some sessions
 
-An application that serves AdMob demand only passes `disableMediation: true`:
+Adapter auto-discovery has a cost. `initialize()` starts every installed adapter and does not report back until all of them answer or time out, so an adapter with no credentials configured can consume its entire timeout and delay the first ad by tens of seconds.
+
+An application that has the pack installed but is serving AdMob demand only in a given session passes `disableMediation: true`:
 
 ```js
 Admob.initialize({ disableMediation: true })
 ```
 
-The adapters stay bundled and remain available to every other application; the SDK simply does not start them in that session. Use this whenever step 3 does not apply to your app.
+The adapters stay installed; the SDK simply does not start them in that session. An application that never mediates does not need this flag — it just leaves the pack out.
 
 ## 4. Configure Privacy & messaging
 
@@ -256,4 +271,5 @@ The module does not enforce the privacy gate inside ad proxies. The consuming ap
 - Keeping banner listeners after destroying or removing a placement.
 - Using a production ad unit while clicking ads during development.
 - Requesting ATT, or shipping `NSUserTrackingUsageDescription`, in an app with no tracking case. UMP does not require either one.
-- Leaving mediation initialization on in an app that serves only AdMob demand, and paying an adapter timeout before the first ad.
+- Installing the mediation pack in an app with no configured ad sources, and paying its size and its startup timeout for networks that never bid.
+- Publishing an app that is supposed to mediate without the pack installed, which `getMediationStatus()` reports as six `false` values.
