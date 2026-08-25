@@ -4,6 +4,46 @@ All notable changes to `ti.admob.unified` will be documented in this file.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] — Unreleased
+
+### Breaking: mediation moved to its own module
+
+The six AdMob mediation adapters no longer ship inside `ti.admob.unified`. They ship in a new, optional module, `ti.admob.unified.mediation`, released at the same version.
+
+**An application that mediates today and upgrades without installing the pack stops mediating, and nothing reports it.** Google Mobile Ads keeps serving AdMob demand with no error and no failed request; the mediated sources simply never participate. Install both modules and confirm with `getMediationStatus()` before publishing:
+
+```xml
+<modules>
+  <module version="2.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified.mediation</module>
+</modules>
+```
+
+Nothing in the JavaScript API changed. Not one method, constant, event name, or payload key. `getMediationStatus()`, the six `isXxxAvailable()` probes, `enableOptionalMediationNetworks()`, and `initialize({ disableMediation: true })` all stay in `ti.admob.unified` and behave the same way; the availability probes report `false` for every network when the pack is absent, which is what they were always designed to do.
+
+The reason is that bundling an adapter never raised fill on its own. A network participates only once its publisher account is approved, it is added as an ad source to an AdMob mediation group, and its credentials are mapped to the ad unit. Applications that had none of that were paying for six networks that could not bid:
+
+| Artifact                                | iOS ZIP  |   Android ZIP |
+| --------------------------------------- | -------: | ------------: |
+| `ti.admob.unified` `1.0.0` (everything)  |  `89 MB` | ≈ unchanged   |
+| `ti.admob.unified` `2.0.0`               |  `14 MB` |      `325 KB` |
+| `ti.admob.unified.mediation` `2.0.0`     |  `75 MB` |      `102 KB` |
+
+On Android the ZIP was never the cost: the module POM was. Through `1.x` it declared the six adapter coordinates as transitive dependencies, so every consuming application inherited six third-party SDKs in its APK with no way to opt out. Those coordinates now live in the pack's POM. An application that does not declare the pack also drops six Data Safety and App Privacy declarations, six adapter/SDK pairs to review on each Google Mobile Ads major upgrade, and the adapter startup `initialize()` waits on before the first ad.
+
+### Changed
+
+- `ios/platform/` holds Google Mobile Ads and UMP only; the fourteen mediation XCFrameworks moved to `mediation/ios/platform/`, with their link flags in `mediation/ios/module.xcconfig` and their tree hashes in `mediation/ios/framework-checksums.sha256`. Both `module.xcconfig` files keep `$(inherited)`, which is what lets Titanium concatenate them when an application installs both modules.
+- `android/build.gradle` declares Google Mobile Ads and UMP only; the six `com.google.ads.mediation:*` coordinates moved to `mediation/android/build.gradle`.
+- `scripts/prepare-build.sh` and `scripts/verify-artifacts.sh` take the module directory as an optional argument — `./scripts/verify-artifacts.sh mediation` — and default to the core.
+- The iOS vendoring toolchain is split the same way: each module has its own `Podfile`, `Podfile.lock`, and `install_frameworks.sh`.
+- A contract test fails if any network name reaches `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory, so an adapter cannot drift back into the core unnoticed.
+- A contract test compares each adapter's vendored iOS network SDK version against its Maven coordinate. Four match; Meta and Liftoff Monetize are pinned at the versions Google currently publishes per platform, so closing that lag becomes a deliberate change.
+
+### Unchanged
+
+No SDK or adapter version moved in this release. Google Mobile Ads stays at `13.7.0` on iOS and `25.4.0` on Android, UMP at `3.1.0` and `4.0.0`, and every adapter at the version `1.0.0` shipped. The frameworks were moved, not updated.
+
 ## [1.0.0] — Unreleased
 
 First public release. It defines the JavaScript API that later versions are measured against. Development happened privately, and the numbered builds that circulated before this one were never published; their history lives in the Git log rather than here.

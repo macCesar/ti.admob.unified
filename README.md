@@ -2,9 +2,9 @@
 
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `1.0.0` provides a safe privacy flow, idempotent SDK operations, and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. The same distribution also bundles current AdMob mediation adapters and native SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on both platforms. Applications keep one JavaScript ad API; AdMob selects the configured ad source.
+Version `2.0.0` provides a safe privacy flow, idempotent SDK operations, and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. Mediation is a separate, optional module — `ti.admob.unified.mediation` — carrying current AdMob adapters and native SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on both platforms. Applications keep one JavaScript ad API either way; AdMob selects the configured ad source.
 
-Replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See [Migrating to ti.admob.unified](documentation/migration.md).
+Upgrading from `1.x`, or replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See [Migrating to ti.admob.unified](documentation/migration.md). **An application that mediates today must install the mediation pack when it moves to `2.0.0`, or it stops mediating without an error.**
 
 Want the application-side integration ready-made? Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/`. It sequences privacy and initialization, manages standard/adaptive banners plus interstitial, rewarded and app-open ads, and performs deterministic cleanup without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
 
@@ -16,7 +16,7 @@ Titanium has had AdMob modules for years, one per platform, each with its own na
 
 ```xml
 <modules>
-  <module version="1.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified</module>
 </modules>
 ```
 
@@ -40,7 +40,7 @@ Where the two SDKs genuinely differ, the difference is named rather than hidden.
 
 **One privacy flow.** UMP consent, the `canRequestAds()` gate and initialization are the same sequence on both platforms. The iOS-only step, App Tracking Transparency, is a portable call that completes immediately on Android with `applicable: false`, so even that needs no branch.
 
-**Mediation parity.** The same six ad sources ship on both platforms, and the adapters are discovered by AdMob. Adding a mediated network changes your AdMob configuration, not your code. See [Mediation parity](MEDIATION_COMPARISON.md).
+**Mediation parity.** The same six ad sources are available on both platforms through one optional pack, and the adapters are discovered by AdMob. Adding a mediated network changes your AdMob configuration, not your code. See [Mediation parity](MEDIATION_COMPARISON.md).
 
 ## Requirements
 
@@ -56,6 +56,8 @@ Where the two SDKs genuinely differ, the difference is named rather than hidden.
 
 ## Mediation
 
+Mediation lives in a separate, optional module: `ti.admob.unified.mediation`. It has no JavaScript API — it exists to carry the adapters and their network SDKs.
+
 | Ad source                 |  iOS adapter | Android adapter |
 | ------------------------- | -----------: | --------------: |
 | Meta Audience Network     | `6.21.1.1.1` |      `6.22.0.0` |
@@ -67,13 +69,34 @@ Where the two SDKs genuinely differ, the difference is named rather than hidden.
 
 Those are **adapter** versions, not the versions of each network's own SDK. An adapter is versioned as `<network SDK version>.<adapter revision>`, so `13.6.3.0` means AppLovin SDK `13.6.3` with adapter revision `0`. The network SDK each adapter pulls in is listed in [Dependencies and checksums](DEPENDENCIES.md).
 
-The adapters are discovered automatically by Google Mobile Ads. Do not add platform checks or call a different ad factory for a mediated request. Publisher accounts, ad-source mappings, privacy declarations, and provider credentials are still configured outside the module.
+### Why it is a separate module
+
+Through `1.x` the adapters shipped inside the core module, on the assumption that having them there would raise fill. It does not. A network participates in a request only once its publisher account is approved, it is added as an ad source to an AdMob mediation group, and its credentials are mapped to the ad unit. Without that, an adapter is weight and nothing else — and the weight is not small:
+
+| Artifact                                | iOS ZIP  |   Android ZIP |
+| --------------------------------------- | -------: | ------------: |
+| `ti.admob.unified` `1.0.0` (everything)  |  `89 MB` | ≈ unchanged   |
+| `ti.admob.unified` `2.0.0`               |  `14 MB` |      `325 KB` |
+| `ti.admob.unified.mediation` `2.0.0`     |  `75 MB` |      `102 KB` |
+
+The Android ZIP was never the cost there; the module POM was. Through `1.x` it declared the six adapter coordinates as transitive dependencies, so every consuming application inherited six third-party SDKs in its APK with no way to opt out. In `2.0.0` those coordinates live in the pack's POM, so an application that does not declare the pack inherits none of them — along with six fewer Data Safety and App Privacy declarations, and no adapter startup to wait on before the first ad.
+
+### Installing it
+
+```xml
+<modules>
+  <module version="2.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified.mediation</module>
+</modules>
+```
+
+Both artifacts ship at the same version and are released together. The adapters are then discovered automatically by Google Mobile Ads. Do not add platform checks or call a different ad factory for a mediated request. Publisher accounts, ad-source mappings, privacy declarations, and provider credentials are still configured outside the module.
 
 Because the adapters are present, Google Mobile Ads can inspect or initialize them when the SDK starts. Development builds with incomplete provider mappings can therefore log setup warnings such as a missing AppLovin SDK key or multiple Liftoff Monetize app IDs. The module does not inject provider IDs or keys; those values come from the AdMob mediation mapping. Treat these warnings as configuration diagnostics and verify the intended source with Ad Inspector before enabling production.
 
-An application that serves AdMob demand only passes `initialize({ disableMediation: true })`. Auto-discovery waits for every bundled adapter to answer or time out, so an unmapped provider can delay the first ad by tens of seconds. The adapters stay bundled and remain available to every other application.
+An application that has the pack installed but wants to skip adapter startup in a given session passes `initialize({ disableMediation: true })`. Auto-discovery waits for every installed adapter to answer or time out, so an unmapped provider can delay the first ad by tens of seconds. An application that never mediates simply leaves the pack out.
 
-Use `getMediationStatus()` for diagnostics and Ad Inspector for request-level validation. See [AdMob mediation](documentation/mediation.md).
+`getMediationStatus()` stays in the core module and answers with the same six keys either way — all `true` with the pack installed, all `false` without it. Run it before publishing an application that is supposed to mediate. Use Ad Inspector for request-level validation. See [AdMob mediation](documentation/mediation.md).
 
 ## Supported formats
 
@@ -93,13 +116,15 @@ Standard, adaptive, interstitial, rewarded, and app open proxies use portable li
 
 ## Installation
 
-Install the `1.0.0` ZIP for each target platform and declare the module:
+Install the `2.0.0` ZIP for each target platform and declare the module:
 
 ```xml
 <modules>
-  <module version="1.0.0">ti.admob.unified</module>
+  <module version="2.0.0">ti.admob.unified</module>
 </modules>
 ```
+
+Add `ti.admob.unified.mediation` at the same version only if the application mediates.
 
 The consuming app must also set its AdMob application ID in `tiapp.xml`. Application IDs are not passed to `initialize()`.
 
@@ -309,8 +334,11 @@ Never click production ads during development. Do not derive ad eligibility from
 ```sh
 npm test
 ./scripts/verify-artifacts.sh
+./scripts/verify-artifacts.sh mediation
 ti build -p ios --build-only --project-dir ios --no-prompt
 ti build -p android --build-only --project-dir android --no-prompt
+ti build -p ios --build-only --project-dir mediation/ios --no-prompt
+ti build -p android --build-only --project-dir mediation/android --no-prompt
 ```
 
 Physical-device validation and Ad Inspector checks are still required before a consumer app enables production ad unit IDs.
