@@ -1,0 +1,28 @@
+#
+# ti.admob.unified.mediation - AdMob mediation adapter pack for ti.admob.unified
+# This module carries the mediation adapter Maven coordinates. It exposes no
+# JavaScript API; ti.admob.unified remains the only module an application calls.
+#
+version: 2.0.0
+apiversion: 4
+architectures: arm64-v8a armeabi-v7a x86 x86_64
+description: AdMob mediation adapter pack for ti.admob.unified — Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource
+author: César Estrada
+license: MIT
+copyright: Copyright (c) 2026 by César Estrada
+
+# these should not be edited
+name: ti.admob.unified.mediation
+moduleid: ti.admob.unified.mediation
+guid: fe979d9d-b40c-49f8-a9af-08185367c071
+platform: android
+#
+# Classpaths and plugins are used for android packages that requires them
+# to use them you have to add your classpaths and plugins comma separated
+# Ex:
+# classpaths: classpath1,classpath2
+# plugins: plugin1,plugin2
+#
+classpaths:
+plugins:
+minsdk: 13.4.0.GA

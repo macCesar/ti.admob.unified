@@ -10,10 +10,4 @@ target 'ti.admob.unified' do
   # use the vendored XCFrameworks in ios/platform/.
   pod 'Google-Mobile-Ads-SDK', '= 13.7.0'
   pod 'GoogleUserMessagingPlatform', '= 3.1.0'
-  pod 'GoogleMobileAdsMediationFacebook', '= 6.21.1.1.1'
-  pod 'GoogleMobileAdsMediationInMobi', '= 11.4.0.0'
-  pod 'GoogleMobileAdsMediationUnity', '= 4.19.0.0'
-  pod 'GoogleMobileAdsMediationAppLovin', '= 13.6.3.0'
-  pod 'GoogleMobileAdsMediationVungle', '= 7.7.5.0'
-  pod 'GoogleMobileAdsMediationIronSource', '= 9.5.0.0.0'
 end

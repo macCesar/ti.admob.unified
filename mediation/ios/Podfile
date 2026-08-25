@@ -1,0 +1,19 @@
+install! 'cocoapods',
+         :integrate_targets => false
+
+platform :ios, '15.0'
+
+target 'ti.admob.unified.mediation' do
+  use_frameworks!
+
+  # This Podfile is the dependency source of truth for the mediation pack.
+  # Distribution continues to use the vendored XCFrameworks in ios/platform/.
+  # Google-Mobile-Ads-SDK is resolved here because every adapter depends on it,
+  # but it is vendored by ti.admob.unified, not by this module.
+  pod 'GoogleMobileAdsMediationFacebook', '= 6.21.1.1.1'
+  pod 'GoogleMobileAdsMediationInMobi', '= 11.4.0.0'
+  pod 'GoogleMobileAdsMediationUnity', '= 4.19.0.0'
+  pod 'GoogleMobileAdsMediationAppLovin', '= 13.6.3.0'
+  pod 'GoogleMobileAdsMediationVungle', '= 7.7.5.0'
+  pod 'GoogleMobileAdsMediationIronSource', '= 9.5.0.0.0'
+end

@@ -1,0 +1,15 @@
+
+dependencies {
+	// AdMob mediation adapters. Each coordinate brings the matching network SDK.
+	//
+	// `implementation` is what propagates them to the consuming application
+	// through this module's generated POM, which is the whole point of the pack:
+	// an application that never declares ti.admob.unified.mediation inherits
+	// none of them.
+	implementation 'com.google.ads.mediation:facebook:6.22.0.0'
+	implementation 'com.google.ads.mediation:inmobi:11.4.0.0'
+	implementation 'com.google.ads.mediation:unity:4.19.0.0'
+	implementation 'com.google.ads.mediation:applovin:13.6.3.0'
+	implementation 'com.google.ads.mediation:vungle:7.7.7.0'
+	implementation 'com.google.ads.mediation:ironsource:9.5.0.0'
+}

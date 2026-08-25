@@ -46,47 +46,88 @@ const androidAppOpen = read(
   'android/src/ti/admob/unified/TiAdmobUnifiedAppOpenAdProxy.java'
 )
 
-test('pins the unified ads and mediation dependency baseline', () => {
-  assert.match(read('ios/manifest'), /version: 1\.0\.0/)
-  assert.match(read('android/manifest'), /version: 1\.0\.0/)
+const MEDIATION_MAVEN_COORDINATES = [
+  'facebook:6.22.0.0',
+  'inmobi:11.4.0.0',
+  'unity:4.19.0.0',
+  'applovin:13.6.3.0',
+  'vungle:7.7.7.0',
+  'ironsource:9.5.0.0'
+]
+
+const MEDIATION_NETWORKS = [
+  {
+    name: 'AppLovin',
+    adapter: 'AppLovinAdapter',
+    maven: 'applovin',
+    iosNetworkSdk: '13.6.3',
+    androidNetworkSdk: '13.6.3'
+  },
+  {
+    name: 'Meta Audience Network',
+    adapter: 'MetaAdapter',
+    maven: 'facebook',
+    iosNetworkSdk: '6.21.1',
+    androidNetworkSdk: '6.22.0',
+    knownLag: true
+  },
+  {
+    name: 'InMobi',
+    adapter: 'InMobiAdapter',
+    maven: 'inmobi',
+    iosNetworkSdk: '11.4.0',
+    androidNetworkSdk: '11.4.0'
+  },
+  {
+    name: 'Unity Ads',
+    adapter: 'UnityAdapter',
+    maven: 'unity',
+    iosNetworkSdk: '4.19.0',
+    androidNetworkSdk: '4.19.0'
+  },
+  {
+    name: 'Liftoff Monetize',
+    adapter: 'LiftoffMonetizeAdapter',
+    maven: 'vungle',
+    iosNetworkSdk: '7.7.5',
+    androidNetworkSdk: '7.7.7',
+    knownLag: true
+  },
+  {
+    name: 'ironSource',
+    adapter: 'IronSourceAdapter',
+    maven: 'ironsource',
+    iosNetworkSdk: '9.5.0',
+    androidNetworkSdk: '9.5.0'
+  }
+]
+
+const NETWORK_NAMES = [
+  'applovin',
+  'facebook',
+  'fbaudiencenetwork',
+  'inmobi',
+  'ironsource',
+  'liftoff',
+  'meta',
+  'unity',
+  'vungle'
+]
+
+test('pins the unified ads dependency baseline', () => {
+  assert.match(read('ios/manifest'), /version: 2\.0\.0/)
+  assert.match(read('android/manifest'), /version: 2\.0\.0/)
 
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.4\.0/)
   assert.match(androidGradle, /user-messaging-platform:4\.0\.0/)
-  for (const coordinate of [
-    'facebook:6.22.0.0',
-    'inmobi:11.4.0.0',
-    'unity:4.19.0.0',
-    'applovin:13.6.3.0',
-    'vungle:7.7.7.0',
-    'ironsource:9.5.0.0'
-  ]) {
-    assert.match(
-      androidGradle,
-      new RegExp(`com\\.google\\.ads\\.mediation:${coordinate.replaceAll('.', '\\.')}`)
-    )
-  }
 
   const platformEntries = fs.readdirSync(path.join(root, 'ios/platform'))
     .filter(name => name.endsWith('.xcframework'))
     .sort()
   assert.deepEqual(platformEntries, [
-    'AppLovinAdapter.xcframework',
-    'AppLovinSDK.xcframework',
-    'FBAudienceNetwork.xcframework',
     'GoogleMobileAds.xcframework',
-    'InMobiAdapter.xcframework',
-    'InMobiSDK.xcframework',
-    'IronSource.xcframework',
-    'IronSourceAdQualitySDK.xcframework',
-    'IronSourceAdapter.xcframework',
-    'LiftoffMonetizeAdapter.xcframework',
-    'MetaAdapter.xcframework',
-    'UnityAdapter.xcframework',
-    'UnityAds.xcframework',
-    'UnityCoherenceLib.xcframework',
-    'UserMessagingPlatform.xcframework',
-    'VungleAdsSDK.xcframework'
+    'UserMessagingPlatform.xcframework'
   ])
 
   assert.equal(
@@ -106,6 +147,136 @@ test('pins the unified ads and mediation dependency baseline', () => {
     read('ios/framework-checksums.sha256').trim().split('\n').length,
     platformEntries.length
   )
+})
+
+test('pins the mediation pack dependency baseline', () => {
+  // The pack ships in lockstep with the core: an application that installs one
+  // version of ti.admob.unified and another of the pack is the failure this
+  // pins against.
+  assert.match(read('mediation/ios/manifest'), /version: 2\.0\.0/)
+  assert.match(read('mediation/android/manifest'), /version: 2\.0\.0/)
+
+  const mediationGradle = read('mediation/android/build.gradle')
+  for (const coordinate of MEDIATION_MAVEN_COORDINATES) {
+    assert.match(
+      mediationGradle,
+      new RegExp(`com\\.google\\.ads\\.mediation:${coordinate.replaceAll('.', '\\.')}`)
+    )
+  }
+
+  const platformEntries = fs.readdirSync(path.join(root, 'mediation/ios/platform'))
+    .filter(name => name.endsWith('.xcframework'))
+    .sort()
+  assert.deepEqual(platformEntries, [
+    'AppLovinAdapter.xcframework',
+    'AppLovinSDK.xcframework',
+    'FBAudienceNetwork.xcframework',
+    'InMobiAdapter.xcframework',
+    'InMobiSDK.xcframework',
+    'IronSource.xcframework',
+    'IronSourceAdQualitySDK.xcframework',
+    'IronSourceAdapter.xcframework',
+    'LiftoffMonetizeAdapter.xcframework',
+    'MetaAdapter.xcframework',
+    'UnityAdapter.xcframework',
+    'UnityAds.xcframework',
+    'UnityCoherenceLib.xcframework',
+    'VungleAdsSDK.xcframework'
+  ])
+
+  assert.equal(
+    read('mediation/ios/framework-checksums.sha256').trim().split('\n').length,
+    platformEntries.length
+  )
+
+  // The pack carries no JavaScript surface. A Kroll method here would give an
+  // application a second module to call, which is the opposite of the point.
+  const androidCarrier = read(
+    'mediation/android/src/ti/admob/unified/mediation/TiAdmobUnifiedMediationModule.java'
+  )
+  assert.doesNotMatch(androidCarrier, /@Kroll\.(method|constant|getProperty|setProperty)/)
+  assert.equal(
+    fs.readdirSync(
+      path.join(root, 'mediation/android/src/ti/admob/unified/mediation')
+    ).sort().join(),
+    'TiAdmobUnifiedMediationModule.java'
+  )
+})
+
+test('keeps every mediation network out of the core module', () => {
+  // The whole separation is an inventory that can silently regress: one
+  // -framework line or one Maven coordinate added back to the core, and every
+  // application pays for six networks again without being asked.
+  const coreArtifacts = {
+    'ios/module.xcconfig': read('ios/module.xcconfig'),
+    'android/build.gradle': read('android/build.gradle'),
+    'ios/ti.admob.unified.xcodeproj/project.pbxproj': read(
+      'ios/ti.admob.unified.xcodeproj/project.pbxproj'
+    ),
+    'ios/framework-checksums.sha256': read('ios/framework-checksums.sha256')
+  }
+
+  for (const [name, source] of Object.entries(coreArtifacts)) {
+    for (const network of NETWORK_NAMES) {
+      assert.doesNotMatch(
+        source,
+        new RegExp(network, 'i'),
+        `${name} must not name ${network}: it belongs to the mediation pack`
+      )
+    }
+  }
+
+  // The linker flags are split, not duplicated: $(inherited) on both sides is
+  // what lets Titanium concatenate them when both modules are installed.
+  assert.match(read('ios/module.xcconfig'), /OTHER_LDFLAGS=\$\(inherited\)/)
+  assert.match(read('mediation/ios/module.xcconfig'), /OTHER_LDFLAGS=\$\(inherited\)/)
+
+  // -ObjC is what makes the adapters' Objective-C categories survive the link.
+  assert.match(read('mediation/ios/module.xcconfig'), /\s-ObjC(\s|$)/)
+})
+
+test('keeps the mediation network SDK versions aligned across platforms', () => {
+  // Each adapter's Info.plist reports the network SDK it wraps, and the Maven
+  // coordinate is `<network SDK version>.<adapter revision>`. Comparing those
+  // two is what catches a one-sided bump.
+  const mediationGradle = read('mediation/android/build.gradle')
+
+  for (const network of MEDIATION_NETWORKS) {
+    const iosVersion = frameworkVersion(
+      `mediation/ios/platform/${network.adapter}.xcframework/` +
+        `ios-arm64_x86_64-simulator/${network.adapter}.framework/Info.plist`
+    )
+    assert.equal(
+      iosVersion,
+      network.iosNetworkSdk,
+      `${network.name}: the vendored iOS adapter no longer wraps ${network.iosNetworkSdk}`
+    )
+
+    const coordinate = new RegExp(
+      `com\\.google\\.ads\\.mediation:${network.maven}:(\\S+)'`
+    ).exec(mediationGradle)
+    assert.ok(coordinate, `${network.name}: missing Maven coordinate`)
+
+    const androidNetworkSdk = coordinate[1].split('.').slice(0, -1).join('.')
+    assert.equal(
+      androidNetworkSdk,
+      network.androidNetworkSdk,
+      `${network.name}: the Maven coordinate no longer wraps ${network.androidNetworkSdk}`
+    )
+
+    if (network.knownLag) {
+      // Recorded, not accepted: Google publishes these two adapters on
+      // different schedules per platform, and the lag is documented in
+      // DEPENDENCIES.md. Pinning it is what makes it visible when it closes.
+      assert.notEqual(iosVersion, androidNetworkSdk)
+    } else {
+      assert.equal(
+        iosVersion,
+        androidNetworkSdk,
+        `${network.name}: iOS ships ${iosVersion} and Android ${androidNetworkSdk}`
+      )
+    }
+  }
 })
 
 test('aligns Titanium and iOS deployment requirements', () => {
@@ -814,7 +985,10 @@ test('lets an application skip mediation initialization on both platforms', () =
   )
 
   // Skipping initialization must never mean dropping a network.
-  assert.match(read('android/build.gradle'), /com\.google\.ads\.mediation:vungle/)
+  assert.match(
+    read('mediation/android/build.gradle'),
+    /com\.google\.ads\.mediation:vungle/
+  )
 })
 
 test('tracks application and lifecycle pauses as independent causes', () => {

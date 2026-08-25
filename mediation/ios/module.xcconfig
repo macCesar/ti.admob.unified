@@ -1,0 +1,12 @@
+//
+// Link flags for the vendored mediation XCFrameworks in ios/platform/.
+//
+// $(inherited) is what lets Titanium concatenate these flags with the ones
+// ti.admob.unified declares. The system frameworks stay in the core module even
+// when only one network asks for them: they cost no bytes, and removing one
+// that something else still needs breaks the consuming application's link.
+//
+// -ObjC is repeated here on purpose. The adapters register themselves through
+// Objective-C categories, which the linker drops without it.
+//
+OTHER_LDFLAGS=$(inherited) -ObjC -lIronSourceAdQuality -framework AppLovinAdapter -framework AppLovinSDK -framework FBAudienceNetwork -framework InMobiAdapter -framework InMobiSDK -framework IronSource -framework IronSourceAdapter -framework LiftoffMonetizeAdapter -framework MetaAdapter -framework UnityAdapter -framework UnityAds -framework UnityCoherenceLib -framework VungleAdsSDK
