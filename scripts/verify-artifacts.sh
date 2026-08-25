@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 #
-# Fail before packaging if ios/platform contains undeclared or stale content.
+# Fail before packaging if <module>/ios/platform contains undeclared or stale
+# content.
+#
+# Usage:
+#   ./scripts/verify-artifacts.sh              # ti.admob.unified (default)
+#   ./scripts/verify-artifacts.sh mediation    # ti.admob.unified.mediation
 #
 set -euo pipefail
 
-MODULE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MODULE_ROOT="$(cd "$REPO_ROOT/${1:-.}" && pwd)"
 PLATFORM_DIR="$MODULE_ROOT/ios/platform"
 CHECKSUM_FILE="$MODULE_ROOT/ios/framework-checksums.sha256"
 
@@ -67,4 +73,4 @@ if [ -n "$unexpected_frameworks" ]; then
 fi
 
 framework_count="$(wc -l < "$CHECKSUM_FILE" | tr -d ' ')"
-echo "Artifact inventory and checksums verified: $framework_count XCFrameworks."
+echo "Artifact inventory and checksums verified: $framework_count XCFrameworks in $PLATFORM_DIR."

@@ -6,14 +6,16 @@
 # Once the module ZIP is extracted into a consumer app, the next ZIP update
 # fails with EACCES because the existing files cannot be overwritten.
 #
-# Run this script after dropping new xcframeworks into ios/platform/ and
-# before running `ti build`.
+# Run this script after dropping new xcframeworks into <module>/ios/platform/
+# and before running `ti build`.
 #
 # Usage:
-#   ./scripts/prepare-build.sh
+#   ./scripts/prepare-build.sh              # ti.admob.unified (default)
+#   ./scripts/prepare-build.sh mediation    # ti.admob.unified.mediation
 #
 set -euo pipefail
-MODULE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+MODULE_ROOT="$(cd "$REPO_ROOT/${1:-.}" && pwd)"
 PLATFORM_DIR="$MODULE_ROOT/ios/platform"
 
 if [ ! -d "$PLATFORM_DIR" ]; then
@@ -26,10 +28,10 @@ chmod -R u+w "$PLATFORM_DIR"
 
 REMAINING=$(find "$PLATFORM_DIR" -type f ! -perm -u=w | wc -l | tr -d ' ')
 if [ "$REMAINING" -eq "0" ]; then
-  echo "OK: all files in ios/platform are writable. Safe to run 'ti build -p ios'."
+  echo "OK: all files in $PLATFORM_DIR are writable. Safe to run 'ti build -p ios'."
 else
   echo "WARN: $REMAINING files still read-only. Investigate before building." >&2
   exit 1
 fi
 
-"$MODULE_ROOT/scripts/verify-artifacts.sh"
+"$REPO_ROOT/scripts/verify-artifacts.sh" "${1:-.}"
