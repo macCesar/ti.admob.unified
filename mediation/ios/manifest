@@ -3,7 +3,7 @@
 # This module carries the vendored mediation XCFrameworks. It exposes no
 # JavaScript API; ti.admob.unified remains the only module an application calls.
 #
-version: 2.0.0
+version: 1.0.0
 apiversion: 2
 architectures: arm64 x86_64
 mac: false

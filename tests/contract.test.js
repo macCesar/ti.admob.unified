@@ -115,8 +115,8 @@ const NETWORK_NAMES = [
 ]
 
 test('pins the unified ads dependency baseline', () => {
-  assert.match(read('ios/manifest'), /version: 2\.0\.0/)
-  assert.match(read('android/manifest'), /version: 2\.0\.0/)
+  assert.match(read('ios/manifest'), /version: 1\.0\.0/)
+  assert.match(read('android/manifest'), /version: 1\.0\.0/)
 
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.4\.0/)
@@ -153,8 +153,8 @@ test('pins the mediation pack dependency baseline', () => {
   // The pack ships in lockstep with the core: an application that installs one
   // version of ti.admob.unified and another of the pack is the failure this
   // pins against.
-  assert.match(read('mediation/ios/manifest'), /version: 2\.0\.0/)
-  assert.match(read('mediation/android/manifest'), /version: 2\.0\.0/)
+  assert.match(read('mediation/ios/manifest'), /version: 1\.0\.0/)
+  assert.match(read('mediation/android/manifest'), /version: 1\.0\.0/)
 
   const mediationGradle = read('mediation/android/build.gradle')
   for (const coordinate of MEDIATION_MAVEN_COORDINATES) {
