@@ -73,11 +73,11 @@ Those are **adapter** versions, not the versions of each network's own SDK. An a
 
 Through `1.x` the adapters shipped inside the core module, on the assumption that having them there would raise fill. It does not. A network participates in a request only once its publisher account is approved, it is added as an ad source to an AdMob mediation group, and its credentials are mapped to the ad unit. Without that, an adapter is weight and nothing else — and the weight is not small:
 
-| Artifact                                | iOS ZIP  |   Android ZIP |
-| --------------------------------------- | -------: | ------------: |
-| `ti.admob.unified` `1.0.0` (everything)  |  `89 MB` | ≈ unchanged   |
-| `ti.admob.unified` `2.0.0`               |  `14 MB` |      `325 KB` |
-| `ti.admob.unified.mediation` `2.0.0`     |  `75 MB` |      `102 KB` |
+| Artifact                                | iOS ZIP | Android ZIP |
+| --------------------------------------- | ------: | ----------: |
+| `ti.admob.unified` `1.0.0` (everything) | `89 MB` | ≈ unchanged |
+| `ti.admob.unified` `2.0.0`              | `14 MB` |    `325 KB` |
+| `ti.admob.unified.mediation` `2.0.0`    | `75 MB` |    `102 KB` |
 
 The Android ZIP was never the cost there; the module POM was. Through `1.x` it declared the six adapter coordinates as transitive dependencies, so every consuming application inherited six third-party SDKs in its APK with no way to opt out. In `2.0.0` those coordinates live in the pack's POM, so an application that does not declare the pack inherits none of them — along with six fewer Data Safety and App Privacy declarations, and no adapter startup to wait on before the first ad.
 
@@ -100,17 +100,17 @@ An application that has the pack installed but wants to skip adapter startup in 
 
 ## Supported formats
 
-| Format                   | iOS             | Android                 |
-| ------------------------ | --------------- | ----------------------- |
-| Standard banner          | Stable          | Stable                  |
-| Anchored adaptive banner | Stable          | Stable                  |
-| Inline adaptive banner   | Stable          | Stable                  |
-| Collapsible banner       | Experimental    | Experimental            |
-| Interstitial             | Stable          | Stable                  |
-| Rewarded                 | Stable          | Stable                  |
-| App Open                 | Stable          | Stable                  |
-| Rewarded interstitial    | Not implemented | Not implemented         |
-| Native                   | Not implemented | Not implemented         |
+| Format                   | iOS             | Android         |
+| ------------------------ | --------------- | --------------- |
+| Standard banner          | Stable          | Stable          |
+| Anchored adaptive banner | Stable          | Stable          |
+| Inline adaptive banner   | Stable          | Stable          |
+| Collapsible banner       | Experimental    | Experimental    |
+| Interstitial             | Stable          | Stable          |
+| Rewarded                 | Stable          | Stable          |
+| App Open                 | Stable          | Stable          |
+| Rewarded interstitial    | Not implemented | Not implemented |
+| Native                   | Not implemented | Not implemented |
 
 Standard, adaptive, interstitial, rewarded, and app open proxies use portable lifecycle and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md) for the single-use, reward, and four-hour-expiry rules.
 
@@ -341,7 +341,7 @@ ti build -p ios --build-only --project-dir mediation/ios --no-prompt
 ti build -p android --build-only --project-dir mediation/android --no-prompt
 ```
 
-Physical-device validation and Ad Inspector checks are still required before a consumer app enables production ad unit IDs.
+The commands above verify that each artifact builds; they do not verify that ads render. Banner, interstitial, and rewarded delivery are confirmed on physical hardware on both platforms, core only, with no mediation pack installed. Adaptive banner, app open, and the core-plus-pack link have no device evidence yet, on either platform. Run the full device and Ad Inspector matrix against the exact code you're shipping before a consumer app enables production ad unit IDs.
 
 ## License
 

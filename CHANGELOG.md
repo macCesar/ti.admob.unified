@@ -99,4 +99,4 @@ Rewarded interstitial and native ads are not implemented on either platform.
 
 Both platforms are meant to expose an identical JavaScript surface. An audit against the native sources found ten places where they did not, and all ten were closed before release; they are recorded in [ROADMAP.md](ROADMAP.md) along with the six differences that stay because one platform's SDK cannot offer what the other does.
 
-Physical-device validation is still outstanding on both platforms.
+Banner, interstitial, and rewarded delivery are confirmed on physical hardware on both platforms (core only, no mediation pack): Android with logged proxy events and a real SDK-issued reward, iOS on a physical iPad through the example app. Adaptive banner and app open remain unverified on a device, on either platform. The core-plus-pack link has no device evidence at all, on either platform.

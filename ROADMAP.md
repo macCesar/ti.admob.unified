@@ -63,7 +63,7 @@ Version `2.0.0` establishes one portable AdMob distribution plus an optional med
 
 Before a final release:
 
-- complete physical-device validation on iPhone, iPad, and Android devices with different screen densities;
+- complete physical-device validation on iPhone, iPad, and Android devices with different screen densities: banner, interstitial, and rewarded delivery are confirmed on real hardware on both platforms, core-only (iOS on an iPad, iPhone screen densities still unconfirmed); adaptive banner and app open still have no device evidence on either platform;
 - validate consent required/not required, acceptance/rejection, privacy reopening, ATT states, relaunch, and background/resume;
 - validate adaptive banner sizing, safe areas, orientation, keyboard, lists, snackbars, tabs, and repeated window lifecycle;
 - confirm there are no duplicate banners or retained listeners;
@@ -132,7 +132,7 @@ The pack lives in `mediation/` in this repository and ships at the same version 
 - Keep every adapter out of the core module. A contract test fails if `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory names a network again.
 - Preserve one JavaScript ad contract and portable diagnostics.
 - Track privacy manifests, resource bundles, SKAdNetwork guidance, and store disclosure changes with every dependency update.
-- Require consumer builds, physical-device tests, and Ad Inspector evidence before release.
+- Require consumer builds, physical-device tests, and Ad Inspector evidence before release: this pack's core-plus-pack link has no device evidence at all yet, on either platform.
 - Evaluate additional networks only when they can be supported on both platforms without fragmenting the public API.
 
 ## Longer-term platform work
