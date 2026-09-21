@@ -1,5 +1,5 @@
 /**
- * ti.admob.unified 2.0.0 example
+ * ti.admob.unified example
  *
  * This app uses only Google's official demo ad unit IDs. It demonstrates:
  * - UMP -> canRequestAds -> ATT (iOS) -> initialization
@@ -7,15 +7,9 @@
  * - a banner host that reserves its own space
  * - explicit listener and proxy cleanup
  *
- * One button per format, and the button's title is its state:
- *
- *     Interstitial  ->  Interstitial · creating…  ->  Interstitial · tap to show
- *
- * and back to `Interstitial` once the ad closes. A single control, but still
- * two decisions: loading is a network request, showing is an interruption you
- * choose. That separation is the contract in documentation/fullscreen.md, and
- * it survives here — the button simply carries both steps instead of splitting
- * them across two controls that read as unrelated.
+ * Fullscreen ads preload after privacy and initialization, then reload on close.
+ * Showing an ad always requires an explicit tap. The adaptive banner starts automatically.
+ * The native layout adapts to the available window width, including split view.
  *
  * It intentionally contains no production ad unit IDs, mediation, or manual
  * banner refresh timers.
@@ -28,164 +22,233 @@ let initializationComplete = false
 let trackingRequestStarted = false
 let windowClosed = false
 let banner = null
+let activeBannerButton = null
 let interstitial = null
 let rewarded = null
 let appOpen = null
 
+// A small, shared palette keeps the sample easy to restyle.
+const colors = {
+  canvas: '#F4F6F5', surface: '#FFFFFF', ink: '#182D2B', muted: '#586D68',
+  accent: '#176B58', pressed: '#104F42', tint: '#E5F1EC', line: '#DCE5E0',
+  quiet: '#EDF1EF', error: '#A33030'
+}
+const isAndroid = Ti.Platform.osname === 'android'
 const win = Ti.UI.createWindow({
-  backgroundColor: '#f2f2f7',
-  title: 'ti.admob.unified 2.0.0',
+  backgroundColor: colors.canvas,
+  title: 'AdMob Playground',
   layout: 'composite',
-  // Keep content clear of the Dynamic Island, the notch and the home
-  // indicator. It matters for ads: a banner anchored to the bottom would sit
-  // under the home indicator, where part of it is not reliably tappable.
   extendSafeArea: false
 })
 
 const content = Ti.UI.createScrollView({
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  layout: 'vertical',
-  // Android scrolls in one direction only and warns when it has to guess.
-  scrollType: 'vertical',
-  showVerticalScrollIndicator: true
+  top: 0, left: 0, right: 0, bottom: 0,
+  layout: 'vertical', contentHeight: Ti.UI.SIZE,
+  scrollType: 'vertical', showVerticalScrollIndicator: true
 })
+const page = Ti.UI.createView({
+  width: Ti.UI.FILL, height: Ti.UI.SIZE, layout: 'vertical', bottom: '32dp'
+})
+content.add(page)
 
 const bannerHost = Ti.UI.createView({
-  left: 0,
-  right: 0,
-  bottom: 0,
-  height: 0,
-  backgroundColor: '#ffffff'
+  left: 0, right: 0, bottom: 0, height: 0, backgroundColor: colors.surface
 })
 
+const masthead = Ti.UI.createView({
+  top: '24dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE, layout: 'vertical'
+})
+masthead.add(Ti.UI.createLabel({
+  text: 'TITANIUM / ADMOB', left: 0, height: Ti.UI.SIZE,
+  color: colors.accent, font: { fontSize: '12dp', fontWeight: 'bold' }
+}))
+masthead.add(Ti.UI.createLabel({
+  text: 'Ad playground.', top: '8dp', left: 0, right: 0, height: Ti.UI.SIZE,
+  color: colors.ink, font: { fontSize: '36dp', fontWeight: 'bold' }
+}))
+masthead.add(Ti.UI.createLabel({
+  text: 'Explore the formats. See the experience.',
+  top: '8dp', left: 0, right: 0, height: Ti.UI.SIZE,
+  color: colors.muted, font: { fontSize: '16dp' }
+}))
+page.add(masthead)
+
+const session = Ti.UI.createView({
+  top: '24dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE,
+  layout: 'vertical', backgroundColor: colors.tint, borderRadius: '12dp'
+})
+const sessionLabel = Ti.UI.createLabel({
+  text: 'SETUP / PRIVACY', top: '16dp', left: '16dp', right: '16dp',
+  height: Ti.UI.SIZE, color: colors.accent,
+  font: { fontSize: '12dp', fontWeight: 'bold' }
+})
 const statusLabel = Ti.UI.createLabel({
-  top: 20,
-  left: 20,
-  right: 20,
-  height: Ti.UI.SIZE,
-  color: '#1c1c1e',
-  textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
-  font: { fontSize: 16, fontWeight: 'semibold' },
-  text: 'Requesting privacy information…'
+  text: 'Requesting privacy information…',
+  top: '8dp', left: '16dp', right: '16dp', bottom: '16dp',
+  height: Ti.UI.SIZE, color: colors.ink,
+  font: { fontSize: '16dp', fontWeight: 'semibold' }
 })
+session.add(sessionLabel)
+session.add(statusLabel)
+page.add(session)
 
-const detailLabel = Ti.UI.createLabel({
-  top: 6,
-  left: 20,
-  right: 20,
-  bottom: 4,
-  height: Ti.UI.SIZE,
-  color: '#8e8e93',
-  textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
-  font: { fontSize: 13 },
-  text: 'Core Google Mobile Ads + UMP. No mediation adapters are bundled.'
+const activity = Ti.UI.createLabel({
+  text: 'Session events will appear here.', left: '16dp', right: '16dp',
+  top: '16dp', bottom: '16dp', height: Ti.UI.SIZE,
+  color: colors.muted, font: { fontSize: '12dp', fontFamily: isAndroid ? 'monospace' : 'Menlo' }
 })
-
+const events = []
 function setStatus(message) {
   statusLabel.text = message
+  const now = new Date()
+  const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
+    .map(value => String(value).padStart(2, '0')).join(':')
+  events.unshift(`${time}  ${message}`)
+  events.length = Math.min(events.length, 8)
+  activity.text = events.join('\n\n')
   Ti.API.info(`[ti.admob.unified example] ${message}`)
 }
 
 function setBannerHeight(value) {
   const height = Math.max(0, Number(value) || 0)
   const dimension = `${height}dp`
-
   bannerHost.height = dimension
   content.bottom = dimension
 }
 
-function createSection(title) {
-  content.add(Ti.UI.createLabel({
-    text: title.toUpperCase(),
-    top: 22,
-    left: 24,
-    right: 24,
-    height: Ti.UI.SIZE,
-    color: '#8e8e93',
-    font: { fontSize: 12, fontWeight: 'bold' }
+let currentSection
+const formatCards = []
+function createSection(title, description, grid) {
+  page.add(Ti.UI.createLabel({
+    text: title, top: '32dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE,
+    color: colors.ink, font: { fontSize: '24dp', fontWeight: 'bold' }
   }))
+  page.add(Ti.UI.createLabel({
+    text: description, top: '6dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE,
+    color: colors.muted, font: { fontSize: '14dp' }
+  }))
+  currentSection = Ti.UI.createView({
+    left: '16dp', right: '16dp', height: Ti.UI.SIZE,
+    layout: grid ? 'horizontal' : 'vertical', horizontalWrap: true
+  })
+  page.add(currentSection)
 }
 
-// One button owns one format through its whole cycle, and its title is the
-// state: idle -> creating -> ready to show -> back to idle when the ad closes.
-//
-// Collapsing it into a single control does not collapse the two decisions:
-// loading is still a network request and showing is still an interruption you
-// choose. The button just refuses to be tapped while the request is in flight,
-// then waits for a second tap to present. Formats with no `onShow` — banners —
-// simply return to idle once they are on screen.
+// Fullscreen controls only present ready ads; loading starts automatically.
+// Banner controls select the placement in the single shared slot.
 function createAdButton(title, handlers) {
-  const onLoad = handlers.onLoad
-  const onShow = handlers.onShow
-
+  const isFormat = Boolean(handlers.description)
+  const fullscreen = Boolean(handlers.onShow)
+  const idleTitle = fullscreen ? `Show ${title.toLowerCase()}` : isFormat ? `Use ${title.toLowerCase()}` : title
+  const card = isFormat ? Ti.UI.createView({
+    left: '8dp', right: '8dp', top: '16dp', width: '280dp',
+    height: Ti.UI.SIZE, layout: 'vertical', backgroundColor: colors.surface,
+    borderRadius: '12dp', borderColor: colors.line, borderWidth: 1
+  }) : null
+  let stateLabel
+  if (card) {
+    card.add(Ti.UI.createLabel({
+      text: title, top: '20dp', left: '20dp', right: '20dp', height: Ti.UI.SIZE,
+      color: colors.ink, font: { fontSize: '20dp', fontWeight: 'bold' }
+    }))
+    card.add(Ti.UI.createLabel({
+      text: handlers.description, top: '8dp', left: '20dp', right: '20dp',
+      height: Ti.UI.SIZE, color: colors.muted, font: { fontSize: '14dp' }
+    }))
+    stateLabel = Ti.UI.createLabel({
+      text: fullscreen ? 'Waiting for initialization…' : 'Not selected', top: '20dp', left: '20dp', right: '20dp',
+      height: Ti.UI.SIZE, color: colors.muted, font: { fontSize: '12dp', fontWeight: 'semibold' }
+    })
+    card.add(stateLabel)
+    currentSection.add(card)
+    formatCards.push(card)
+  }
   const button = Ti.UI.createButton({
-    title,
-    top: 10,
-    left: 24,
-    right: 24,
-    height: 46,
-    color: '#ffffff',
-    backgroundColor: '#0a84ff',
-    borderRadius: 10,
-    font: { fontSize: 16, fontWeight: 'semibold' }
+    title: idleTitle,
+    enabled: !fullscreen,
+    top: isFormat ? '12dp' : '8dp', left: isFormat ? '20dp' : '8dp',
+    right: isFormat ? '20dp' : '8dp', bottom: isFormat ? '20dp' : 0,
+    height: '48dp', color: colors.accent, backgroundColor: colors.tint,
+    backgroundSelectedColor: colors.line, borderRadius: '8dp',
+    font: { fontSize: '14dp', fontWeight: 'semibold' },
+    accessibilityHint: handlers.description || ''
   })
-
   let state = 'idle'
-
   button.creating = function () {
     state = 'creating'
-    button.applyProperties({
-      title: `${title} · creating…`,
-      backgroundColor: '#b0b0b5',
-      touchEnabled: false
-    })
+    if (stateLabel) stateLabel.applyProperties({ text: 'Loading…', color: colors.muted })
+    button.applyProperties({ title: 'Loading…', backgroundColor: colors.quiet, color: colors.muted, enabled: false })
   }
-
   button.ready = function () {
     state = 'ready'
+    if (stateLabel) stateLabel.applyProperties({ text: 'Ready to show', color: colors.accent })
     button.applyProperties({
-      title: `${title} · tap to show`,
-      backgroundColor: '#30d158',
-      touchEnabled: true
+      title: `Show ${title.toLowerCase()}`, backgroundColor: colors.accent,
+      backgroundSelectedColor: colors.pressed, color: colors.surface, enabled: true
     })
   }
-
   button.reset = function () {
     state = 'idle'
+    if (stateLabel) stateLabel.applyProperties({ text: fullscreen ? 'Waiting to load…' : 'Not selected', color: colors.muted })
     button.applyProperties({
-      title,
-      backgroundColor: '#0a84ff',
-      touchEnabled: true
+      title: idleTitle,
+      backgroundColor: colors.tint, backgroundSelectedColor: colors.line,
+      color: colors.accent, enabled: !fullscreen
     })
   }
-
-  button.addEventListener('click', () => {
-    if (state === 'creating') {
-      return
-    }
-
-    if (state === 'ready') {
-      state = 'showing'
-      button.applyProperties({ touchEnabled: false, backgroundColor: '#b0b0b5' })
-      onShow(button)
-      return
-    }
-
-    if (!initializationComplete || !Admob.canRequestAds()) {
+  button.failed = function () {
+    button.reset()
+    state = 'failed'
+    button.applyProperties({ title: `Retry ${title.toLowerCase()}`, enabled: true })
+    if (stateLabel) stateLabel.applyProperties({ text: 'Could not load or show. Tap to retry.', color: colors.error })
+  }
+  button.loaded = function () {
+    button.reset()
+    if (stateLabel) stateLabel.applyProperties({ text: 'Visible in the banner slot', color: colors.accent })
+  }
+  button.load = function () {
+    if (windowClosed || state === 'creating' || state === 'showing') return
+    if (!handlers.privacy && (!initializationComplete || !Admob.canRequestAds())) {
       setStatus(`${title} blocked until privacy and initialization complete`)
       return
     }
-
     button.creating()
-    onLoad(button)
+    handlers.onLoad(button)
+  }
+  button.addEventListener('click', () => {
+    if (state === 'creating' || state === 'showing') return
+    if (state === 'ready') {
+      if (windowClosed || !Admob.canRequestAds()) {
+        setStatus(`${title} blocked by privacy settings`)
+        return
+      }
+      state = 'showing'
+      if (stateLabel) stateLabel.text = 'Showing…'
+      button.applyProperties({ title: 'Showing…', enabled: false, backgroundColor: colors.quiet, color: colors.muted })
+      handlers.onShow(button)
+      return
+    }
+    if (!fullscreen || state === 'failed') button.load()
   })
-
-  content.add(button)
+  const parent = card || currentSection
+  parent.add(button)
   return button
 }
+
+// Classic Titanium has no TSS breakpoints. Measure the available viewport,
+// not the physical display, so rotation and iPad split view use the same layout.
+let previousWidth = 0
+function layoutPage() {
+  const width = Ti.UI.convertUnits(content.size.width, Ti.UI.UNIT_DIP)
+  if (!width || width === previousWidth) return
+  previousWidth = width
+  const pageWidth = Math.min(width, 960)
+  page.width = `${pageWidth}dp`
+  const columns = pageWidth >= 700 ? 2 : 1
+  const cardWidth = Math.floor((pageWidth - 32) / columns) - 16
+  formatCards.forEach(card => { card.width = `${cardWidth}dp` })
+}
+content.addEventListener('postlayout', layoutPage)
 
 function initializeAdsOnce() {
   if (
@@ -206,14 +269,20 @@ function initializeAdsOnce() {
 }
 
 function onModuleInitialized(event) {
+  if (windowClosed || initializationComplete) return
   if (!event.success) {
     setStatus(`Initialization failed: ${event.error}`)
     return
   }
 
   initializationComplete = true
+  sessionLabel.text = 'TEST ADS / SDK READY'
   Ti.API.info(`Mediation adapters: ${JSON.stringify(Admob.getMediationStatus())}`)
-  setStatus('Initialized. Tap any format below.')
+  setStatus('Preparing ads automatically…')
+  interstitialButton.load()
+  rewardedButton.load()
+  appOpenButton.load()
+  adaptiveButton.load()
 }
 
 function onTrackingAuthorizationCompleted(event) {
@@ -249,11 +318,12 @@ function continueAfterPrivacyGate(canRequestAds) {
 // hidden view still occupies its slot in a vertical layout, so the space is
 // collapsed too and the reason is written where the button would have been.
 function setPrivacyOptionsAvailable(available) {
+  privacyNote.text = 'No privacy form is required for this session.'
   privacyButton.applyProperties({
     visible: available,
     touchEnabled: available,
-    height: available ? 46 : 0,
-    top: available ? 10 : 0
+    height: available ? '48dp' : 0,
+    top: available ? '8dp' : 0
   })
 
   privacyNote.applyProperties({
@@ -311,26 +381,29 @@ function screenWidthInDp() {
 function onBannerLoaded(event) {
   setBannerHeight(event.height)
   setStatus(`Adaptive banner loaded at ${event.height}${event.heightUnit}`)
-  adaptiveButton.reset()
+  adaptiveButton.loaded()
 }
 
 function onFixedBannerLoaded() {
   setStatus(`Fixed banner loaded at ${screenWidthInDp()}x50dp`)
-  fixedButton.reset()
+  fixedButton.loaded()
 }
 
 function onBannerFailed(event) {
   setBannerHeight(0)
   setStatus(`Banner failed: ${event.error} (${event.code})`)
-  fixedButton.reset()
-  adaptiveButton.reset()
+  if (activeBannerButton) activeBannerButton.failed()
 }
 
 function onBannerDestroyed() {
+  if (activeBannerButton) activeBannerButton.reset()
   setBannerHeight(0)
 }
 
 function destroyBanner() {
+  fixedButton.reset()
+  adaptiveButton.reset()
+  activeBannerButton = null
   if (!banner) {
     setBannerHeight(0)
     return
@@ -359,6 +432,8 @@ function destroyBanner() {
 // nothing on screen moves when it loads.
 function loadFixedFullWidthBanner() {
   destroyBanner()
+  activeBannerButton = fixedButton
+  fixedButton.creating()
 
   banner = Admob.createBanner({
     adUnitId: Admob.TEST_BANNER,
@@ -380,6 +455,8 @@ function loadFixedFullWidthBanner() {
 // The host cannot be sized until the `loaded` event reports it.
 function loadAdaptiveBanner() {
   destroyBanner()
+  activeBannerButton = adaptiveButton
+  adaptiveButton.creating()
 
   banner = Admob.createAdaptiveBanner({
     adUnitId: Admob.TEST_ADAPTIVE_BANNER,
@@ -397,8 +474,8 @@ function loadAdaptiveBanner() {
 }
 
 // ---------------------------------------------------------------------------
-// Fullscreen formats. Loading and presenting stay separate: the first tap
-// prepares the ad and the next tap presents it at a moment chosen by the app.
+// Fullscreen formats preload automatically. Only presentation needs a tap.
+// A consumed ad is replaced after close, without automatically showing it.
 // ---------------------------------------------------------------------------
 
 function destroyInterstitial() {
@@ -415,18 +492,19 @@ function destroyInterstitial() {
 }
 
 function onInterstitialLoaded() {
-  setStatus('Interstitial loaded - tap again to show')
+  setStatus('Interstitial ready to show')
   interstitialButton.ready()
 }
 
 function onInterstitialFailed(event) {
   setStatus(`Interstitial failed: ${event.error} (${event.code})`)
-  interstitialButton.reset()
+  interstitialButton.failed()
 }
 
 function onInterstitialClosed() {
   setStatus('Interstitial closed')
   interstitialButton.reset()
+  interstitialButton.load()
 }
 
 function destroyRewarded() {
@@ -444,13 +522,13 @@ function destroyRewarded() {
 }
 
 function onRewardedLoaded() {
-  setStatus('Rewarded ad loaded - tap again to show')
+  setStatus('Rewarded ad ready to show')
   rewardedButton.ready()
 }
 
 function onRewardedFailed(event) {
   setStatus(`Rewarded ad failed: ${event.error} (${event.code})`)
-  rewardedButton.reset()
+  rewardedButton.failed()
 }
 
 // Closing a rewarded ad is not proof the reward was earned. Only this event is.
@@ -460,6 +538,7 @@ function onRewardEarned(event) {
 
 function onRewardedClosed() {
   rewardedButton.reset()
+  rewardedButton.load()
 }
 
 function destroyAppOpen() {
@@ -476,13 +555,13 @@ function destroyAppOpen() {
 }
 
 function onAppOpenLoaded() {
-  setStatus('App open ad loaded - tap again to show')
+  setStatus('App open ad ready to show')
   appOpenButton.ready()
 }
 
 function onAppOpenFailed(event) {
   setStatus(`App open ad failed: ${event.error} (${event.code})`)
-  appOpenButton.reset()
+  appOpenButton.failed()
 }
 
 // An app open ad expires four hours after the request. Past that point the
@@ -490,12 +569,13 @@ function onAppOpenFailed(event) {
 // no longer earn revenue.
 function onAppOpenFailedToShow(event) {
   setStatus(`App open ad could not show: ${event.error} (${event.code})`)
-  appOpenButton.reset()
+  appOpenButton.failed()
 }
 
 function onAppOpenClosed() {
   setStatus('App open ad closed')
   appOpenButton.reset()
+  appOpenButton.load()
 }
 
 // The module owns application/activity backgrounding. The app calls these only
@@ -517,20 +597,81 @@ function resumeBannerForVisibleScreen() {
 // Screen
 // ---------------------------------------------------------------------------
 
-content.add(statusLabel)
-content.add(detailLabel)
+createSection('Fullscreen ads', 'Ads load automatically. Tap Show when you’re ready.', true)
 
-createSection('Banners')
+const interstitialButton = createAdButton('Interstitial', {
+  description: 'A full-screen break between moments in your app.',
+  onLoad: () => {
+    destroyInterstitial()
+    interstitial = Admob.createInterstitial({
+      adUnitId: Admob.TEST_INTERSTITIAL,
+      requestAgent: 'ti.admob.unified example',
+      autoReload: false
+    })
 
-const fixedButton = createAdButton('Fixed full-width', {
+    interstitial.addEventListener(Admob.AD_LOADED, onInterstitialLoaded)
+    interstitial.addEventListener(Admob.AD_FAILED_TO_LOAD, onInterstitialFailed)
+    interstitial.addEventListener(Admob.AD_FAILED_TO_SHOW, onInterstitialFailed)
+    interstitial.addEventListener(Admob.AD_CLOSED, onInterstitialClosed)
+    interstitial.load()
+  },
+  onShow: () => interstitial.show()
+})
+
+const rewardedButton = createAdButton('Rewarded', {
+  description: 'An opt-in experience that earns an in-app reward.',
+  onLoad: () => {
+    destroyRewarded()
+    rewarded = Admob.createRewarded({
+      adUnitId: Admob.TEST_REWARDED,
+      requestAgent: 'ti.admob.unified example',
+      autoReload: false
+    })
+
+    rewarded.addEventListener(Admob.AD_LOADED, onRewardedLoaded)
+    rewarded.addEventListener(Admob.AD_FAILED_TO_LOAD, onRewardedFailed)
+    rewarded.addEventListener(Admob.AD_FAILED_TO_SHOW, onRewardedFailed)
+    rewarded.addEventListener(Admob.AD_REWARDED, onRewardEarned)
+    rewarded.addEventListener(Admob.AD_CLOSED, onRewardedClosed)
+    rewarded.load()
+  },
+  onShow: () => rewarded.show()
+})
+
+const appOpenButton = createAdButton('App open', {
+  description: 'A full-screen placement for an app’s opening moment.',
+  onLoad: () => {
+    destroyAppOpen()
+    appOpen = Admob.createAppOpen({
+      adUnitId: Admob.TEST_APP_OPEN,
+      requestAgent: 'ti.admob.unified example',
+      autoReload: false
+    })
+
+    appOpen.addEventListener(Admob.AD_LOADED, onAppOpenLoaded)
+    appOpen.addEventListener(Admob.AD_FAILED_TO_LOAD, onAppOpenFailed)
+    appOpen.addEventListener(Admob.AD_FAILED_TO_SHOW, onAppOpenFailedToShow)
+    appOpen.addEventListener(Admob.AD_CLOSED, onAppOpenClosed)
+    appOpen.load()
+  },
+  onShow: () => appOpen.show()
+})
+
+createSection('Banner ads', 'Adaptive starts automatically. Choose a format for the banner slot.', true)
+
+const fixedButton = createAdButton('Fixed banner', {
+  description: 'A full-width placement with a fixed 50 dp height.',
   onLoad: () => loadFixedFullWidthBanner()
 })
 
-const adaptiveButton = createAdButton('Adaptive', {
+const adaptiveButton = createAdButton('Adaptive banner', {
+  description: 'Fits the available width. Google selects the height.',
   onLoad: () => loadAdaptiveBanner()
 })
 
-createAdButton('Destroy banner', {
+createSection('Banner controls', 'Manage the current placement without creating a new ad.', false)
+
+createAdButton('Remove banner', {
   onLoad: button => {
     destroyBanner()
     setStatus('Banner destroyed and host collapsed')
@@ -538,82 +679,26 @@ createAdButton('Destroy banner', {
   }
 })
 
-createAdButton('Pause banner for covered screen', {
+createAdButton('Pause banner', {
   onLoad: button => {
     pauseBannerForCoveredScreen()
-    setStatus('Banner paused without hiding or changing its slot')
+    setStatus(banner ? 'Banner paused without hiding or changing its slot' : 'Load a banner first to pause it')
     button.reset()
   }
 })
 
-createAdButton('Resume banner for visible screen', {
+createAdButton('Resume banner', {
   onLoad: button => {
     resumeBannerForVisibleScreen()
-    setStatus('The same banner instance resumed')
+    setStatus(banner ? 'The same banner instance resumed' : 'Load a banner first to resume it')
     button.reset()
   }
 })
 
-createSection('Fullscreen')
-
-const interstitialButton = createAdButton('Interstitial', {
-  onLoad: () => {
-  destroyInterstitial()
-  interstitial = Admob.createInterstitial({
-    adUnitId: Admob.TEST_INTERSTITIAL,
-    requestAgent: 'ti.admob.unified example',
-    autoReload: false
-  })
-
-  interstitial.addEventListener(Admob.AD_LOADED, onInterstitialLoaded)
-  interstitial.addEventListener(Admob.AD_FAILED_TO_LOAD, onInterstitialFailed)
-  interstitial.addEventListener(Admob.AD_FAILED_TO_SHOW, onInterstitialFailed)
-  interstitial.addEventListener(Admob.AD_CLOSED, onInterstitialClosed)
-    interstitial.load()
-  },
-  onShow: () => interstitial.show()
-})
-
-const rewardedButton = createAdButton('Rewarded', {
-  onLoad: () => {
-  destroyRewarded()
-  rewarded = Admob.createRewarded({
-    adUnitId: Admob.TEST_REWARDED,
-    requestAgent: 'ti.admob.unified example',
-    autoReload: false
-  })
-
-  rewarded.addEventListener(Admob.AD_LOADED, onRewardedLoaded)
-  rewarded.addEventListener(Admob.AD_FAILED_TO_LOAD, onRewardedFailed)
-  rewarded.addEventListener(Admob.AD_FAILED_TO_SHOW, onRewardedFailed)
-  rewarded.addEventListener(Admob.AD_REWARDED, onRewardEarned)
-  rewarded.addEventListener(Admob.AD_CLOSED, onRewardedClosed)
-    rewarded.load()
-  },
-  onShow: () => rewarded.show()
-})
-
-const appOpenButton = createAdButton('App open', {
-  onLoad: () => {
-  destroyAppOpen()
-  appOpen = Admob.createAppOpen({
-    adUnitId: Admob.TEST_APP_OPEN,
-    requestAgent: 'ti.admob.unified example',
-    autoReload: false
-  })
-
-  appOpen.addEventListener(Admob.AD_LOADED, onAppOpenLoaded)
-  appOpen.addEventListener(Admob.AD_FAILED_TO_LOAD, onAppOpenFailed)
-  appOpen.addEventListener(Admob.AD_FAILED_TO_SHOW, onAppOpenFailedToShow)
-  appOpen.addEventListener(Admob.AD_CLOSED, onAppOpenClosed)
-    appOpen.load()
-  },
-  onShow: () => appOpen.show()
-})
-
-createSection('Privacy')
+createSection('Privacy & consent', 'Your choices are managed by Google’s consent form.', false)
 
 const privacyButton = createAdButton('Advertising privacy options', {
+  privacy: true,
   onLoad: button => {
     Admob.presentPrivacyOptions({})
     button.reset()
@@ -621,18 +706,32 @@ const privacyButton = createAdButton('Advertising privacy options', {
 })
 
 const privacyNote = Ti.UI.createLabel({
-  top: 10,
-  left: 24,
-  right: 24,
+  top: '8dp',
+  left: '8dp',
+  right: '8dp',
   height: Ti.UI.SIZE,
-  color: '#8e8e93',
+  color: colors.muted,
   font: { fontSize: 13 },
   text: 'UMP reports no privacy form for this session. It appears in the EEA, '
     + 'and wherever a message is configured for the app in AdMob.'
 })
-content.add(privacyNote)
+currentSection.add(privacyNote)
 
 setPrivacyOptionsAvailable(false)
+privacyNote.text = 'Checking whether privacy options are required…'
+
+createSection('Session activity', 'Latest events first. Only Google demo ad units are used.', false)
+const activityPanel = Ti.UI.createView({
+  top: '16dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
+  layout: 'vertical', backgroundColor: colors.surface, borderRadius: '12dp'
+})
+activityPanel.add(activity)
+currentSection.add(activityPanel)
+page.add(Ti.UI.createLabel({
+  text: 'ti.admob.unified 1.0.0  /  Google Mobile Ads + UMP',
+  top: '24dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE,
+  color: colors.muted, font: { fontSize: '12dp' }
+}))
 
 Admob.addEventListener('module_initialized', onModuleInitialized)
 Admob.addEventListener('consent_complete', onConsentComplete)
@@ -646,6 +745,7 @@ win.add(bannerHost)
 
 win.addEventListener('close', () => {
   windowClosed = true
+  content.removeEventListener('postlayout', layoutPage)
 
   Admob.removeEventListener('module_initialized', onModuleInitialized)
   Admob.removeEventListener('consent_complete', onConsentComplete)
