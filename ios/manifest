@@ -16,4 +16,4 @@ name: ti.admob.unified
 moduleid: ti.admob.unified
 guid: 67829dbd-d857-4749-9e7c-6143caedee43
 platform: iphone
-minsdk: 13.4.0.GA
+minsdk: 13.2.0.GA

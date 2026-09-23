@@ -280,9 +280,12 @@ test('keeps the mediation network SDK versions aligned across platforms', () => 
 })
 
 test('aligns Titanium and iOS deployment requirements', () => {
-  assert.match(read('ios/manifest'), /minsdk: 13\.4\.0\.GA/)
-  assert.match(read('android/manifest'), /minsdk: 13\.4\.0\.GA/)
-  assert.match(read('ios/titanium.xcconfig'), /TITANIUM_SDK_VERSION = 13\.4\.0\.GA/)
+  for (const manifest of ['ios/manifest', 'android/manifest', 'mediation/ios/manifest', 'mediation/android/manifest']) {
+    assert.match(read(manifest), /minsdk: 13\.2\.0\.GA/)
+  }
+  for (const config of ['ios/titanium.xcconfig', 'mediation/ios/titanium.xcconfig']) {
+    assert.match(read(config), /TITANIUM_SDK_VERSION = 13\.4\.1\.GA/)
+  }
   assert.match(read('ios/timodule.xml'), /<min-ios-ver>15\.0<\/min-ios-ver>/)
 
   const xcodeProject = read('ios/ti.admob.unified.xcodeproj/project.pbxproj')

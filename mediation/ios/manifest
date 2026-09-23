@@ -17,4 +17,4 @@ name: ti.admob.unified.mediation
 moduleid: ti.admob.unified.mediation
 guid: fe979d9d-b40c-49f8-a9af-08185367c071
 platform: iphone
-minsdk: 13.4.0.GA
+minsdk: 13.2.0.GA
