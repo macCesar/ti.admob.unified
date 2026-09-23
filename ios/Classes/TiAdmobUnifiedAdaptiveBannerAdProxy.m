@@ -351,7 +351,9 @@
             [tiView layoutIfNeeded];
         });
     }
-    [self fireAdEvent:@"loaded" withData:[self sizeEventForBannerView:bannerView]];
+    NSMutableDictionary *event = [[self sizeEventForBannerView:bannerView] mutableCopy];
+    event[@"isCollapsible"] = @(bannerView.isCollapsible);
+    [self fireAdEvent:@"loaded" withData:event];
 }
 
 // Mirrors Android's buildSizeEvent (TiAdmobUnifiedAdaptiveBannerAdView.java):

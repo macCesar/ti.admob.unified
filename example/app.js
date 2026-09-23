@@ -202,9 +202,9 @@ function createAdButton(title, handlers) {
     button.applyProperties({ title: `Retry ${title.toLowerCase()}`, enabled: true })
     if (stateLabel) stateLabel.applyProperties({ text: 'Could not load or show. Tap to retry.', color: colors.error })
   }
-  button.loaded = function () {
+  button.loaded = function (message = 'Loaded in the banner slot') {
     button.reset()
-    if (stateLabel) stateLabel.applyProperties({ text: 'Visible in the banner slot', color: colors.accent })
+    if (stateLabel) stateLabel.applyProperties({ text: message, color: colors.accent })
   }
   button.load = function () {
     if (windowClosed || state === 'creating' || state === 'showing') return
@@ -361,7 +361,7 @@ function onPrivacyOptionsDismissed(event) {
 }
 
 // ---------------------------------------------------------------------------
-// Banners: one container, reused. Tapping either button throws away whatever
+// Banners: one container, reused. Selecting a banner throws away whatever
 // is in the host and builds the requested type in its place.
 // ---------------------------------------------------------------------------
 
@@ -380,8 +380,16 @@ function screenWidthInDp() {
 
 function onBannerLoaded(event) {
   setBannerHeight(event.height)
-  setStatus(`Adaptive banner loaded at ${event.height}${event.heightUnit}`)
-  adaptiveButton.loaded()
+  let message = 'Loaded in the banner slot'
+  if (activeBannerButton === collapsibleButton) {
+    message = event.isCollapsible === true
+      ? 'Collapsible ad received. Its arrow controls collapse.'
+      : event.isCollapsible === false
+        ? 'Google returned a standard banner. No collapse arrow.'
+        : 'Banner loaded. Collapse capability was not reported.'
+  }
+  setStatus(`Adaptive banner loaded at ${event.height}${event.heightUnit}; isCollapsible=${event.isCollapsible}`)
+  activeBannerButton.loaded(message)
 }
 
 function onFixedBannerLoaded() {
@@ -403,12 +411,14 @@ function onBannerDestroyed() {
 function destroyBanner() {
   fixedButton.reset()
   adaptiveButton.reset()
+  collapsibleButton.reset()
   activeBannerButton = null
   if (!banner) {
     setBannerHeight(0)
     return
   }
 
+  banner.removeEventListener('postlayout', onAdaptiveLayout)
   banner.removeEventListener(Admob.AD_LOADED, onBannerLoaded)
   banner.removeEventListener(Admob.AD_LOADED, onFixedBannerLoaded)
   banner.removeEventListener(Admob.AD_FAILED_TO_LOAD, onBannerFailed)
@@ -452,15 +462,24 @@ function loadFixedFullWidthBanner() {
 }
 
 // Anchored adaptive: the application gives the width, Google picks the height.
-// The host cannot be sized until the `loaded` event reports it.
-function loadAdaptiveBanner() {
+// Size the iOS placement using Google before loading, then wait for layout.
+// The expanded creative overlays the app; its height is not reserved here.
+function onAdaptiveLayout() {
+  if (!banner || banner.rect.width <= 0 || banner.rect.height <= 0) return
+  banner.removeEventListener('postlayout', onAdaptiveLayout)
+  banner.load()
+}
+
+function loadAdaptiveBanner(collapsible = false) {
   destroyBanner()
-  activeBannerButton = adaptiveButton
-  adaptiveButton.creating()
+  activeBannerButton = collapsible ? collapsibleButton : adaptiveButton
+  activeBannerButton.creating()
 
   banner = Admob.createAdaptiveBanner({
     adUnitId: Admob.TEST_ADAPTIVE_BANNER,
     adaptiveType: Admob.ADAPTIVE_ANCHORED,
+    ...(collapsible ? { collapsible: 'bottom' } : {}),
+    ...(!isAndroid ? { height: Ti.UI.FILL } : {}),
     requestAgent: 'ti.admob.unified example',
     width: Ti.UI.FILL
   })
@@ -469,8 +488,14 @@ function loadAdaptiveBanner() {
   banner.addEventListener(Admob.AD_FAILED_TO_LOAD, onBannerFailed)
   banner.addEventListener(Admob.AD_DESTROYED, onBannerDestroyed)
 
-  bannerHost.add(banner)
-  banner.load()
+  if (isAndroid) {
+    bannerHost.add(banner)
+    banner.load()
+  } else {
+    setBannerHeight(Admob.getAnchoredAdaptiveBannerSize(bannerHost.rect.width || screenWidthInDp()).height)
+    banner.addEventListener('postlayout', onAdaptiveLayout)
+    bannerHost.add(banner)
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -667,6 +692,11 @@ const fixedButton = createAdButton('Fixed banner', {
 const adaptiveButton = createAdButton('Adaptive banner', {
   description: 'Fits the available width. Google selects the height.',
   onLoad: () => loadAdaptiveBanner()
+})
+
+const collapsibleButton = createAdButton('Collapsible banner', {
+  description: 'Loads a new ad requesting expansion. Google may return a standard banner.',
+  onLoad: () => loadAdaptiveBanner(true)
 })
 
 createSection('Banner controls', 'Manage the current placement without creating a new ad.', false)

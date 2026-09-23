@@ -63,9 +63,9 @@ Version `2.0.0` establishes one portable AdMob distribution plus an optional med
 
 Before a final release:
 
-- complete physical-device validation on iPhone, iPad, and Android devices with different screen densities: banner, interstitial, and rewarded delivery are confirmed on real hardware on both platforms, core-only (iOS on an iPad, iPhone screen densities still unconfirmed); adaptive banner and app open still have no device evidence on either platform;
+- complete physical-device validation on iPhone, iPad, and Android devices with different screen densities: banner, interstitial, and rewarded delivery are confirmed on real hardware on both platforms, core-only (iOS on an iPad, iPhone screen densities still unconfirmed); app open still has no device evidence on either platform;
 - validate consent required/not required, acceptance/rejection, privacy reopening, ATT states, relaunch, and background/resume;
-- validate adaptive banner sizing, safe areas, orientation, keyboard, lists, snackbars, tabs, and repeated window lifecycle;
+- validate adaptive and collapsible banner sizing, safe areas, orientation, keyboard, lists, snackbars, tabs, and repeated window lifecycle: confirmed on an iPad (A16) simulator, iPadOS 18.6, with native view-hierarchy evidence of the collapsed (820×150) and expanded (820×590 overlay) states — still needs a physical iOS device and a physical Android device, which has not been re-run with `collapsible` since the sizing fix;
 - confirm there are no duplicate banners or retained listeners;
 - inspect requests with Ad Inspector;
 - confirm all development builds use official test IDs;

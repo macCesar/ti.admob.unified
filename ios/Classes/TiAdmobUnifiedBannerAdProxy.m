@@ -372,7 +372,8 @@
     }
     
     NSDictionary *event = @{
-        @"adUnitId": self.adUnitId ?: @""
+        @"adUnitId": self.adUnitId ?: @"",
+        @"isCollapsible": @(bannerView.isCollapsible)
     };
     [self fireAdEvent:@"loaded" withData:event];
 }

@@ -99,7 +99,9 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 				Log.d(LCAT, "Banner ad loaded successfully");
 				isLoading = false;
 				isAdLoaded = true;
-				fireAdEvent(TiAdmobUnifiedModule.AD_LOADED, null);
+				Map<String, Object> event = new HashMap<>();
+				event.put("isCollapsible", adView.isCollapsible());
+				fireAdEvent(TiAdmobUnifiedModule.AD_LOADED, event);
 			}
 
 			@Override

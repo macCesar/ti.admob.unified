@@ -15,7 +15,7 @@ Use `createBanner()` when the placement explicitly requires a fixed Google ad si
 | Standard fixed-size banner     | Yes | Yes                     |
 | Large anchored adaptive banner | Yes | Yes                     |
 | Inline adaptive banner         | Yes | Yes                     |
-| Collapsible anchored banner    | No  | Experimental raw option |
+| Collapsible anchored banner    | Yes | Yes                     |
 | Dynamic loaded height          | Yes | Yes                     |
 
 ## Adaptive banner
@@ -54,7 +54,7 @@ Events echo back the constant you passed, so `event.adaptiveType` can be compare
 
 `collapsible` works on both platforms and takes Google's native placement string, `"top"` or `"bottom"`. There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant to pass here, and that is deliberate: such a constant would have to carry a value the SDK accepts, and Google accepts only those two words.
 
-It travels as an ad-network extra on both sides — a Bundle on Android, a `GADExtras` on iOS — under the same key, so the same JavaScript produces the same request. Whether the ad actually collapses is decided by the ad unit and the creative, not by the module: an ad unit that is not configured as collapsible in AdMob ignores the option.
+It travels as an ad-network extra on both sides — a Bundle on Android, a `GADExtras` on iOS — under the same key. No separate collapsible ad-unit setting is required. A request can return a standard banner, and mediated ads are non-collapsible. Both fixed and adaptive banners include `isCollapsible` in `AD_LOADED`, copied from the native SDK for that loaded ad. It does not report whether the ad is currently expanded or visibly rendered. A new `load()` requests another ad; it does not expand a previously collapsed creative.
 
 Google's current requirements are described in the collapsible banner guide, published per platform: [Android](https://developers.google.com/admob/android/banner/collapsible), [iOS](https://developers.google.com/admob/ios/banner/collapsible).
 
@@ -68,7 +68,7 @@ banner.addEventListener(Admob.AD_LOADED, event => {
 })
 ```
 
-Do not hardcode a height. Adaptive banners can change height across devices, densities, widths, and orientations.
+Do not hardcode the final height. Adaptive banners can change height across devices, densities, widths, and orientations. On iOS, calculate the placement height with `Admob.getAnchoredAdaptiveBannerSize(widthInDp)` before loading and wait for a nonzero `postlayout` event on the banner. Replace the reservation with `event.height` after loading. Requesting an ad in a zero-height host can suppress its initial collapsible expansion even when `isCollapsible` is true. This reservation applies to large anchored banners, not inline banners.
 
 A safe composite layout reserves the same bottom inset for content:
 
@@ -113,6 +113,13 @@ Use named listeners so they can be removed:
 
 ```js
 let banner = null
+const isIOS = Ti.Platform.osname !== 'android'
+
+function onInitialLayout() {
+  if (!banner || banner.rect.width <= 0 || banner.rect.height <= 0) return
+  banner.removeEventListener('postlayout', onInitialLayout)
+  banner.load()
+}
 
 function createBanner() {
   if (banner || !Admob.canRequestAds()) {
@@ -122,6 +129,7 @@ function createBanner() {
   banner = Admob.createAdaptiveBanner({
     adUnitId: Admob.TEST_ADAPTIVE_BANNER,
     adaptiveType: Admob.ADAPTIVE_ANCHORED,
+    ...(isIOS ? { height: Ti.UI.FILL } : {}),
     width: Ti.UI.FILL
   })
 
@@ -129,8 +137,14 @@ function createBanner() {
   banner.addEventListener(Admob.AD_FAILED_TO_LOAD, onFailed)
   banner.addEventListener(Admob.AD_DESTROYED, onDestroyed)
 
-  bannerHost.add(banner)
-  banner.load()
+  if (isIOS) {
+    setBannerHeight(Admob.getAnchoredAdaptiveBannerSize(bannerHost.rect.width).height)
+    banner.addEventListener('postlayout', onInitialLayout)
+    bannerHost.add(banner)
+  } else {
+    bannerHost.add(banner)
+    banner.load()
+  }
 }
 
 function onLoaded(event) {
@@ -160,6 +174,7 @@ function destroyBanner() {
     return
   }
 
+  banner.removeEventListener('postlayout', onInitialLayout)
   banner.removeEventListener(Admob.AD_LOADED, onLoaded)
   banner.removeEventListener(Admob.AD_FAILED_TO_LOAD, onFailed)
   banner.removeEventListener(Admob.AD_DESTROYED, onDestroyed)
@@ -298,6 +313,8 @@ Every payload includes `adUnitId`, `adType: 'banner'`, and `isAdaptive`, which r
 
 Adaptive payloads also include `adaptiveType`.
 
+For both banner types, `AD_LOADED` also includes `isCollapsible: boolean`, reporting the native SDK's classification of the received ad. It is not an expanded/collapsed state flag.
+
 A failure adds:
 
 ```js
@@ -398,3 +415,7 @@ Changing `adSize` on an existing iOS native banner is not supported. Destroy and
 Do not add a JavaScript renewal timer. Google Mobile Ads respects the banner refresh rate configured for the ad unit in AdMob. The application requests the initial load and lets the SDK/ad-unit configuration own later refreshes.
 
 That is the intended delegation: TiAdMobUnified supplies one native banner proxy and protects its lifecycle; it does not periodically destroy or reload it. Google documents that Android automatic refresh occurs only while the banner is visible on screen. Configure the interval or disable refresh in AdMob, and use screen-level `pause()`/`resume()` only when application navigation really stops/starts showing that placement.
+
+### Sizing before loading
+
+`getAnchoredAdaptiveBannerSize(widthInDp)` returns `{ width, height, heightUnit: "dp" }` on both platforms using the same Google large anchored sizing API as the banner. Call it with a positive available placement width after the window has laid out (Android requires a current Activity). It does not request an ad. The returned height is the collapsed placement; Google presents the expanded creative as an overlay without requiring that extra height in the host. Recalculate when creating a placement at a different width or orientation.

@@ -182,26 +182,46 @@ For development diagnostics, `openAdInspector()` presents Google's native Ad Ins
 
 ## Adaptive banner
 
-The module reports the real adaptive height after load. Reserve that space in your layout; do not hardcode `50`, `90`, `123`, or any device-specific value.
+The module reports the real adaptive height after load. Use that value for the final layout. For iOS large anchored banners, reserve the height returned by `getAnchoredAdaptiveBannerSize(width)` and wait for the banner's first nonzero layout before loading. Starting in a zero-height host can suppress a collapsible ad's expansion.
 
 ```js
+const isIOS = Ti.Platform.osname !== 'android'
 const banner = Admob.createAdaptiveBanner({
   adUnitId: Admob.TEST_ADAPTIVE_BANNER,
   adaptiveType: Admob.ADAPTIVE_ANCHORED,
+  ...(isIOS ? { height: Ti.UI.FILL } : {}),
   width: Ti.UI.FILL
 })
 
 banner.addEventListener(Admob.AD_LOADED, event => {
   Ti.API.info(`Adaptive banner height: ${event.height}${event.heightUnit}`)
+  bannerHost.height = `${event.height}dp`
 })
 
 banner.addEventListener(Admob.AD_FAILED_TO_LOAD, event => {
   Ti.API.warn(`Banner failed: ${event.error} (${event.code})`)
 })
 
-bannerHost.add(banner)
-banner.load()
+if (isIOS) {
+  bannerHost.height = `${Admob.getAnchoredAdaptiveBannerSize(bannerHost.rect.width).height}dp`
+  function onLayout() {
+    if (banner.rect.width <= 0 || banner.rect.height <= 0) return
+    banner.removeEventListener('postlayout', onLayout)
+    banner.load()
+  }
+  banner.addEventListener('postlayout', onLayout)
+  bannerHost.add(banner)
+} else {
+  bannerHost.add(banner)
+  banner.load()
+}
 ```
+
+### Collapsible banner
+
+Set `collapsible: 'bottom'` on the anchored adaptive banner above to request an expanded ad with a collapse control. Use `'top'` for a top placement. Keep the host at the height reported by `loaded`; Google presents the expanded area above the app content.
+
+The runnable example includes a **Collapsible banner** button and uses `TEST_ADAPTIVE_BANNER` on both platforms. Each tap loads a new ad; it does not expand the existing banner. Google may return a standard banner with no collapse control. Both banner types report `event.isCollapsible` in `AD_LOADED`, directly from the native SDK, and the example displays that result. This flag describes the received ad, not its current expanded state or successful rendering. Check the creative, collapse control, and collapsed banner on screen. Expanded ads overlay the content above a bottom placement; the host remains at the collapsed height. See Google's [Android](https://developers.google.com/admob/android/banner/collapsible) and [iOS](https://developers.google.com/admob/ios/banner/collapsible) guides.
 
 ## Standard banner
 

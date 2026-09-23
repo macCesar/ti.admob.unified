@@ -93,6 +93,21 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // TEST AD UNIT IDS (OFFICIAL GOOGLE TEST IDS)
 // ===================================================================
 
+// Returns the collapsed placement size, not the expanded creative's overlay.
+- (NSDictionary *)getAnchoredAdaptiveBannerSize:(id)args
+{
+    ENSURE_ARG_COUNT(args, 1);
+    CGFloat width = [TiUtils doubleValue:[args objectAtIndex:0]];
+    if (!isfinite(width) || width <= 0) {
+        [NSException raise:NSInvalidArgumentException format:@"Banner width must be positive and finite"];
+    }
+    __block CGSize size;
+    TiThreadPerformOnMainThread(^{
+        size = GADLargeAnchoredAdaptiveBannerAdSizeWithWidth(width).size;
+    }, YES);
+    return @{ @"width": @(size.width), @"height": @(size.height), @"heightUnit": @"dp" };
+}
+
 #pragma mark Public APIs
 
 // ===================================================================

@@ -6,13 +6,13 @@ const path = require('node:path')
 
 // Execute the actual sample with bridge doubles. This checks interaction and
 // lifecycle contracts; native rendering is verified separately in a simulator.
-function openExample() {
+function openExample(osname = 'iphone') {
   const views = []
   const ads = []
   function proxy(properties = {}) {
     const listeners = {}
     return Object.assign({
-      children: [], size: { width: 390 },
+      children: [], size: { width: 390 }, rect: { width: 0, height: 0 },
       add(child) { this.children.push(child) },
       remove(child) { this.children = this.children.filter(item => item !== child) },
       applyProperties(values) { Object.assign(this, values) },
@@ -26,6 +26,7 @@ function openExample() {
   }
   const Admob = proxy({
     allowed: false, canRequestAds() { return this.allowed },
+    getAnchoredAdaptiveBannerSize(width) { assert.ok(width > 0); return { width, height: 64, heightUnit: 'dp' } },
     initialize() {}, requestConsent() {}, requestTrackingAuthorization() {},
     presentPrivacyOptions() { this.privacyOpened = true }, getMediationStatus() { return {} }
   })
@@ -43,7 +44,7 @@ function openExample() {
   }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../example/app.js'), 'utf8'), {
     require: () => Admob,
-    Ti: { UI, API: { info() {}, warn() {}, debug() {} }, Platform: { osname: 'iphone', displayCaps: { platformWidth: 390 } } }
+    Ti: { UI, API: { info() {}, warn() {}, debug() {} }, Platform: { osname, displayCaps: { platformWidth: 390 } } }
   })
   return {
     Admob, ads, views,
@@ -125,12 +126,76 @@ test('adaptive banner starts automatically and can be replaced in the shared slo
   adaptive.emit('click')
   assert.equal(app.ads[4].destroyed, true)
   assert.equal(adaptive.enabled, false)
-  assert.equal(scroll.bottom, '0dp')
+  assert.equal(scroll.bottom, '64dp')
   app.ads[5].emit('AD_LOADED', { height: 64, heightUnit: 'dp' })
   assert.equal(scroll.bottom, '64dp')
   app.button('Remove banner').emit('click')
   assert.equal(scroll.bottom, '0dp')
   assert.equal(app.ads[5].destroyed, true)
+})
+
+test('collapsible selection replaces the banner and detaches stale load callbacks', () => {
+  const app = openExample(); app.ready()
+  const scroll = app.views.find(view => view.type === 'ScrollView')
+  const initial = app.ads[3]
+  initial.emit('AD_LOADED', { height: 64, heightUnit: 'dp' })
+  app.button('Use collapsible banner').emit('click')
+  const collapsible = app.ads[4]
+  assert.equal(initial.destroyed, true)
+  assert.equal(collapsible.collapsible, 'bottom')
+  initial.emit('AD_LOADED', { height: 999, heightUnit: 'dp' })
+  assert.equal(scroll.bottom, '64dp')
+  collapsible.emit('AD_LOADED', { height: 150, heightUnit: 'dp' })
+  assert.equal(scroll.bottom, '150dp')
+  assert.equal(app.button('Use collapsible banner').enabled, true)
+  app.button('Use adaptive banner').emit('click')
+  assert.equal(collapsible.destroyed, true)
+  assert.equal(app.ads[5].collapsible, undefined)
+  collapsible.emit('AD_LOADED', { height: 999, heightUnit: 'dp' })
+  assert.equal(scroll.bottom, '64dp')
+})
+
+test('iOS reserves the SDK height, waits for layout, loads once, and cancels a removed placement', () => {
+  const app = openExample(); app.ready()
+  const initial = app.ads[3]
+  assert.equal(app.views.find(view => view.type === 'ScrollView').bottom, '64dp')
+  assert.equal(initial.loads, undefined)
+  initial.emit('postlayout')
+  assert.equal(initial.loads, undefined)
+  initial.rect = { width: 820, height: 150 }
+  initial.emit('postlayout')
+  initial.emit('postlayout')
+  assert.equal(initial.loads, 1)
+  app.button('Use collapsible banner').emit('click')
+  const pending = app.ads[4]
+  assert.equal(pending.loads, undefined)
+  app.button('Remove banner').emit('click')
+  pending.rect = { width: 820, height: 150 }
+  pending.emit('postlayout')
+  assert.equal(pending.loads, undefined)
+  assert.equal(pending.destroyed, true)
+})
+
+test('Android keeps loading adaptive and collapsible banners immediately', () => {
+  const app = openExample('android'); app.ready()
+  assert.equal(app.ads[3].loads, 1)
+  app.button('Use collapsible banner').emit('click')
+  assert.equal(app.ads[4].loads, 1)
+  assert.equal(app.ads[4].collapsible, 'bottom')
+})
+
+test('collapsible requests distinguish the returned ad type without claiming expansion', () => {
+  for (const [isCollapsible, message] of [
+    [true, 'Collapsible ad received. Its arrow controls collapse.'],
+    [false, 'Google returned a standard banner. No collapse arrow.'],
+    [undefined, 'Banner loaded. Collapse capability was not reported.']
+  ]) {
+    const app = openExample(); app.ready()
+    app.button('Use collapsible banner').emit('click')
+    app.ads[4].emit('AD_LOADED', { height: 150, heightUnit: 'dp', isCollapsible })
+    assert.ok(app.views.some(view => view.type === 'Label' && view.text === message))
+    assert.equal(app.button('Use collapsible banner').enabled, true)
+  }
 })
 
 test('privacy options remain accessible even when consent blocks ad requests', () => {

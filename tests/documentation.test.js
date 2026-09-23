@@ -217,8 +217,8 @@ test('states portable banner and fullscreen contracts', () => {
   const fullscreen = read('documentation/fullscreen.md')
 
   assert.match(banners, /heightUnit: 'dp'/)
-  assert.match(banners, /Do not hardcode a height/)
-  // Inline adaptive is portable; collapsible is Android-only and takes
+  assert.match(banners, /Do not hardcode the final height/)
+  // Inline and collapsible are portable; collapsible takes
   // Google's own placement string. There is no constant for it, because a
   // constant would have to carry a value the SDK accepts.
   assert.match(banners, /`ADAPTIVE_INLINE` and `maxHeight` work on both platforms/)

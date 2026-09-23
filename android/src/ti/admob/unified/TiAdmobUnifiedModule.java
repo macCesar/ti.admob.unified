@@ -52,6 +52,23 @@ public class TiAdmobUnifiedModule extends KrollModule
 	private OperationState consentState = OperationState.NOT_STARTED;
 	private Map<String, Object> consentResult;
 
+	@Kroll.method
+	public KrollDict getAnchoredAdaptiveBannerSize(double width) {
+		if (Double.isNaN(width) || Double.isInfinite(width) || width < 1 || width > Integer.MAX_VALUE) {
+			throw new IllegalArgumentException("Banner width must be positive and finite");
+		}
+		Activity activity = TiApplication.getInstance().getCurrentActivity();
+		if (activity == null) {
+			throw new IllegalStateException("No current activity for adaptive banner sizing");
+		}
+		AdSize size = AdSize.getLargeAnchoredAdaptiveBannerAdSize(activity, (int) width);
+		KrollDict result = new KrollDict();
+		result.put("width", size.getWidth());
+		result.put("height", size.getHeight());
+		result.put("heightUnit", "dp");
+		return result;
+	}
+
 	// ===================================================================
 	// AD TYPE CONSTANTS
 	// ===================================================================

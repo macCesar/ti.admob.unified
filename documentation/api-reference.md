@@ -19,6 +19,7 @@ const Admob = require('ti.admob.unified')
 | `requestTrackingAuthorization()`          | iOS, Android | Portable                   |
 | `openAdInspector()`                       | iOS, Android | Development diagnostic     |
 | `createBanner(config)`                    | iOS, Android | Supported                  |
+| `getAnchoredAdaptiveBannerSize(widthInDp)` | iOS, Android | Collapsed placement size   |
 | `createAdaptiveBanner(config)`            | iOS, Android | Supported                  |
 | `createInterstitial(config)`              | iOS, Android | Supported                  |
 | `createRewarded(config)`                  | iOS, Android | Supported                  |
@@ -167,6 +168,10 @@ const banner = Admob.createBanner({
 `customAdSize: { width, height }` in dp requests a non-standard slot on both platforms and takes precedence over `adSize`. It is how a fixed full-width strip is requested — the adaptive banner picks its own height.
 
 See [Standard banner properties](banners.md#creation-properties-1).
+
+### `getAnchoredAdaptiveBannerSize(widthInDp)`
+
+Returns `{ width, height, heightUnit: 'dp' }` using Google's large anchored adaptive sizing API, without requesting an ad. Pass the positive available width of the laid-out placement in dp (points on iOS). Android requires a current Activity. Use the returned height to size the host before loading; it does not include the collapsible overlay. Inline banners are not covered by this method.
 
 ### `createAdaptiveBanner(config)`
 

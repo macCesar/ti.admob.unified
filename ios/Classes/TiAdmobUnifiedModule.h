@@ -44,6 +44,7 @@
 - (id)createAppOpen:(id)args;
 
 // Utility methods
+- (NSDictionary *)getAnchoredAdaptiveBannerSize:(id)args;
 - (void)setAppVolume:(id)args;
 - (void)setTestDevice:(id)args;
 - (NSNumber *)isTestDevice:(id)args;

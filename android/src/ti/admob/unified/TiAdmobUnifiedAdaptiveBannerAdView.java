@@ -118,6 +118,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 					updateProxyHeight(loadedAdSize.getHeight());
 				}
 				Map<String, Object> event = buildSizeEvent(activity, loadedAdSize);
+				event.put("isCollapsible", adView.isCollapsible());
 				fireAdEvent(TiAdmobUnifiedModule.AD_LOADED, event);
 				logAfterLayout(activity, loadedAdSize);
 			}
