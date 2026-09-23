@@ -545,15 +545,50 @@ public class TiAdmobUnifiedModule extends KrollModule
 				public void onConsentInfoUpdateSuccess() {
 					Log.d(LCAT, "Consent info update successful");
 
+					// The activity captured when requestConsent() was called can already be
+					// gone by the time this async callback fires: Titanium's launcher
+					// activity hands off to the real TiActivity a moment after launch, and
+					// attaching the form to the stale, backgrounded activity lets it build
+					// silently without ever becoming visible. Re-resolve the activity here,
+					// right before the form actually needs to attach to something.
+					Activity showActivity = TiApplication.getInstance().getCurrentActivity();
+					if (showActivity == null || showActivity.isFinishing() || showActivity.isDestroyed()) {
+						// This is a local timing problem, not a real UMP result: Google
+						// already answered whether a form is required. completeConsent()
+						// would cache this as terminal and replay it on every later
+						// requestConsent() call until resetConsent() wipes real consent
+						// state along with it, so fail without caching and let the next
+						// requestConsent() call retry from scratch instead.
+						Log.e(LCAT, "Cannot present consent form - no valid current activity");
+						Map<String, Object> result = new HashMap<>();
+						result.put("success", false);
+						result.put("canRequestAds", false);
+						result.put("privacyOptionsRequired", false);
+						// Compatibility payload keys retained for one transition release.
+						result.put("canShowAds", false);
+						result.put("canShowPersonalizedAds", false);
+						result.put("isGDPR", isGDPR());
+						result.put("isPrivacyOptionsRequired", false);
+						result.put("error", "No current activity when presenting consent form");
+						result.put("code", -1);
+						synchronized (consentLock) {
+							consentState = OperationState.NOT_STARTED;
+						}
+						fireEvent("consent_error", result);
+						fireEvent("consent_complete", result);
+						return;
+					}
+					final Activity finalShowActivity = showActivity;
+
 					UserMessagingPlatform.loadAndShowConsentFormIfRequired(
-						activity,
+						finalShowActivity,
 						new ConsentForm.OnConsentFormDismissedListener() {
 							@Override
 							public void onConsentFormDismissed(FormError error) {
 								if (error == null) {
-									completeConsent(activity, null, 0);
+									completeConsent(finalShowActivity, null, 0);
 								} else {
-									completeConsent(activity, error.getMessage(), error.getErrorCode());
+									completeConsent(finalShowActivity, error.getMessage(), error.getErrorCode());
 								}
 							}
 						}
