@@ -13,9 +13,9 @@ Use this order on every app launch:
 5. Call `initialize({ ... })` once.
 6. Create and load ads only after initialization succeeds.
 
-App Tracking Transparency is **not** a step in this order. It is optional, it does not replace UMP, and it is not a second ad-request gate — `canRequestAds()` stays the only one. An application that has a real tracking case of its own resolves ATT before `initialize()`; one that does not can skip it entirely. See [Optional: if the application requests ATT](getting-started.md#optional-if-the-application-requests-att).
+App Tracking Transparency is optional and separate from UMP. `canRequestAds()` remains the only ad-request gate. If the application uses tracking, resolve ATT before `initialize()`; otherwise skip it. See [Optional: if the application requests ATT](getting-started.md#optional-if-the-application-requests-att).
 
-UMP remains authoritative if the consent operation reports an error. A previous-session state may still allow requests, so an error is non-blocking to the application but `canRequestAds` remains the only gate.
+Check UMP even when the consent operation reports an error. Consent from a previous session may still allow requests; `canRequestAds` determines whether the application can continue.
 
 Google's UMP guidance also requires a consent-information update every app session and warns against deriving status from cached consent strings. See [UMP for Android](https://developers.google.com/admob/android/privacy) and [UMP for iOS](https://developers.google.com/admob/ios/privacy).
 
@@ -143,7 +143,7 @@ Android can report a missing-activity failure:
 }
 ```
 
-Treat `status` as diagnostic text, not a stable machine-readable value.
+Use `status` for diagnostics. Its text is not a stable machine-readable value.
 
 ## App Tracking Transparency
 
@@ -168,7 +168,7 @@ On iOS, the numeric status follows Apple's `ATTrackingManagerAuthorizationStatus
 
 On Android, ATT does not apply. The method completes synchronously with `status: 3`, `authorized: true`, and `applicable: false`, allowing the same listener and call site on both platforms.
 
-Always wait for `tracking_authorization_completed`, including when the user resolved ATT in an earlier session. ATT denial does not mean `canRequestAds() === false`; it changes tracking availability, not the UMP request gate.
+Always wait for `tracking_authorization_completed`, even if the user resolved ATT in an earlier session. Denial changes tracking availability and does not imply `canRequestAds() === false`; UMP still determines permission to request ads.
 
 ATT is optional. An application that calls `requestTrackingAuthorization()` must ship `NSUserTrackingUsageDescription` in its plist, because Apple's prompt cannot be presented without one. An application that never calls it should omit the key: Apple reviews the prompt against actual behavior, and UMP works without it. See [Getting started](getting-started.md#ios).
 
@@ -234,3 +234,19 @@ Available debug constants:
 Do not store the numeric values; use the names because the native enum values are platform-owned.
 
 `resetConsent()` exists for controlled testing. It does not remove the need to request consent information again, and it must not be exposed as a general "revoke consent" implementation. Use `presentPrivacyOptions()` for the publisher-rendered privacy entry point.
+
+
+## Interactive consent demo
+
+The published `example/app.js` includes **Consent demo** controls in development/test builds on Android and iOS. First launch uses the normal region. Production builds hide these controls and ignore saved debug settings.
+
+1. In the visible **Test device** field, paste the physical device’s UMP test-device hash from the SDK log once; the app remembers it. iOS simulators need no hash. Enter only finishes typing.
+2. Tap the scenario selector, choose **Europe — consent form**, **US — privacy options**, **Other region — no form**, or **My actual region**, then tap **Run test**. Selecting a scenario alone does not reset consent. Running it clears the previous UMP choice and replaces existing ads.
+3. The single result below the button reports progress and completion. Europe requests consent; US opens privacy options when available; Other and the actual region can finish without a dialog. Which form is available depends on the AdMob message configuration. The banner slot keeps its height while ads reload.
+4. Use **Advertising privacy options** to revise a choice without resetting. Relaunching preserves the chosen mode, hashes and consent. Run **My actual region** to remove the region override.
+
+Demo ad unit IDs do not register physical devices for UMP debugging. If the SDK log redacts the hash, use an iOS simulator; an unregistered physical device may ignore forced geography.
+
+These test buttons reset UMP consent only. They cannot reset Apple's ATT permission. Do not copy these testing controls or debug geography into a production consent flow. Unknown/error states are displayed separately from a successful result that does not require privacy options.
+
+Google reference: [Testing UMP on iOS](https://developers.google.com/admob/ios/privacy#testing) and [Testing UMP on Android](https://developers.google.com/admob/android/privacy#testing).

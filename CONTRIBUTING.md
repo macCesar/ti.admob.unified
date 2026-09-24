@@ -1,6 +1,6 @@
 # Contributing to ti.admob.unified
 
-Contributions are welcome. This module is a cross-platform native bridge, so a change is complete only when its JavaScript contract, native behavior, cleanup, tests, and documentation agree.
+Changes to this native bridge must keep the JavaScript contract consistent with native behavior on both platforms, including cleanup. Tests and documentation must describe that same behavior.
 
 ## Before opening an issue
 
@@ -19,9 +19,9 @@ For layout issues, include the Titanium proxy, host, and parent dimensions plus 
 
 ## Development baseline
 
-- Titanium SDK `13.4.0.GA`
+- Titanium SDK `13.2.0.GA` or later (build toolchain: `13.4.1.GA`)
 - iOS `15.0+`
-- Android API `24+`, the floor the Titanium `13.4.0.GA` module template sets
+- Android API `24+`, the floor the Titanium `13.2.0.GA` module template sets
 - Node.js with the built-in `node:test` runner
 
 Dependency versions are pinned in [DEPENDENCIES.md](DEPENDENCIES.md).
@@ -30,39 +30,37 @@ Dependency versions are pinned in [DEPENDENCIES.md](DEPENDENCIES.md).
 
 Create a focused branch and keep unrelated local changes intact. Before editing a native dependency, establish a recoverable Git baseline and record the upstream source and checksum.
 
-This repository holds two modules. `ti.admob.unified` is at the repository root and is the only one an application calls; `ti.admob.unified.mediation` is in `mediation/` and carries the mediation adapters and nothing else. They are versioned and released together. Both `scripts/` helpers take the module directory as an optional argument, defaulting to the core.
+This repository holds the core at its root and five dependency-only complements in `mediation/<network>/`. Each has iOS and Android projects, for twelve ZIPs at version `1.0.0`. Applications call only the core. Both script helpers accept a module directory or `--all`.
 
 Run the static checks from the repository root:
 
 ```sh
 npm test
 ./scripts/verify-artifacts.sh
-./scripts/verify-artifacts.sh mediation
+./scripts/verify-artifacts.sh --all
 node --check example/app.js
 ```
 
-Build all four artifacts for API or native changes:
+Build all twelve artifacts for API or native changes:
 
 ```sh
 ./scripts/prepare-build.sh
-./scripts/prepare-build.sh mediation
-ti build -p ios --build-only --project-dir ios --no-prompt
-ti build -p android --build-only --project-dir android --no-prompt
-ti build -p ios --build-only --project-dir mediation/ios --no-prompt
-ti build -p android --build-only --project-dir mediation/android --no-prompt
+./scripts/prepare-build.sh --all
+./scripts/build-all.sh
+python3 scripts/verify-packages.py
 ```
 
-Never add a mediation network to the core module. Its `-framework` flags belong in `mediation/ios/module.xcconfig` and its Maven coordinate in `mediation/android/build.gradle`; a contract test fails if a network name reaches `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory. The core exists so that an application that does not mediate carries none of it.
+Never add a mediation network to the core module. Its `-framework` flags belong in `mediation/<network>/ios/module.xcconfig` and its Maven coordinate in `mediation/<network>/android/build.gradle`; a contract test fails if a network name reaches `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory. Applications that use only the core should carry no mediation dependencies.
 
 The `example/app.js` file is the module test-harness entry point. It is not a standalone Titanium project.
 
 ## Platform notes
 
-The two native implementations are separate codebases held to one JavaScript contract. This section records what each side looks like and where each one behaves differently.
+The native implementations share one JavaScript contract. The notes below describe their source files and platform differences.
 
 ### iOS
 
-Sources live in `ios/Classes/`. Five proxy pairs and the module:
+Sources in `ios/Classes/` comprise five proxy pairs and the module:
 
 | Source                                  | Responsibility                                            |
 | --------------------------------------- | --------------------------------------------------------- |
@@ -80,16 +78,16 @@ Build from the repository root:
 ti build -p ios --build-only --project-dir ios --no-prompt
 ```
 
-`install_frameworks.sh` resolves the pinned CocoaPods dependencies, stages that module's XCFrameworks, verifies their tree hashes, and prepares them for packaging: two frameworks for the core, and fourteen for `mediation/ios/install_frameworks.sh`. A new `.m` file also has to be registered in `ios/ti.admob.unified.xcodeproj` before it reaches the static library; a file that compiles but is not registered links fine here and fails in the consuming app.
+`install_frameworks.sh` resolves the pinned CocoaPods dependencies, stages that module's XCFrameworks, verifies their tree hashes, and prepares them for packaging: two frameworks for the core, and the selected network’s frameworks for `mediation/<network>/ios/install_frameworks.sh`. A new `.m` file also has to be registered in `ios/ti.admob.unified.xcodeproj` for inclusion in the static library. An unregistered file can go unnoticed during the module build and cause a link failure in the consuming app.
 
 iOS-specific public behavior:
 
 - `requestTrackingAuthorization()` requests or retrieves ATT and emits `tracking_authorization_completed`.
 - `createAdaptiveBanner()` implements anchored and inline adaptive banners. Anchored always uses the large variant, because Google deprecated the plain anchored functions.
-- `collapsible` travels as a `GADExtras` network extra, merged with `extras` into one registration. Registering a second `GADExtras` for the same network replaces the first rather than adding to it.
+- `collapsible` travels as a `GADExtras` network extra, merged with `extras` into one registration. A second `GADExtras` registration for the same network replaces the first.
 - `customAdSize` builds `GADAdSizeFromCGSize`, which is how a fixed full-width strip is requested.
 - `smart_banner` no longer yields a full-width banner. It falls through to `BANNER`, as it does on Android.
-- `setAppVolume()` is a compatibility no-op with Google Mobile Ads `13.x`.
+- `setAppVolume()` forwards a validated percentage to Google Mobile Ads, matching Android.
 
 ### Android
 
@@ -112,8 +110,8 @@ ti build -p android --build-only --project-dir android --no-prompt
 
 Android-specific public behavior:
 
-- `collapsible` accepts Google's raw placement string, `"top"` or `"bottom"`. It is experimental and has no iOS counterpart.
-- The adaptive `loaded` event carries diagnostic `width`, `widthUnit`, `widthPx`, `heightPx`, and `density` keys that iOS does not emit. Only `height` and `heightUnit` are contract fields.
+- `collapsible` accepts Google's raw placement string, `"top"` or `"bottom"`. Both platforms forward these values to Google; the returned ad may still be non-collapsible.
+- The adaptive `loaded` event carries the same seven size fields on both platforms: `width`, `widthUnit`, `widthPx`, `heightPx`, `density`, `height` and `heightUnit`.
 - `setAppVolume()` accepts a percentage string such as `"50%"` and forwards a normalized value.
 - `isTestDevice()` delegates to `AdRequest.isTestDevice(context)`.
 - Pausing calls the native `AdView.pause()` without changing visibility or layout. Loads requested while paused are deferred until every application/lifecycle pause cause clears. Automatic refresh eligibility still depends on whether Android actually considers the banner visible on screen.
@@ -140,7 +138,7 @@ Do not export a format constant as evidence that a format is implemented. A new 
 
 ## Privacy changes
 
-Privacy changes require extra care:
+For privacy changes:
 
 - `canRequestAds()` remains the only ad-request gate.
 - Do not parse TCF storage or infer a personalization Boolean.
@@ -167,7 +165,7 @@ Review [Banner ads](documentation/banners.md).
 
 ## Testing
 
-Static tests are necessary but not sufficient for native UI and SDK behavior. For relevant changes, validate physical devices on both platforms:
+Static tests cannot establish native UI and SDK behavior. Changes affecting that behavior also require validation on physical devices on both platforms:
 
 - consent required/not required, accepted/rejected, and previous-session state;
 - ATT authorized, denied, and previously resolved;
@@ -177,13 +175,13 @@ Static tests are necessary but not sufficient for native UI and SDK behavior. Fo
 - orientation, density, safe areas, keyboard, lists, navigation, and snackbars;
 - absence of duplicate ads and retained listeners;
 - official test IDs and Ad Inspector request evidence;
-- `getMediationStatus()` reporting six `false` values without the pack installed and six `true` values with it, on a real application on both platforms. That is the only check that proves Titanium concatenated the two modules' link flags and found the pack's XCFrameworks.
+- `getMediationStatus()` reporting the exact selected adapters in isolated consumers: core only, each complement, AppLovin + Unity, all five. Keep `ironSource` naturally false without its adapter. Record simulator and hardware evidence separately; adapter presence and Google test ads do not prove third-party delivery.
 
 Never click production ads while developing.
 
 ## Documentation
 
-Documentation is part of the API. Keep it in English and:
+Keep documentation in English and follow these requirements:
 
 - describe only behavior implemented by the referenced version;
 - include argument types, return values, events, and payloads;
@@ -208,3 +206,9 @@ A pull request should state:
 Do not publish artifacts or create a release tag from a contribution branch. Release signing, tags, and distribution remain maintainer actions.
 
 Contributions are licensed under the [MIT License](LICENSE).
+
+### Native wrapper behavior harness
+
+Run `python3 tests/native/android.py` with a JDK, and `python3 tests/native/run.py` on macOS. The Java harness checks percentage validation, the TCF preference store and consent reset ordering. It compiles the current Objective-C method bodies against controlled Foundation-based SDK stand-ins and checks volume validation, load-error mapping, consent retry/reset ordering and delayed reward callbacks. It does not replace a Titanium consumer build, native bridge checks or Google ad presentation tests. `npm test` separately exercises the JavaScript library and example, alongside static contract checks.
+
+After individual platform builds, run `python3 scripts/prepare-package-docs.py` before `python3 scripts/verify-packages.py`. Titanium renders guides as HTML without rewriting their Markdown links. The preparation step fixes links between generated guides and includes the linked Markdown sources for offline use. `scripts/build-all.sh` runs both steps automatically.

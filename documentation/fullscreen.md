@@ -4,19 +4,19 @@ Interstitial, rewarded and app open proxies share one public lifecycle and event
 
 ## When to show a fullscreen ad
 
-A banner is a slot the user learns to look past. A fullscreen ad takes the whole screen, and takes it away from whatever the user was doing, so the hard part is not loading one. It is choosing the moment.
+A fullscreen ad interrupts the current screen, so choose its presentation point before requesting it.
 
-**Load early, show later.** `load()` is a network request and can take seconds. Start it well before the moment you intend to interrupt — when the level opens, when the article starts, when the form is first shown — and call `show()` only when that moment arrives. Presenting from inside the `loaded` listener collapses the two decisions into one and interrupts at whatever second the network happened to answer, which is never a moment you chose.
+Load early, show later: `load()` is a network request and can take seconds. Start it before the intended break, for example when a level opens, an article starts or a form appears. Call `show()` when the application reaches that break. Presenting inside the `loaded` listener lets network timing determine when the user is interrupted.
 
-**Interrupt only at a natural break**: between levels, after a task completes, when a flow ends. Never in the middle of one.
+Show fullscreen ads at a natural break, such as between levels or after a task or flow ends. Avoid interrupting work in progress.
 
-Google's guidance rules out the cases that annoy users most:
+Google's guidance includes these restrictions:
 
 - Do not show an interstitial as the app opens. That moment belongs to the App Open format, documented below.
 - Do not show one on the way out, when the user is already leaving.
 - Do not interrupt an action in progress, or place the ad where a button or a control the user was about to touch used to be.
-- Do not reward the user for watching an interstitial. That is what `createRewarded()` is for.
-- Do not show them back to back, or so often that the app feels like a delivery mechanism for ads. Frequency capping is configured on the ad unit in the AdMob console, not in JavaScript.
+- Use `createRewarded()` to reward users for watching ads. Interstitials must not offer rewards.
+- Avoid consecutive interstitials and excessive frequency. Configure frequency capping on the ad unit in the AdMob console; JavaScript does not control it.
 
 The full lists are in Google's [Android interstitial guide](https://developers.google.com/admob/android/interstitial) and [iOS interstitial guide](https://developers.google.com/admob/ios/interstitial).
 
@@ -34,7 +34,7 @@ Create and load fullscreen ads only after `module_initialized` succeeds.
 
 ## Interstitial
 
-Loading and presenting are two separate decisions. Prepare the ad ahead of time:
+Load the ad ahead of its presentation point:
 
 ```js
 const interstitial = Admob.createInterstitial({
@@ -65,9 +65,9 @@ function onLevelCompleted() {
 }
 ```
 
-An ad that is not ready is not a reason to hold up the application. Continue without it and let the next break use the next load.
+If the ad is not ready, let the application continue and try at the next break.
 
-The executable [example app](../example/app.js) wires exactly this shape to two buttons, Load and Show, so the separation is visible while testing.
+The executable [example app](../example/app.js) loads automatically after initialization. Each format has one button that reports its state and enables Show when ready.
 
 ## Rewarded
 
@@ -94,7 +94,7 @@ Closing a rewarded ad is not proof that the reward was earned.
 
 ## App open
 
-An app open ad is the one format meant for the moment the application comes to the foreground — a cold start, or a return from the background. Load it before that moment arrives, and present it while the application is showing its own loading state rather than on top of a screen the user is already using:
+Use an app open ad when the application enters the foreground, either at a cold start or when returning from the background. Load it beforehand and present it during the application's own loading state, before the user starts using the next screen:
 
 ```js
 const appOpen = Admob.createAppOpen({
@@ -122,29 +122,29 @@ function onApplicationResumed() {
 Google documents that an app open ad expires four hours after it was requested. An ad rendered later is no longer valid and may not earn revenue, so the proxy enforces the window itself, with no timer and no extra event:
 
 - The load time is recorded when the ad arrives.
-- `isLoaded()` returns `false` once four hours have passed. An expired ad is not ready, which is what that method has always reported.
+- `isLoaded()` returns `false` once four hours have passed.
 - `show()` on an expired ad clears the native reference and emits `failed_to_show` with code `1` and the message `App open ad expired after four hours`.
 - `load()` discards an expired ad before requesting a new one, so a reload after expiry is not swallowed by the duplicate-load guard.
 
-`autoReload` is unchanged: it reloads after `closed` and after nothing else, so reloading an expired ad is the application's decision, not the proxy's. The check is a subtraction performed when someone asks — nothing polls in the background.
+`autoReload` reloads only after `closed`. The application decides when to replace an expired ad. Expiry checks subtract the stored time when called; they do not poll in the background.
 
 ## Creation properties
 
 All three factories accept:
 
-| Property       | Type     | Default | Notes                                                                                       |
-| -------------- | -------- | ------- | ------------------------------------------------------------------------------------------- |
-| `adUnitId`     | String   | `""`    | Required before `load()`.                                                                   |
-| `autoReload`   | Boolean  | `false` | Loads a fresh ad after a successful close, and after nothing else.                          |
-| `keywords`     | String[] | None    | Request keywords, applied as targeting on both platforms.                                   |
-| `requestAgent` | String   | None    | Identifies what issued the request, on both platforms.                                      |
-| `extras`       | Object   | None    | Forwarded through Google ad-network extras on both platforms.                               |
+| Property       | Type     | Default | Notes                                                              |
+| -------------- | -------- | ------- | ------------------------------------------------------------------ |
+| `adUnitId`     | String   | `""`    | Required before `load()`.                                          |
+| `autoReload`   | Boolean  | `false` | Loads a fresh ad after a successful close, and after nothing else. |
+| `keywords`     | String[] | None    | Request keywords, applied as targeting on both platforms.          |
+| `requestAgent` | String   | None    | Identifies what issued the request, on both platforms.             |
+| `extras`       | Object   | None    | Forwarded through Google ad-network extras on both platforms.      |
 
 Do not use `extras` to bypass UMP or synthesize personalization state.
 
-The two platforms do not treat the *values* in `extras` identically: Android converts every one of them to a string, while iOS passes them with their original type. Send strings if the receiving adapter distinguishes them — `{ npa: '1' }`, not `{ npa: 1 }`.
+Both platforms preserve primitive values in `extras`. Use the types required by the receiving adapter; for example, pass `{ npa: '1' }` when it expects a string.
 
-Unlike the banner types, these three take their configuration from the creation dictionary. Assigning it afterwards is not portable — iOS honours the new value on the next request and Android keeps the one it was created with — so pass everything to the factory and create a new proxy when the configuration changes.
+Pass initial configuration to the factory. Later assignments to the five configuration properties affect the next request on both platforms. An already loaded ad keeps the configuration of its original request.
 
 ## Shared methods
 
@@ -159,13 +159,13 @@ Google fullscreen ads are single-use. After a presentation or a show failure the
 
 Late native callbacks are ignored after `destroy()`. A dismissed or failed-to-show ad reference is cleared before the terminal event is emitted.
 
-`load()` after `destroy()` is silent here: it logs a warning and emits nothing, on both platforms. Banners behave differently — they emit `failed_to_load` — so do not write one handler that expects an event from both.
+On both platforms, `load()` after `destroy()` logs a warning without emitting an event. Banners emit `failed_to_load` in this case, so a handler must account for the proxy type.
 
-One failure has no iOS counterpart: on Android, `load()` and `show()` need a current activity, and without one they emit `failed_to_load` or `failed_to_show` with the message `No current activity available` and code `-1`. It happens when the application calls in with no activity in the foreground. Code `-1` is the module's own, outside Google's error-code range.
+On Android, `load()` and `show()` need a current activity, and without one they emit `failed_to_load` or `failed_to_show` with the message `No current activity available` and code `-1`. It happens when the application calls in with no activity in the foreground. Code `-1` is the module's own, outside Google's error-code range.
 
 ## Keeping the next ad ready
 
-Because each ad is single-use, an application that interrupts more than once per session reloads as soon as the previous ad is gone, so the next break finds an ad already loaded instead of waiting on the network:
+For repeated presentations in one session, load the next ad after the previous one closes so it can be ready at the next break:
 
 ```js
 interstitial.addEventListener(Admob.AD_CLOSED, () => {
@@ -173,9 +173,9 @@ interstitial.addEventListener(Admob.AD_CLOSED, () => {
 })
 ```
 
-`autoReload: true` does that for you, and only that: it reloads after `closed`. It does not reload after `failed_to_load`, and it does not reload after `failed_to_show`. Those two cases stay the application's job, and both deserve backoff rather than an immediate retry — a `NO_FILL` answered instantly is usually still `NO_FILL` a second later.
+`autoReload: true` reloads after `closed` only. The application handles retries after `failed_to_load` and `failed_to_show`. Use backoff: a `NO_FILL` response will often still be `NO_FILL` a second later.
 
-Reloading is not the same as recreating. Reuse the same proxy across loads, and create a new one only after `destroy()`.
+Reuse the proxy across loads. Create a new one only after `destroy()`.
 
 ## Events
 
@@ -194,7 +194,7 @@ Reloading is not the same as recreating. Reuse the same proxy across loads, and 
 | `destroyed`                 |          Yes |      Yes |      Yes | `adUnitId`, `adType`                               |
 | `rewarded`                  |           No |      Yes |       No | `adUnitId`, `adType`, `rewardType`, `rewardAmount` |
 
-`message` intentionally duplicates `error` for compatibility. New code may use `error`; both keys are portable.
+`message` duplicates `error` for compatibility. New code may use `error`; both keys are portable.
 
 ## Cleanup
 
@@ -209,7 +209,7 @@ function disposeInterstitial() {
 }
 ```
 
-After disposal, create a new proxy rather than attempting to load the destroyed one again.
+Create a new proxy after disposal; a destroyed proxy cannot load again.
 
 ## Not implemented
 

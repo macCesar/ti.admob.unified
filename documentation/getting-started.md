@@ -2,30 +2,30 @@
 
 ## 1. Install the modules
 
-Install the `2.0.0` ZIP of `ti.admob.unified` for every platform you build. All artifacts of a given module must have the same module ID and version:
+Install the `1.0.0` ZIP of `ti.admob.unified` for every platform you build. All artifacts of a given module must have the same module ID and version:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
-That is everything an application that serves AdMob demand needs: ~14 MB on iOS, ~325 KB on Android, and no third-party network SDK anywhere in the build.
+An application that serves AdMob demand needs only the core: about 14 MB on iOS and 325 KB on Android, with no third-party network SDKs in the build.
 
-If the application mediates, install the optional `ti.admob.unified.mediation` pack at the same version and declare it too:
+If the application mediates, install the selected per-network complements at the same version. For AppLovin:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
-  <module version="2.0.0">ti.admob.unified.mediation</module>
+  <module version="1.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified.mediation.applovin</module>
 </modules>
 ```
 
-The pack has no JavaScript API. It carries the six mediation adapters and their network SDKs, and it costs ~75 MB on iOS plus six third-party SDKs in the Android build — so install it only after step 3 applies. See [AdMob mediation](mediation.md).
+Each complement carries one adapter and its dependencies, with no JavaScript API. Add a module line for each intended network; leave unneeded networks out. See [AdMob mediation](mediation.md).
 
-The current baselines are Titanium `13.4.0.GA`, iOS `15.0+`, and Android API `24+`.
+The current baselines are Titanium `13.2.0.GA`, iOS `15.0+`, and Android API `24+`.
 
-Replacing an existing AdMob integration? See [Migrating to ti.admob.unified](migration.md).
+For an existing AdMob integration, see [Migrating to ti.admob.unified](migration.md).
 
 ## 2. Configure the AdMob application IDs
 
@@ -58,7 +58,7 @@ Add the iOS application ID to the app plist section:
 </ios>
 ```
 
-App Tracking Transparency is **optional and separate from UMP**. Most banner applications do not need it: serving ads does not require tracking the user across other companies' apps and websites. Add the usage description only when the application has a real tracking case it can describe honestly, because Apple reviews the prompt against actual behavior.
+App Tracking Transparency is optional and separate from UMP. Most banner applications do not need it: serving ads does not require tracking users across other companies' apps and websites. Add the usage description only when the application uses tracking, and describe that use accurately. Apple reviews the prompt against the app's behavior.
 
 ```xml
 <ios>
@@ -95,25 +95,19 @@ Omitting this metadata causes the native Google Mobile Ads SDK to fail with a mi
 
 Do not pass `applicationId` to `initialize()`; the module does not consume that property.
 
-## 3. Configure mediation — only if you mediate
+## 3. Configure mediation if needed
 
 Skip this step unless the application already has, or is about to have, an AdMob mediation group with real ad sources in it. Installing adapters does not raise fill on its own: a network participates only once its publisher account is approved, it is added as an ad source, and its credentials are mapped to the ad unit.
 
-If that describes the application, install the `ti.admob.unified.mediation` pack from step 1. It brings Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource adapters on both platforms. Add only the networks you intend to use to the AdMob mediation groups and complete their account, placement, privacy, and store-disclosure setup.
+Install the corresponding complements from step 1 when the application will mediate. AppLovin, Meta, InMobi, Unity and Liftoff are available on both platforms; ironSource mediation is deferred. Add the intended networks to the AdMob mediation groups and complete their account, placement, privacy and store-disclosure setup.
 
-No platform-specific JavaScript or manual adapter initialization is required. Verify the build actually contains the pack with `getMediationStatus()` before publishing. See [AdMob mediation](mediation.md).
+No platform-specific JavaScript or manual adapter initialization is required. Before publishing, use `getMediationStatus()` to check which complements the build contains. See [AdMob mediation](mediation.md).
 
-### Applications that install the pack but skip it in some sessions
+### Automatic adapter discovery
 
-Adapter auto-discovery has a cost. `initialize()` starts every installed adapter and does not report back until all of them answer or time out, so an adapter with no credentials configured can consume its entire timeout and delay the first ad by tens of seconds.
+After the privacy gate, use `Admob.initialize({})` with either the core alone or selected complements. Google discovers the adapters included by `tiapp.xml`; no mediation flag or manual provider initialization is required.
 
-An application that has the pack installed but is serving AdMob demand only in a given session passes `disableMediation: true`:
-
-```js
-Admob.initialize({ disableMediation: true })
-```
-
-The adapters stay installed; the SDK simply does not start them in that session. An application that never mediates does not need this flag — it just leaves the pack out.
+Install only networks with the intended accounts and AdMob mappings configured. An installed adapter with incomplete configuration may delay startup until it responds or times out. For exceptional sessions that deliberately skip installed adapters, see the [initialization reference](api-reference.md#automatic-adapter-discovery).
 
 ## 4. Configure Privacy & messaging
 
@@ -133,14 +127,14 @@ const interstitialId = Admob.TEST_INTERSTITIAL
 const rewardedId = Admob.TEST_REWARDED
 ```
 
-Not every constant has a factory to pass it to. The module exports the full set for compatibility, but two of the formats behind them are not implemented:
+The module exports the full set of test constants for compatibility. Two formats have no implemented factory:
 
 | Constant                     | Factory that accepts it                           |
 | ---------------------------- | ------------------------------------------------- |
 | `TEST_BANNER`                | `createBanner()`                                  |
 | `TEST_ADAPTIVE_BANNER`       | `createAdaptiveBanner()`                          |
 | `TEST_INTERSTITIAL`          | `createInterstitial()`                            |
-| `TEST_INTERSTITIAL_VIDEO`    | `createInterstitial()` — same API, video creative |
+| `TEST_INTERSTITIAL_VIDEO`    | `createInterstitial()` (same API, video creative) |
 | `TEST_REWARDED`              | `createRewarded()`                                |
 | `TEST_REWARDED_INTERSTITIAL` | None. Reserved; the format is not implemented     |
 | `TEST_NATIVE`                | None. Reserved; the format is not implemented     |
@@ -229,7 +223,7 @@ Google Mobile Ads reads `trackingAuthorizationStatus` on its own on iOS. That re
 
 A banner needs a host view that is already in the hierarchy, so the native view can measure its real width.
 
-**Reserve the space before the ad arrives.** Growing the host from zero when `loaded` fires shoves the surrounding content upward a second or two after the screen appears, which reads as a glitch. Give the host its expected height up front, in a background colour that matches the screen, and an empty slot looks like a bottom margin instead of a hole:
+Reserve the host height before the ad arrives. Growing it from zero when `loaded` fires moves surrounding content after the screen appears. Give the host its expected height and a background colour that matches the screen, so the empty slot looks like a bottom margin:
 
 ```js
 const bannerHost = Ti.UI.createView({
@@ -255,7 +249,7 @@ if (Admob.canRequestAds()) {
 }
 ```
 
-A fixed `BANNER` is `50dp` and `FULLBANNER` is `60dp`, so a fixed-size placement can reserve its exact height and never move. An adaptive banner reports its real height only after loading, so reserve a sensible minimum up front and let the loaded event adjust it — a few dp of correction is not the same glitch as growing from zero.
+A fixed `BANNER` is `50dp` and `FULLBANNER` is `60dp`, so a fixed-size placement can reserve its exact height. An adaptive banner reports its final height after loading. Reserve a suitable minimum, then adjust it in the loaded event to avoid growing the host from zero.
 
 [Banner ads](banners.md) covers the full placement contract: reserving layout space without overlapping bottom-aligned UI, the named-listener lifecycle, and `pause()` / `resume()` / `destroy()`.
 
@@ -271,5 +265,9 @@ The module does not enforce the privacy gate inside ad proxies. The consuming ap
 - Keeping banner listeners after destroying or removing a placement.
 - Using a production ad unit while clicking ads during development.
 - Requesting ATT, or shipping `NSUserTrackingUsageDescription`, in an app with no tracking case. UMP does not require either one.
-- Installing the mediation pack in an app with no configured ad sources, and paying its size and its startup timeout for networks that never bid.
-- Publishing an app that is supposed to mediate without the pack installed, which `getMediationStatus()` reports as six `false` values.
+- Installing mediation complements without configured ad sources adds SDK size and may delay startup while unused networks time out.
+- Publishing an app that is supposed to mediate without the selected complements installed, which `getMediationStatus()` reports as six `false` values.
+
+## Example appearance
+
+For the classic playground, copy both `example/app.js` and `example/semantic.colors.json` into `Resources/`. The named colors provide light and dark variants for the content and window title. Keep the default DayNight Android theme so system icons follow the selected appearance. The sample keeps the title and status bars visible. Changing appearance does not require rebuilding the ad proxies or resetting the scroll position.

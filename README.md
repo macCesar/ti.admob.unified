@@ -2,33 +2,33 @@
 
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads and the User Messaging Platform (UMP) on iOS and Android.
 
-Version `2.0.0` provides a safe privacy flow, idempotent SDK operations, and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. Mediation is a separate, optional module — `ti.admob.unified.mediation` — carrying current AdMob adapters and native SDKs for Meta, InMobi, Unity Ads, AppLovin, Liftoff Monetize, and ironSource on both platforms. Applications keep one JavaScript ad API either way; AdMob selects the configured ad source.
+The first release, `1.0.0`, provides a consent-first privacy flow and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. Five optional mediation complements let applications select their networks on both platforms.
 
-Upgrading from `1.x`, or replacing `ti.admob`, `ti.android.admob`, or an internal pre-release build? See [Migrating to ti.admob.unified](documentation/migration.md). **An application that mediates today must install the mediation pack when it moves to `2.0.0`, or it stops mediating without an error.**
+For migration from `ti.admob`, `ti.android.admob`, or an internal development build, see [Migrating to ti.admob.unified](documentation/migration.md). No earlier release of this module has been published.
 
-Want the application-side integration ready-made? Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/`. It sequences privacy and initialization, manages standard/adaptive banners plus interstitial, rewarded and app-open ads, and performs deterministic cleanup without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
+Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/` to use the application integration library. It sequences privacy and initialization, manages standard/adaptive banners and interstitial, rewarded and app-open ads, and cleans up placements without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
 
 ## Why one module instead of two
 
-Titanium has had AdMob modules for years, one per platform, each with its own names, its own events and its own payloads. The cost of that is not the install: it is every branch it forces into your application.
+Separate Titanium AdMob modules use different names, events and payloads on each platform. Applications must account for those differences wherever they create ads or handle events.
 
-**One declaration.** One module in `tiapp.xml` covers both platforms:
+One module declaration in `tiapp.xml` covers both platforms:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
-**No platform branches in ad code.** With one module per platform, each one brings its own factory names, property names and constants, so every placement starts with a fork — and both halves have to be kept working. Here there is one call:
+The shared factory names, properties and constants let each placement use one call on both platforms:
 
 ```js
 const ad = Admob.createBanner({ adUnitId: unitId, adSize: Admob.BANNER })
 ```
 
-The same holds for the reusability rule that differs between the platform modules: fullscreen ads are single-use here on both platforms, and `autoReload: true` reloads the next one for you.
+Fullscreen ads are single-use on both platforms. Set `autoReload: true` to load the next ad after the current one closes.
 
-**One event contract.** Event names, payload keys and value types are identical on iOS and Android, so a handler written once works on both:
+The shared event contract covers event names, payload keys and value types on iOS and Android, so the same handler can be used on both:
 
 ```js
 ad.addEventListener(Admob.AD_LOADED, event => {
@@ -36,95 +36,109 @@ ad.addEventListener(Admob.AD_LOADED, event => {
 })
 ```
 
-Where the two SDKs genuinely differ, the difference is named rather than hidden. [The roadmap](ROADMAP.md#differences-that-stay) lists every one of them and why it stays.
+[The roadmap](ROADMAP.md#differences-that-stay) describes the SDK differences and explains why they remain.
 
-**One privacy flow.** UMP consent, the `canRequestAds()` gate and initialization are the same sequence on both platforms. The iOS-only step, App Tracking Transparency, is a portable call that completes immediately on Android with `applicable: false`, so even that needs no branch.
+Both platforms follow the same sequence: UMP consent, the `canRequestAds()` check, then initialization. The App Tracking Transparency call handles the iOS-only step and completes immediately on Android with `applicable: false`.
 
-**Mediation parity.** The same six ad sources are available on both platforms through one optional pack, and the adapters are discovered by AdMob. Adding a mediated network changes your AdMob configuration, not your code. See [Mediation parity](MEDIATION_COMPARISON.md).
+The five optional network modules use the same identifiers on both platforms. AdMob discovers their adapters. See [Mediation parity](MEDIATION_COMPARISON.md).
 
 ## Requirements
 
 | Component                 | Baseline    |
 | ------------------------- | ----------- |
-| Titanium SDK              | `13.4.0.GA` |
+| Titanium SDK              | `13.2.0.GA` |
 | iOS                       | `15.0+`     |
 | Android                   | API `24+`   |
-| Google Mobile Ads iOS     | `13.7.0`    |
+| Google Mobile Ads iOS     | `13.10.0`    |
 | UMP iOS                   | `3.1.0`     |
-| Google Mobile Ads Android | `25.4.0`    |
+| Google Mobile Ads Android | `25.5.0`    |
 | UMP Android               | `4.0.0`     |
+
+## Distribution and application configuration
+
+The distribution contains twelve ZIPs: iOS and Android archives for the core and each of the five optional network complements. Install both core archives when targeting both platforms. Add only the complements you intend to configure.
+
+Your application must declare platform-specific AdMob application IDs in `tiapp.xml`. These are Google's test IDs; replace them with the corresponding production app IDs before distribution:
+
+```xml
+<ios>
+  <plist><dict>
+    <key>GADApplicationIdentifier</key>
+    <string>ca-app-pub-3940256099942544~1458002511</string>
+  </dict></plist>
+</ios>
+<android>
+  <manifest>
+    <application>
+      <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID"
+        android:value="ca-app-pub-3940256099942544~3347511713"/>
+    </application>
+  </manifest>
+</android>
+```
+
+Application IDs use `~`; ad-unit IDs use `/`. A missing application ID can cause the native SDK to terminate the app. If the application requests ATT, also declare `NSUserTrackingUsageDescription`. Configure the AdMob Privacy & messaging flow and the SKAdNetwork entries required by the installed networks; see [Getting started](documentation/getting-started.md).
 
 ## Mediation
 
-Mediation lives in a separate, optional module: `ti.admob.unified.mediation`. It has no JavaScript API — it exists to carry the adapters and their network SDKs.
+The first release, `1.0.0`, provides five optional dependency modules with identical identifiers on iOS and Android. Install only the networks the application intends to use. The core `ti.admob.unified` contains Google Mobile Ads and UMP only. Each complement has no JavaScript API and performs no manual provider initialization.
 
-| Ad source                 |  iOS adapter | Android adapter |
-| ------------------------- | -----------: | --------------: |
-| Meta Audience Network     | `6.21.1.1.1` |      `6.22.0.0` |
-| InMobi                    |   `11.4.0.0` |      `11.4.0.0` |
-| Unity Ads                 |   `4.19.0.0` |      `4.19.0.0` |
-| AppLovin                  |   `13.6.3.0` |      `13.6.3.0` |
-| Liftoff Monetize (Vungle) |    `7.7.5.0` |       `7.7.7.0` |
-| ironSource                |  `9.5.0.0.0` |       `9.5.0.0` |
+| Network                   | Module ID                             | iOS adapter  | Android adapter |
+| ------------------------- | ------------------------------------- | ------------ | --------------- |
+| AppLovin                  | `ti.admob.unified.mediation.applovin` | `13.6.4.0` | `13.6.4.2` |
+| Meta Audience Network     | `ti.admob.unified.mediation.meta`     | `6.22.0.0` | `6.22.0.1` |
+| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.4.1.0` | `11.4.1.2` |
+| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.20.1.0` | `4.20.1.0` |
+| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.7.0` | `7.7.8.1` |
 
-Those are **adapter** versions, not the versions of each network's own SDK. An adapter is versioned as `<network SDK version>.<adapter revision>`, so `13.6.3.0` means AppLovin SDK `13.6.3` with adapter revision `0`. The network SDK each adapter pulls in is listed in [Dependencies and checksums](DEPENDENCIES.md).
+ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib. Unity Ads 4.20.1 no longer depends on IronSourceAdQualitySDK, so it is not distributed.
 
-### Why it is a separate module
-
-Through `1.x` the adapters shipped inside the core module, on the assumption that having them there would raise fill. It does not. A network participates in a request only once its publisher account is approved, it is added as an ad source to an AdMob mediation group, and its credentials are mapped to the ad unit. Without that, an adapter is weight and nothing else — and the weight is not small:
-
-| Artifact                                | iOS ZIP | Android ZIP |
-| --------------------------------------- | ------: | ----------: |
-| `ti.admob.unified` `1.0.0` (everything) | `89 MB` | ≈ unchanged |
-| `ti.admob.unified` `2.0.0`              | `14 MB` |    `325 KB` |
-| `ti.admob.unified.mediation` `2.0.0`    | `75 MB` |    `102 KB` |
-
-The Android ZIP was never the cost there; the module POM was. Through `1.x` it declared the six adapter coordinates as transitive dependencies, so every consuming application inherited six third-party SDKs in its APK with no way to opt out. In `2.0.0` those coordinates live in the pack's POM, so an application that does not declare the pack inherits none of them — along with six fewer Data Safety and App Privacy declarations, and no adapter startup to wait on before the first ad.
-
-### Installing it
+Install the core and the selected network ZIP for each target platform:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
-  <module version="2.0.0">ti.admob.unified.mediation</module>
+  <module version="1.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified.mediation.applovin</module>
 </modules>
 ```
 
-Both artifacts ship at the same version and are released together. The adapters are then discovered automatically by Google Mobile Ads. Do not add platform checks or call a different ad factory for a mediated request. Publisher accounts, ad-source mappings, privacy declarations, and provider credentials are still configured outside the module.
+For several networks, add one module line per network. Accounts, provider credentials and placement mappings must be configured in AdMob. Installing an adapter alone does not enable demand or prove ad delivery. See [AdMob mediation](documentation/mediation.md) and [Dependencies](DEPENDENCIES.md).
 
-Because the adapters are present, Google Mobile Ads can inspect or initialize them when the SDK starts. Development builds with incomplete provider mappings can therefore log setup warnings such as a missing AppLovin SDK key or multiple Liftoff Monetize app IDs. The module does not inject provider IDs or keys; those values come from the AdMob mediation mapping. Treat these warnings as configuration diagnostics and verify the intended source with Ad Inspector before enabling production.
+`getMediationStatus()` is part of the core and returns six keys for installed adapter classes. These values do not validate credentials or indicate ad availability. Without complements all values are false. With all five, only `ironSource` is false unless its adapter is installed independently.
 
-An application that has the pack installed but wants to skip adapter startup in a given session passes `initialize({ disableMediation: true })`. Auto-discovery waits for every installed adapter to answer or time out, so an unmapped provider can delay the first ad by tens of seconds. An application that never mediates simply leaves the pack out.
+Google Mobile Ads automatically discovers the adapters included by the selected `tiapp.xml` modules. Use `Admob.initialize({})` for both core-only and mediated apps; no `enableMediation` flag or separate provider initialization is needed. With only the core there are no third-party adapters to initialize. With complements, configure their accounts and AdMob mappings and validate them with Ad Inspector.
 
-`getMediationStatus()` stays in the core module and answers with the same six keys either way — all `true` with the pack installed, all `false` without it. Run it before publishing an application that is supposed to mediate. Use Ad Inspector for request-level validation. See [AdMob mediation](documentation/mediation.md).
+`disableMediation: true` is an optional global exception for a session that deliberately skips initialization of installed adapters. It defaults to `false`, applies only before SDK startup, and is unnecessary in a core-only app.
 
 ## Supported formats
 
 | Format                   | iOS             | Android         |
 | ------------------------ | --------------- | --------------- |
-| Standard banner          | Stable          | Stable          |
-| Anchored adaptive banner | Stable          | Stable          |
-| Inline adaptive banner   | Stable          | Stable          |
-| Collapsible banner       | Experimental    | Experimental    |
-| Interstitial             | Stable          | Stable          |
-| Rewarded                 | Stable          | Stable          |
-| App Open                 | Stable          | Stable          |
+| Standard banner          | Implemented     | Implemented          |
+| Anchored adaptive banner | Implemented     | Implemented          |
+| Inline adaptive banner   | Implemented     | Implemented          |
+| Collapsible banner       | Implemented     | Implemented          |
+| Interstitial             | Implemented     | Implemented          |
+| Rewarded                 | Implemented     | Implemented          |
+| App Open                 | Implemented     | Implemented          |
 | Rewarded interstitial    | Not implemented | Not implemented |
 | Native                   | Not implemented | Not implemented |
 
 Standard, adaptive, interstitial, rewarded, and app open proxies use portable lifecycle and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md) for the single-use, reward, and four-hour-expiry rules.
 
+The format table describes implemented APIs, not a guarantee of ad delivery. The audit observed intermittent iOS Rewarded timeouts, including a reproduction without Titanium, and an earlier physical-iPad adaptive startup sizing failure that did not recur in the latest repeated launches. See [Release readiness](ROADMAP.md#release-readiness) for outstanding runtime acceptance conditions.
+
 ## Installation
 
-Install the `2.0.0` ZIP for each target platform and declare the module:
+Install the `1.0.0` ZIP for each target platform and declare the module:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
-Add `ti.admob.unified.mediation` at the same version only if the application mediates.
+Add the selected `ti.admob.unified.mediation.<network>` modules at the same version only if the application mediates. The examples use the core module alone and leave automatic adapter discovery unchanged; they need no mediation flag.
 
 The consuming app must also set its AdMob application ID in `tiapp.xml`. Application IDs are not passed to `initialize()`.
 
@@ -172,7 +186,7 @@ Admob.requestConsent({
 })
 ```
 
-App Tracking Transparency is optional and is **not** part of this flow. It does not replace UMP and is not an additional ad-request gate; the app still uses only `canRequestAds()`. An application with a real tracking case resolves ATT before initializing — see [Getting started](documentation/getting-started.md#optional-if-the-application-requests-att). The same call site works on both platforms: iOS resolves ATT and Android completes immediately with `applicable: false`.
+App Tracking Transparency is optional and separate from this flow. UMP and `canRequestAds()` still determine whether the app may request ads. An application that uses tracking resolves ATT before initializing; see [Getting started](documentation/getting-started.md#optional-if-the-application-requests-att). The same call site works on both platforms: iOS resolves ATT and Android completes immediately with `applicable: false`.
 
 For the publisher-rendered privacy entry point, check `isPrivacyOptionsRequired()` and call `presentPrivacyOptions({})`. `canShowAds()` remains a deprecated alias of `canRequestAds()`.
 
@@ -225,7 +239,7 @@ The runnable example includes a **Collapsible banner** button and uses `TEST_ADA
 
 ## Standard banner
 
-A fixed AdMob size. The widths are set by Google's spec, so `BANNER` is 320×50 regardless of the device; use `customAdSize` when you need to fill the width.
+A standard banner uses a fixed AdMob size. Google's specification sets `BANNER` to 320×50 on every device; use `customAdSize` when you need to fill the width.
 
 ```js
 const banner = Admob.createBanner({
@@ -251,7 +265,7 @@ Standard and adaptive banners expose the same methods:
 
 Both types emit `loaded`, `failed_to_load`, `clicked`, `impression`, `opened`, `closed`, and `destroyed`. Destruction is terminal and safe to repeat.
 
-`pause()` and `resume()` preserve the same proxy, creative, visual state and layout slot. The module owns host background/foreground; the app uses those calls only when its own tab or same-activity navigation stops showing the placement.
+`pause()` and `resume()` preserve the proxy, creative, visual state and layout slot. The module handles background/foreground transitions. Use these calls when a tab or navigation within the same activity hides the placement.
 
 On Android, a configuration change such as light/dark appearance recreates the hosting activity. The module preserves the JavaScript proxy across that recreation and requests a replacement native banner after Titanium rebuilds its view; `destroyed` remains reserved for a real terminal cleanup.
 
@@ -278,7 +292,7 @@ interstitial.addEventListener(Admob.AD_LOADED, () => interstitial.show())
 interstitial.load()
 ```
 
-Rewarded ads add one event, and it is the only place a reward may be granted:
+Grant rewards only from the reward event:
 
 ```js
 const rewarded = Admob.createRewarded({
@@ -294,7 +308,7 @@ rewarded.addEventListener(Admob.AD_LOADED, () => rewarded.show())
 rewarded.load()
 ```
 
-App open ads are shown when the user returns to a running app, never on a cold start behind your own splash:
+Show an app open ad when the user returns to a running app. Do not present it on a cold start behind your own splash:
 
 ```js
 const appOpen = Admob.createAppOpen({
@@ -353,16 +367,18 @@ Never click production ads during development. Do not derive ad eligibility from
 
 ```sh
 npm test
-./scripts/verify-artifacts.sh
-./scripts/verify-artifacts.sh mediation
-ti build -p ios --build-only --project-dir ios --no-prompt
-ti build -p android --build-only --project-dir android --no-prompt
-ti build -p ios --build-only --project-dir mediation/ios --no-prompt
-ti build -p android --build-only --project-dir mediation/android --no-prompt
+./scripts/verify-artifacts.sh --all
+./scripts/build-all.sh
+python3 scripts/verify-packages.py
 ```
 
-The commands above verify that each artifact builds; they do not verify that ads render. Banner, interstitial, and rewarded delivery are confirmed on physical hardware on both platforms, core only, with no mediation pack installed. Adaptive banner, app open, and the core-plus-pack link have no device evidence yet, on either platform. Run the full device and Ad Inspector matrix against the exact code you're shipping before a consumer app enables production ad unit IDs.
+These commands build and inspect twelve ZIPs: the core and five complements, each for Android and iOS. Consumer validation must also cover core only, each complement alone, AppLovin + Unity, and all five together. Successful linking and Google test ads establish integration; they do not establish delivery from third-party providers. That requires configured accounts, mappings and single-source tests in Ad Inspector. See [validation scope](documentation/mediation.md#release-validation).
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+
+### Try the consent form in the example
+
+In development builds, open **Consent demo**, select **Europe — consent form**, **US — privacy options**, **Other region — no form**, or **My actual region**, then tap **Run test**. iOS simulators work without a device hash; physical devices need the UMP test-device hash entered in the demo. Running a scenario clears the previous UMP choice; selecting one alone does not. The mode persists across relaunches. See [Interactive consent demo](documentation/privacy.md#interactive-consent-demo) for the walkthrough and how UMP differs from Apple ATT.

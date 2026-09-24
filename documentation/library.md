@@ -1,6 +1,6 @@
 # Copy-ready JavaScript library
 
-The repository ships a complete integration layer at [`example/lib/ads.js`](../example/lib/ads.js). Copy that file unchanged to one of these locations:
+The integration library is [`example/lib/ads.js`](../example/lib/ads.js). Copy it unchanged to the appropriate location:
 
 - Alloy: `app/lib/ads.js`
 - Classic Titanium: `Resources/lib/ads.js`
@@ -12,23 +12,23 @@ const Admob = require('ti.admob.unified')
 const ads = require('lib/ads')
 ```
 
-The library is optional. The native module remains usable directly, as shown by [`example/app.js`](../example/app.js). The library packages the parts that otherwise every application has to repeat correctly: UMP sequencing, the `canRequestAds()` gate, initialization, named-listener cleanup, banner slot ownership, deferred loads, privacy-option reauthorization, and terminal cleanup.
+The library handles UMP sequencing, the `canRequestAds()` check, initialization, named-listener cleanup, banner slots, deferred loads, privacy-option reauthorization and terminal cleanup. You can also use the native module directly, as [`example/app.js`](../example/app.js) does.
 
 ## What it covers
 
-| Format | Library factory | Lifecycle returned |
-| --- | --- | --- |
-| Standard banner | `createBanner()` | `pause()`, `resume()`, `retry()`, `rebuild()`, `isLoaded()`, `destroy()` |
+| Format          | Library factory          | Lifecycle returned                                                       |
+| --------------- | ------------------------ | ------------------------------------------------------------------------ |
+| Standard banner | `createBanner()`         | `pause()`, `resume()`, `retry()`, `rebuild()`, `isLoaded()`, `destroy()` |
 | Adaptive banner | `createAdaptiveBanner()` | `pause()`, `resume()`, `retry()`, `rebuild()`, `isLoaded()`, `destroy()` |
-| Interstitial | `createInterstitial()` | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()` |
-| Rewarded | `createRewarded()` | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()` |
-| App open | `createAppOpen()` | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()` |
+| Interstitial    | `createInterstitial()`   | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()`                 |
+| Rewarded        | `createRewarded()`       | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()`                 |
+| App open        | `createAppOpen()`        | `load()`, `show()`, `retry()`, `isLoaded()`, `destroy()`                 |
 
-Rewarded interstitial and native ads are not included because version `2.0.0` does not implement those factories.
+Rewarded interstitial and native ads are not included because version `1.0.0` does not implement those factories.
 
 ## Start once
 
-Create placements before or after `start()`. A load requested before initialization waits for the privacy and SDK gates instead of racing them.
+Create placements before or after `start()`. Loads requested before initialization wait until privacy checks and SDK initialization complete.
 
 ```js
 ads.start({
@@ -36,7 +36,6 @@ ads.start({
     tagForUnderAgeOfConsent: false
   },
   initialization: {
-    disableMediation: true,
     testDeviceIds: ['YOUR_TEST_DEVICE_ID']
   }
 }).then(result => {
@@ -81,7 +80,7 @@ Do not mirror `Ti.App` background and foreground events. The native module alrea
 
 The library creates no refresh timer. The first request comes from `load()`; later banner refreshes belong to Google Mobile Ads and the refresh policy configured for that ad unit in AdMob. A banner that is not actually on screen is ineligible for Android auto-refresh. On iOS the module disables and restores native autoload while paused.
 
-`retry()` is for a recoverable failure. `rebuild()` is for a real configuration boundary such as a width/orientation change. Tab focus, window focus, appearance changes, and ordinary background/foreground transitions are not rebuild reasons.
+Use `retry()` after a recoverable failure. Use `rebuild()` when the placement configuration changes, such as its width or orientation. Tab focus, window focus, appearance changes and ordinary background/foreground transitions do not require a rebuild.
 
 ## Fullscreen ads
 
@@ -142,7 +141,7 @@ function openPrivacyOptions() {
 }
 ```
 
-After the form closes, the library reevaluates authorization and rebuilds active ad requests only because consent may have changed.
+After the form closes, the library reevaluates authorization and rebuilds active ad requests to account for any consent changes.
 
 Ad Inspector also has a promise wrapper:
 
@@ -165,6 +164,13 @@ win.addEventListener('close', () => banner.destroy())
 ads.destroyAll()
 ```
 
-Every destroy operation is idempotent. A destroyed manager is terminal; create another manager when the application genuinely needs a new placement.
+Every destroy operation is idempotent. A destroyed manager cannot be reused; create another manager for a new placement.
 
-The complete runnable wiring is in [`example/library-usage.js`](../example/library-usage.js).
+See [`example/library-usage.js`](../example/library-usage.js) for a complete runnable integration.
+
+
+## Concurrent operations and cleanup
+
+Concurrent calls to `showPrivacyOptions()` share one native presentation and one promise. `openAdInspector()` does the same for Inspector. Terminal events and synchronous native exceptions remove their listeners; a later call starts a new operation. `destroyAll()` releases placements only. It does not cancel an SDK form or its pending promise.
+
+A banner failure or destruction cleans up the old proxy before invoking application callbacks, so calling `retry()` from those callbacks preserves the replacement. On iOS, adaptive placements reserve the native anchored height when width is known and wait for positive layout before loading. Destroying a placement removes any pending layout listener.

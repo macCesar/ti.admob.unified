@@ -10,13 +10,13 @@ Use `createAdaptiveBanner()` for a banner anchored outside scrolling content. It
 
 Use `createBanner()` when the placement explicitly requires a fixed Google ad size such as `BANNER`, `MEDIUM_RECTANGLE`, or `LEADERBOARD`.
 
-| Capability                     | iOS | Android                 |
-| ------------------------------ | --- | ----------------------- |
-| Standard fixed-size banner     | Yes | Yes                     |
-| Large anchored adaptive banner | Yes | Yes                     |
-| Inline adaptive banner         | Yes | Yes                     |
-| Collapsible anchored banner    | Yes | Yes                     |
-| Dynamic loaded height          | Yes | Yes                     |
+| Capability                     | iOS | Android |
+| ------------------------------ | --- | ------- |
+| Standard fixed-size banner     | Yes | Yes     |
+| Large anchored adaptive banner | Yes | Yes     |
+| Inline adaptive banner         | Yes | Yes     |
+| Collapsible anchored banner    | Yes | Yes     |
+| Dynamic loaded height          | Yes | Yes     |
 
 ## Adaptive banner
 
@@ -35,26 +35,26 @@ The proxy must be in the Titanium view hierarchy before `load()` so its native v
 
 ### Creation properties
 
-| Property       | Type     |         iOS |      Android | Notes                                                        |
-| -------------- | -------- | ----------: | -----------: | ------------------------------------------------------------ |
-| `adUnitId`     | String   |         Yes |          Yes | Required.                                                    |
-| `adaptiveType` | String   |         Yes |          Yes | Defaults to `ADAPTIVE_ANCHORED`.                             |
-| `maxHeight`    | Number   | Inline only |  Inline only | Maximum inline height in dp; both platforms default to `50`. |
-| `collapsible`  | String   | Experimental | Experimental | Native placement string: `"top"` or `"bottom"`.             |
-| `keywords`     | String[] |         Yes |          Yes | Prefer contextual configuration in AdMob.                    |
-| `contentUrl`   | String   |         Yes |          Yes | URL describing surrounding content.                          |
-| `requestAgent` | String   |         Yes |          Yes | Identifies what issued the request.                          |
-| `extras`       | Object   |         Yes |          Yes | Google adapter request extras.                               |
+| Property       | Type     |         iOS |     Android | Notes                                                        |
+| -------------- | -------- | ----------: | ----------: | ------------------------------------------------------------ |
+| `adUnitId`     | String   |         Yes |         Yes | Required.                                                    |
+| `adaptiveType` | String   |         Yes |         Yes | Defaults to `ADAPTIVE_ANCHORED`.                             |
+| `maxHeight`    | Number   | Inline only | Inline only | Maximum inline height in dp; both platforms default to `50`. |
+| `collapsible`  | String   |         Yes |         Yes | Native placement string: `"top"` or `"bottom"`.              |
+| `keywords`     | String[] |         Yes |         Yes | Prefer contextual configuration in AdMob.                    |
+| `contentUrl`   | String   |         Yes |         Yes | URL describing surrounding content.                          |
+| `requestAgent` | String   |         Yes |         Yes | Identifies what issued the request.                          |
+| `extras`       | Object   |         Yes |         Yes | Google adapter request extras.                               |
 
-On iOS, the native implementation always creates a **large** anchored adaptive banner, and that is not a shortcut: Google deprecated the plain anchored functions in favour of the large ones. The large size is between 50 and 150 points tall and never exceeds 20% of the screen; the deprecated one capped at 90 points and 15%. If a shorter fixed strip is what you want, use `createBanner()` with `customAdSize`.
+On iOS, anchored adaptive banners use the large size because Google deprecated the plain anchored functions. Large banners are 50 to 150 points tall and never exceed 20% of the screen; the deprecated size capped at 90 points and 15%. For a shorter fixed strip, use `createBanner()` with `customAdSize`.
 
 Events echo back the constant you passed, so `event.adaptiveType` can be compared against `ADAPTIVE_ANCHORED` or `ADAPTIVE_INLINE` on either platform.
 
-`ADAPTIVE_INLINE` and `maxHeight` work on both platforms. Inline scrolls with your content and you cap its height; anchored sits at a screen edge and Google fixes the height, which is why `maxHeight` only applies to inline.
+`ADAPTIVE_INLINE` and `maxHeight` work on both platforms. Inline banners scroll with the content and use the height limit you supply. Anchored banners sit at a screen edge and use the height Google calculates; `maxHeight` has no effect on them.
 
-`collapsible` works on both platforms and takes Google's native placement string, `"top"` or `"bottom"`. There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant to pass here, and that is deliberate: such a constant would have to carry a value the SDK accepts, and Google accepts only those two words.
+`collapsible` takes Google's native placement string, `"top"` and `"bottom"`, on both platforms. The module exports no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM` constant.
 
-It travels as an ad-network extra on both sides — a Bundle on Android, a `GADExtras` on iOS — under the same key. No separate collapsible ad-unit setting is required. A request can return a standard banner, and mediated ads are non-collapsible. Both fixed and adaptive banners include `isCollapsible` in `AD_LOADED`, copied from the native SDK for that loaded ad. It does not report whether the ad is currently expanded or visibly rendered. A new `load()` requests another ad; it does not expand a previously collapsed creative.
+Both platforms send the option under the same ad-network extra key, using a Bundle on Android and `GADExtras` on iOS. No separate collapsible ad-unit setting is required. A request may return a standard banner, and mediated ads are non-collapsible. Fixed and adaptive banners include `isCollapsible` in `AD_LOADED`, copied from the SDK for the received ad. This reports the ad classification, not its expanded state or visible rendering. Calling `load()` requests another ad; it does not expand an existing creative.
 
 Google's current requirements are described in the collapsible banner guide, published per platform: [Android](https://developers.google.com/admob/android/banner/collapsible), [iOS](https://developers.google.com/admob/ios/banner/collapsible).
 
@@ -200,19 +200,17 @@ Two independent causes can hold a banner paused, and the module tracks them sepa
 | Application | your `pause()` / `resume()` calls                        | Both            |
 | Lifecycle   | activity `onPause`/`onResume`, app background/foreground | Both, automatic |
 
-**Neither cause resumes the other's pause.** A banner you paused because its tab is hidden stays paused when the app returns from the background, and a banner the lifecycle paused stays paused until the app is visible again — even if you called `resume()` meanwhile. A load deferred while paused waits for *every* cause to clear, so it never fires into a placement nobody is looking at.
+Each pause cause must clear independently. A banner paused because its tab is hidden stays paused when the app returns from the background. A lifecycle pause lasts until the app is visible again, even if you call `resume()` in the meantime. Any deferred load waits for both causes to clear.
 
-This means you only have to own the reason you know about — which screen is showing — and never have to mirror the app's background state to keep the two from fighting.
+Android follows the hosting activity, and iOS observes application background/foreground. A secondary Android window backed by another activity needs no manual pause/resume wiring. Use the public methods when navigation hides a placement while its host lifecycle remains active, such as a custom overlay within the same activity. iOS uses background/foreground transitions because opening Control Center or receiving a call banner can resign active while the ad remains visible.
 
-The lifecycle cause is automatic on both platforms: Android follows the hosting activity, and iOS observes application background/foreground. An Android secondary window backed by another activity therefore needs no manual pause/resume wiring. Use the public methods only for navigation that hides a placement while its host lifecycle remains active, such as a custom same-activity overlay. iOS deliberately uses background/foreground rather than resign/become-active, because a Control Center pull or a call banner resigns active while the ad is still on screen and still viewable.
-
-Android may recreate its activity for a configuration change such as light/dark appearance. That is not terminal destruction: the module releases the stale native `AdView`, keeps the JavaScript proxy alive, and requests a replacement banner after Titanium creates the new native view. It does not emit `destroyed` for this transition. The creative itself cannot be carried between activities because an Android `View` belongs to the activity that created it.
+When Android recreates an activity for a configuration change, such as light/dark appearance, the module releases the stale native `AdView` and keeps the JavaScript proxy alive. It requests a replacement banner after Titanium creates the new view, without emitting `destroyed`. The creative cannot move between activities because an Android `View` belongs to the activity that created it.
 
 ## Runtime properties
 
-Banner proxies are not write-once. Both platforms expose their creation properties for reading and writing after the proxy exists, and they fall into three groups with different timing.
+Both platforms expose banner creation properties for reading and writing at runtime. Changes take effect at different points:
 
-**Applied on the next `load()`.** `keywords`, `contentUrl`, `requestAgent`, `extras` and `collapsible` only reach AdMob through a new ad request, so assigning them does nothing to the creative currently on screen:
+`keywords`, `contentUrl`, `requestAgent`, `extras` and `collapsible` apply on the next `load()`. They leave the current creative unchanged:
 
 ```js
 banner.extras = { collapsible: 'bottom' }
@@ -220,20 +218,20 @@ banner.requestAgent = 'my-app/2.1'
 banner.load()  // now they travel
 ```
 
-**Applied immediately, and not recommended.** `adSize` and `customAdSize` rebuild the native `AdView` on Android, discarding the loaded creative, and do nothing on iOS. Destroy the proxy and create a new one instead — that is the only path that behaves the same on both platforms.
+Changing `adSize` or `customAdSize` applies on the next `load()` on both platforms. The existing creative remains until that request; the module recreates the native view when needed.
 
-**Never assign after creation.** `adUnitId` is propagated to the live native view on Android, and Google's SDK throws there: *"The ad unit ID can only be set once on AdView."* A banner that has already loaded once will crash the application rather than switch units. Create a second proxy for a second placement.
+Changing `adUnitId` also applies on the next load. The module recreates the native view instead of assigning a second ID to an existing Android AdView, which Google forbids.
 
 ### What Android writes back
 
 Android overwrites the proxy's own `height` when the ad size is known, and the two banner types write different types into it:
 
-| Banner   | What Android assigns   | Example  |
-| -------- | ---------------------- | -------- |
-| Standard | A number, in dp        | `50`     |
-| Adaptive | A string, in dp        | `"64dp"` |
+| Banner   | What Android assigns | Example  |
+| -------- | -------------------- | -------- |
+| Standard | A number, in dp      | `50`     |
+| Adaptive | A string, in dp      | `"64dp"` |
 
-iOS assigns neither. If you read `banner.height` back, handle both a number and a `"…dp"` string, or read `event.height` from the `loaded` payload instead — that one is a number on both platforms.
+iOS assigns neither value. When reading `banner.height`, handle both a number and a `"…dp"` string. Alternatively, read `event.height` from the `loaded` payload, where it is numeric on both platforms.
 
 Android also treats `top`, `left` and `right` as native padding on the `AdView`, on top of the Titanium layout meaning. iOS applies only the Titanium layout.
 
@@ -251,19 +249,19 @@ Starts an ad request.
 
 Idempotently records an application-owned pause. It does not change `visible`, `opacity`, height, or its host, and it does not replace the native proxy or loaded creative.
 
-The native mechanisms are not symmetric because Google's SDKs are not symmetric:
+Google's SDKs use different native pause mechanisms:
 
-| Behavior | iOS | Android |
-| --- | --- | --- |
-| Changes visual state or layout | No | No |
-| Suspends ad-view processing | No equivalent API | Yes, via `AdView.pause()` |
-| Stops native autoload directly | Yes, via `autoloadEnabled = NO` | No direct refresh switch |
+| Behavior                       | iOS                             | Android                   |
+| ------------------------------ | ------------------------------- | ------------------------- |
+| Changes visual state or layout | No                              | No                        |
+| Suspends ad-view processing    | No equivalent API               | Yes, via `AdView.pause()` |
+| Stops native autoload directly | Yes, via `autoloadEnabled = NO` | No direct refresh switch  |
 
-On Android, `AdView.pause()` is documented as pausing extra processing; it is not a public refresh-control API. Google Mobile Ads separately refreshes only a banner it considers visible on screen. Therefore call `pause()` when the owning tab is deselected or another opaque window covers it — states in which it is genuinely not on screen — and keep the proxy visually unchanged. If custom navigation leaves the banner actually visible to the user, do not pause it merely because a controller flag changed.
+On Android, `AdView.pause()` pauses extra processing; Google does not expose it as a refresh-control API. Automatic refresh separately requires the banner to be visible. Call `pause()` when another opaque window covers the placement or its tab is deselected, keeping the proxy's visual properties unchanged. A controller state change alone is not a reason to pause a banner the user can still see.
 
 On iOS, the module stores the banner's existing `autoloadEnabled` value and sets it to `NO`. This prevents native autoload while leaving the same view and creative intact.
 
-A `load()` requested during either pause cause is deferred. This prevents the first request from being issued into a placement the application is not showing, without relying on a visibility mutation.
+A `load()` requested while either pause cause is active waits until both clear. The module can defer the request without changing visibility.
 
 Do not destroy/recreate to simulate a pause. That discards the creative, creates a new request on return, and makes ordinary navigation visibly slower.
 
@@ -345,7 +343,7 @@ Android additionally reports diagnostic size fields:
 }
 ```
 
-Only `height` and `heightUnit` are cross-platform contract fields. Do not assume Android's pixel fields exist on iOS.
+All seven size fields are present on both platforms. Android density can be fractional; iOS reports the screen scale.
 
 ## Standard banner
 
@@ -374,7 +372,7 @@ banner.load()
 
 `customAdSize` builds `new AdSize(width, height)` on Android and `GADAdSizeFromCGSize` on iOS, so one object produces the same request on both.
 
-Both numbers are in density-independent units, and computing the screen width is where portable code usually breaks: `Ti.Platform.displayCaps.platformWidth` returns **pixels on Android** but **points on iOS**, and points are already the unit this property expects. Dividing by `logicalDensityFactor` on both platforms is the mistake that looks correct — on a 3x iPhone it asks for a third of the screen and you get a small banner floating in a full-width slot.
+Both dimensions use density-independent units. `Ti.Platform.displayCaps.platformWidth` returns pixels on Android and points on iOS. Divide by `logicalDensityFactor` only on Android; on a 3x iPhone that division would request a banner one third of the screen width.
 
 ```js
 function screenWidthInDp() {
@@ -388,9 +386,9 @@ function screenWidthInDp() {
 }
 ```
 
-This conversion belongs to Titanium, not to this module: the module passes the two numbers through untouched, which is also why it cannot correct a wrong one for you. It is applied when the native view is created; changing it afterwards does not resize a live banner on iOS, exactly as `adSize` already behaved. Destroy the placement and create it again to change size.
+The application must convert Titanium dimensions to the expected units; the module passes both numbers through unchanged. It applies the size when creating the native view. As with `adSize`, later assignments apply on the next load.
 
-An oversized custom slot does not invent inventory: AdMob fills the sizes it sells. Ask for a size your ad units actually serve.
+Choose a custom size your ad units can serve. A larger slot does not add available inventory.
 
 Portable fixed sizes, with the device each one was designed for and the height its host view must reserve:
 
@@ -402,11 +400,11 @@ Portable fixed sizes, with the device each one was designed for and the height i
 | `FULLBANNER`       | 468×60  | Tablet          |
 | `LEADERBOARD`      | 728×90  | Tablet          |
 
-Those are Google's own descriptions in `GADAdSize.h`, and the widths are the part that bites. A phone is 360–430 dp wide, so a `FULLBANNER` asks for 468 dp that the screen does not have: it cannot render at full size no matter what height you give its container. `BANNER` is not an outdated size — it is the phone size. For a full-width strip on a phone use `customAdSize` with the screen width, or an adaptive banner.
+These device categories come from Google's `GADAdSize.h`. A phone is 360–430 dp wide, so a 468 dp `FULLBANNER` cannot fit at full size regardless of the host height. Use `BANNER` for the fixed phone size, or `customAdSize` with the screen width or an adaptive banner for a full-width strip.
 
-Give the host view the exact height of the size you asked for. A `FULLBANNER` in a 50 dp box is not a smaller full banner; it is a clipped one.
+Give the host the requested height. A `FULLBANNER` in a 50 dp box will be clipped.
 
-Unknown values fall back to `BANNER`, and `smart_banner` is one of them. Google removed the size from the Android SDK and deprecated it on iOS, so this module gives it no special case: one value that resolved to a fixed 320×50 on one platform and a full-width strip on the other would be the module deciding for you. For a full-width strip use `customAdSize`, or `createAdaptiveBanner()` if you want Google to choose the height.
+Unknown values, including `smart_banner`, fall back to `BANNER`. Google removed smart banners on Android and deprecated them on iOS. The shared fallback avoids selecting a fixed 320×50 banner on one platform and a full-width strip on the other. For full width, use `customAdSize` or `createAdaptiveBanner()` to let Google choose the height.
 
 Changing `adSize` on an existing iOS native banner is not supported. Destroy and recreate the proxy.
 
@@ -414,7 +412,7 @@ Changing `adSize` on an existing iOS native banner is not supported. Destroy and
 
 Do not add a JavaScript renewal timer. Google Mobile Ads respects the banner refresh rate configured for the ad unit in AdMob. The application requests the initial load and lets the SDK/ad-unit configuration own later refreshes.
 
-That is the intended delegation: TiAdMobUnified supplies one native banner proxy and protects its lifecycle; it does not periodically destroy or reload it. Google documents that Android automatic refresh occurs only while the banner is visible on screen. Configure the interval or disable refresh in AdMob, and use screen-level `pause()`/`resume()` only when application navigation really stops/starts showing that placement.
+TiAdMobUnified manages the native banner proxy and its lifecycle without a periodic reload or recreation loop. Google documents that Android automatic refresh requires a visible banner. Set or disable the refresh interval in AdMob, and use screen-level `pause()`/`resume()` when navigation hides or reveals the placement.
 
 ### Sizing before loading
 

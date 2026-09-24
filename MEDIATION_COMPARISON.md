@@ -1,18 +1,15 @@
 # Mediation parity
 
-Version `2.0.0` distributes six AdMob mediation networks on both platforms through the optional `ti.admob.unified.mediation` module, which lives in `mediation/` in this repository:
+The first release, `1.0.0`, provides five optional dependency modules with identical identifiers on iOS and Android. Install only the networks the application intends to use. The core `ti.admob.unified` contains Google Mobile Ads and UMP only. The complements provide dependencies without a JavaScript API or manual provider initialization.
 
-| Ad source                 | iOS      | Android  | Shared JavaScript API |
-| ------------------------- | -------- | -------- | --------------------- |
-| Meta Audience Network     | Included | Included | Yes                   |
-| InMobi                    | Included | Included | Yes                   |
-| Unity Ads                 | Included | Included | Yes                   |
-| AppLovin                  | Included | Included | Yes                   |
-| Liftoff Monetize (Vungle) | Included | Included | Yes                   |
-| ironSource                | Included | Included | Yes                   |
+| Network                   | Module ID                             | iOS adapter  | Android adapter |
+| ------------------------- | ------------------------------------- | ------------ | --------------- |
+| AppLovin                  | `ti.admob.unified.mediation.applovin` | `13.6.4.0` | `13.6.4.2` |
+| Meta Audience Network     | `ti.admob.unified.mediation.meta`     | `6.22.0.0` | `6.22.0.1` |
+| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.4.1.0` | `11.4.1.2` |
+| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.20.1.0` | `4.20.1.0` |
+| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.7.0` | `7.7.8.1` |
 
-Applications use the normal `createBanner()`, `createAdaptiveBanner()`, `createInterstitial()`, `createRewarded()`, and `createAppOpen()` factories from `ti.admob.unified`. AdMob discovers the native adapters; no iOS/Android condition is needed to select a mediated network, and nothing in an application ever calls the pack.
+ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib; Unity Ads 4.20.1 no longer requires IronSourceAdQualitySDK.
 
-`getMediationStatus()` stays in `ti.admob.unified` and provides the same six diagnostic keys on both platforms whether or not the pack is installed — `true` for each network with it, `false` for each without. It verifies installation only. Fill behavior still depends on the publisher's AdMob mediation groups, provider accounts, placement mappings, format support, geography, consent, and inventory.
-
-The module does not promise a revenue uplift or fill rate. Those results are application- and market-specific, and installing an adapter for a network that is not configured as an ad source changes nothing except the size of the build. See [AdMob mediation](documentation/mediation.md) for setup and validation.
+All requests use the core factories and event contracts. Network selection requires installing the corresponding complement and configuring the source in AdMob. `getMediationStatus()` preserves six keys on both platforms, including ironSource, and reports class presence. Initialization and ad delivery require separate verification. See [AdMob mediation](documentation/mediation.md).

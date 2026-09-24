@@ -1,48 +1,27 @@
 # Migrating to ti.admob.unified
 
-This guide covers replacing an existing AdMob integration with `ti.admob.unified` `2.0.0`. Three starting points are common: `1.x` of this module, a platform-specific module such as `ti.admob` on iOS or `ti.android.admob` on Android, and an internal pre-release build of this module.
+This guide covers adopting the first release, `1.0.0`, from a platform-specific AdMob module or an internal development build. There are no previously published versions of this module.
 
-Most of the work is the same either way. The two sections below apply only to the first and third starting points.
+## Selecting mediation dependencies
 
-## From 1.x: mediation moved to its own module
-
-`2.0.0` changes one thing, and it is the reason for the major version. The six mediation adapters no longer ship inside `ti.admob.unified`; they ship in a separate `ti.admob.unified.mediation` module.
-
-**No JavaScript changes.** Not one method, constant, event name, or payload key differs from `1.x`. `getMediationStatus()`, the six `isXxxAvailable()` probes, `enableOptionalMediationNetworks()`, and `disableMediation` all still live in `ti.admob.unified` and behave the same way.
-
-**If the application does not mediate**, update the version and you are done. The iOS artifact drops from 89 MB to 14 MB, and the Android build stops inheriting six third-party network SDKs it never used.
-
-**If the application does mediate**, install the pack as well or it will silently stop mediating. Google Mobile Ads keeps serving AdMob demand with no error, no exception, and no failed request — the mediated sources simply never participate, and the revenue difference is the only symptom.
+Install only the core for Google ads. If the application mediates, install a complement for each selected network. For example:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
-  <module version="2.0.0">ti.admob.unified.mediation</module>
+  <module version="1.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified.mediation.applovin</module>
 </modules>
 ```
 
-Verify it before publishing, on a build of the real application, on both platforms:
-
-```js
-Admob.addEventListener('module_initialized', () => {
-  Ti.API.info(JSON.stringify(Admob.getMediationStatus()))
-  // Expected with the pack installed:
-  // {"appLovin":true,"meta":true,"inMobi":true,"unity":true,
-  //  "liftoffMonetize":true,"ironSource":true}
-})
-```
-
-Six `false` values mean the pack is not in the build. Fix that before shipping; do not read it as a fill problem.
-
-The two modules are released together and must be installed at the same version. See [AdMob mediation](mediation.md).
+The aggregate development package is not part of this release. Replace its declaration with the desired per-network modules. `getMediationStatus()` retains its six keys and reports adapter presence; it does not validate mappings or delivery. ironSource mediation is deferred. See [AdMob mediation](mediation.md).
 
 ## If you used an internal pre-release build
 
-Three parts of the surface changed during development and never reached a published release. Code written against an internal ZIP needs these three edits.
+Internal ZIPs exposed three API differences that never reached a published release. Update code that depends on them as follows.
 
 ### There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM`
 
-Neither constant is exported. Reading one returns `undefined`, so code that passes `Admob.COLLAPSIBLE_TOP` sends `undefined` to the native layer instead of failing loudly.
+Neither constant is exported. Reading it returns `undefined`; passing `Admob.COLLAPSIBLE_TOP` therefore sends `undefined` to the native layer.
 
 They used to hold `"collapsible_top"` and `"collapsible_bottom"`. Google's SDK accepts only `"top"` and `"bottom"`, and the module forwarded the value unchanged, so every request built from those constants was invalid.
 
@@ -57,7 +36,7 @@ const banner = Admob.createAdaptiveBanner({
 
 ### `smart_banner` no longer produces a full-width banner on iOS
 
-Google removed the size from the Android SDK and deprecated it on iOS. Internal builds resolved the same value into two different ads: a fixed 320×50 on Android, a full-width strip on iOS. That special case is gone, and the value falls through to `BANNER` on both platforms like any other unrecognised size.
+Google removed the size on Android and deprecated it on iOS. Internal builds selected a fixed 320×50 banner on Android and a full-width strip on iOS. The value now falls back to `BANNER` on both platforms, like any other unrecognised size.
 
 Android behaviour is unaffected. On iOS, a placement that relied on `adSize: 'smart_banner'` for a full-width strip now renders a 320×50 banner.
 
@@ -93,11 +72,11 @@ Replace platform-specific or older AdMob modules with one declaration:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified</module>
 </modules>
 ```
 
-Add `<module version="2.0.0">ti.admob.unified.mediation</module>` only if the application mediates.
+Add the selected network complements only if the application mediates; for example, `<module version="1.0.0">ti.admob.unified.mediation.applovin</module>` for AppLovin.
 
 Update JavaScript imports:
 
@@ -195,7 +174,7 @@ banner.destroy()
 
 `destroy()` is terminal and idempotent. Remove JavaScript event listeners and the proxy from its parent when the owning placement closes.
 
-The host lifecycle pauses banners on its own: the Android activity, and the iOS application entering the background. An application migrating from a module where it wired those by hand can drop that wiring and keep only the pauses it alone can know about, such as a tab it stopped showing or a window it covered. See [Who pauses a banner](banners.md#who-pauses-a-banner).
+The module pauses banners when the Android activity pauses or the iOS application enters the background. Remove any application code that duplicates those handlers. Keep calls for navigation changes the module cannot observe, such as hiding a tab or covering a window. See [Who pauses a banner](banners.md#who-pauses-a-banner).
 
 Do not carry forward code that changes `visible`, opacity, height, or the banner host during pause/resume. TiAdMobUnified preserves the same visual slot and creative; navigation owns only the application pause cause.
 
@@ -216,7 +195,7 @@ banner.destroy()
 
 Delete `setTimeout`/`setInterval` banner renewal loops. Configure refresh in AdMob and let the native SDK own it.
 
-The application issues the initial `load()`. Google Mobile Ads owns later automatic refresh requests; TiAdMobUnified owns lifecycle, not a competing refresh schedule.
+The application issues the initial `load()`. Google Mobile Ads manages later refresh requests; TiAdMobUnified manages lifecycle.
 
 ## Adopt the fullscreen lifecycle
 
@@ -235,17 +214,17 @@ Common events include `adUnitId` and `adType`; failures add `error`, `message`, 
 
 ### App open
 
-`createAppOpen()` returns a working proxy on both platforms. Neither module this one replaces offers it portably: `ti.admob` documents the type on iOS without a factory, and `ti.android.admob` ships an Android-only proxy. An application that wanted the format on both platforms had to build half of it itself.
+`createAppOpen()` returns a proxy on both platforms. Of the modules it replaces, `ti.admob` documents the iOS type without a factory, and `ti.android.admob` supplies an Android-only proxy. Applications previously had to implement the missing iOS support themselves.
 
 It follows the fullscreen contract above, with one addition: an app open ad expires four hours after the request. Past that point `isLoaded()` reports `false` and `show()` emits `failed_to_show` with code `1`. See [The four hour window](fullscreen.md#the-four-hour-window).
 
 ## Mediation
 
-The optional `ti.admob.unified.mediation` pack carries matching adapters and native SDKs for AppLovin, InMobi, Liftoff Monetize/Vungle, Meta, ironSource, and Unity on both platforms. Google Mobile Ads discovers them automatically; applications keep using the same banner, interstitial, and rewarded factories and never call the pack.
+Five optional complements carry AppLovin, Meta, InMobi, Unity and Liftoff dependencies on both platforms. Google Mobile Ads discovers their adapters; applications keep calling the core factories. ironSource mediation is deferred.
 
-Availability probes remain in `ti.admob.unified` for portable diagnostics, and report `false` for every network when the pack is not installed. Legacy provider consent setters are deprecated no-ops because UMP and each provider's current requirements must drive privacy configuration. Installing an adapter does not create an account or enable a mediation source: configure mappings and credentials in AdMob, then validate with Ad Inspector.
+Availability probes remain in `ti.admob.unified` for portable diagnostics, and report `false` for every network when no complements are installed. Legacy provider consent setters are deprecated no-ops because UMP and each provider's current requirements must drive privacy configuration. Installing an adapter does not create an account or enable a mediation source: configure mappings and credentials in AdMob, then validate with Ad Inspector.
 
-An application that serves AdMob demand only leaves the pack out. One that has it installed but wants to skip adapter startup in a given session passes `disableMediation: true` to `initialize()`, because auto-discovery waits for every installed adapter to answer or time out, which can delay the first ad by tens of seconds.
+An application that serves AdMob demand only leaves the complements out and uses `Admob.initialize({})`, with no disabling flag. Including selected complements opts into automatic adapter discovery; no `enableMediation` flag is needed. An exceptional session that skips installed adapters is covered in the [initialization reference](api-reference.md#automatic-adapter-discovery).
 
 ## Development checklist
 
@@ -259,3 +238,10 @@ An application that serves AdMob demand only leaves the pack out. One that has i
 - Inspect requests with Ad Inspector.
 - Confirm `getMediationStatus()` matches what the build is supposed to contain.
 - Run `npm test` and `./scripts/verify-artifacts.sh`.
+
+
+## Corrections from internal audit builds
+
+Boolean results and payload fields use JavaScript Booleans on both platforms; replace comparisons to numeric `0` or `1`. iOS load errors now use the shared error constants; presentation, UMP and Inspector codes remain domain-specific. Use the event name and the reference's error table when migrating code that compared raw NSError values.
+
+Application volume now works on iOS using the same percentage string accepted on Android. Fullscreen configuration properties are mutable for subsequent loads on both platforms. Native helper/delegate methods and internal state from earlier iOS builds are no longer exposed as application APIs. Availability diagnostics require the adapter class, so a network SDK installed without its adapter reports `false`.

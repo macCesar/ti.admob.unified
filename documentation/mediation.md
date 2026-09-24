@@ -1,38 +1,43 @@
 # AdMob mediation
 
-Mediation ships as a separate module, `ti.admob.unified.mediation`. It carries the same six AdMob mediation networks on iOS and Android — Meta Audience Network, InMobi, Unity Ads, AppLovin, Liftoff Monetize (Vungle), and ironSource — and nothing else: it has no JavaScript API, and no application ever calls it.
+The first release, `1.0.0`, provides five optional dependency modules with identical identifiers on iOS and Android. Install only the networks the application intends to use. The core `ti.admob.unified` contains Google Mobile Ads and UMP only. Each complement has no JavaScript API and performs no manual provider initialization.
 
-Install it only if the application actually mediates. Since `2.0.0` the core module carries Google Mobile Ads and UMP alone, so an application that serves AdMob demand only installs 14 MB on iOS instead of 89 MB and inherits no network SDK in its Android build.
+| Network                   | Module ID                             | iOS adapter | Android adapter |
+| ------------------------- | ------------------------------------- | ----------- | --------------- |
+| AppLovin                  | `ti.admob.unified.mediation.applovin` | `13.6.4.0`  | `13.6.4.2`      |
+| Meta Audience Network     | `ti.admob.unified.mediation.meta`     | `6.22.0.0`  | `6.22.0.1`      |
+| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.4.1.0`  | `11.4.1.2`      |
+| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.20.1.0`  | `4.20.1.0`      |
+| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.7.0`   | `7.7.8.1`       |
 
-## Installing the pack
+ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib. Unity Ads 4.20.1 no longer depends on IronSourceAdQualitySDK, so it is not distributed.
 
-Install both ZIPs for every platform you build and declare both modules:
+## Installing one or several networks
+
+Install the core ZIP and each selected complement ZIP for every target platform. One declaration covers both platforms:
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
-  <module version="2.0.0">ti.admob.unified.mediation</module>
+  <module version="1.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified.mediation.applovin</module>
 </modules>
 ```
 
-The two artifacts ship at the same version and are released together. Do not mix versions: the adapters are built against the Google Mobile Ads version the core module vendors.
+For AppLovin and Unity together:
 
-Nothing else changes. Mediation does not change the JavaScript ad API — create banners, interstitials, rewarded ads, and app open ads with the normal `ti.admob.unified` factories. Google Mobile Ads discovers the adapters and selects an eligible source from the mediation configuration in AdMob.
+```xml
+<modules>
+  <module version="1.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified.mediation.applovin</module>
+  <module version="1.0.0">ti.admob.unified.mediation.unity</module>
+</modules>
+```
 
-To stop mediating, remove the second `<module>` line and rebuild. `getMediationStatus()` then reports every network as `false`, and every ad call keeps working.
+Use `1.0.0` for the core and complements. Call only `require('ti.admob.unified')` and its factories. To remove a network, remove its declaration and rebuild.
 
 ## Installing an adapter is not the same as enabling a network
 
-This is the part that is easy to get backwards, so it is worth stating plainly: **bundling an adapter does not raise fill by itself, and it does not make the network participate in a single request.** A network participates only when all of this is true:
-
-1. Its publisher account exists and is approved.
-2. It is added as an ad source to the AdMob mediation group serving that ad unit.
-3. Its provider credentials are entered in AdMob and the provider placement is mapped to the AdMob ad unit.
-4. Its privacy and store-disclosure requirements are complete.
-
-Until then the adapter is inert weight — and it is not free weight. On iOS it is roughly 75 MB of vendored frameworks. On Android it pulls six third-party SDKs into the application. On both it adds six Data Safety and App Privacy declarations the application has to answer for, six adapter/SDK pairs to review on every Google Mobile Ads major upgrade, and six adapters that `initialize()` waits on before the first ad.
-
-That is why the pack is opt-in. An application without a configured mediation group gains nothing from installing it.
+Installing an adapter adds its SDK to the application and makes it discoverable by Google Mobile Ads. It does not approve a publisher account, configure a mediation group or validate credentials. Leave unneeded complements out of the build. Their exact frameworks, dependencies and versions are recorded in [Dependencies](../DEPENDENCIES.md).
 
 ## Publisher setup
 
@@ -48,38 +53,49 @@ Google Mobile Ads can still inspect or initialize every installed adapter during
 
 Do not silence these messages with placeholder credentials. Complete the provider mapping, use that provider's test mode, and verify it through single-source testing in Ad Inspector. If the application does not intend to use a network, leave it out of the AdMob mediation group.
 
-Google maintains the current setup instructions and format caveats in its [Android mediation network guide](https://developers.google.com/admob/android/choose-networks) and [iOS mediation network guide](https://developers.google.com/admob/ios/choose-networks). For example, Meta does not currently support anchored or inline adaptive banners through AdMob mediation; use the formats supported by the selected network.
+Google maintains the current setup instructions and format caveats in its [Android mediation network guide](https://developers.google.com/admob/android/choose-networks) and [iOS mediation network guide](https://developers.google.com/admob/ios/choose-networks). Use formats supported by the selected network and adapter version.
+
+## Missing configuration and startup errors
+
+Only install selected complements when the app will use mediation and its publisher accounts, source mappings and credentials are configured. The examples and the core-only test app do not require these accounts. Do not install the complements merely to run Google demo ads.
+
+An internal Android demo build with several adapters produced these messages. Each points to a different failure; only some identify missing credentials:
+
+| Message                                 | What it establishes                                                                                                                                                | Action                                                                                                                                                   |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| AppLovin: `Missing or invalid SDK Key.` | The adapter did not receive a usable SDK key.                                                                                                                      | Verify the publisher SDK key and the AppLovin mapping in AdMob.                                                                                          |
+| AdColony: `Failed to create Adapter.`   | Google could not construct the requested adapter. This does not establish a missing key. AdColony is not one of the five distributed adapters.                     | Inspect the requested ad source/mapping and adapter availability in Ad Inspector. Do not add a legacy SDK or placeholder credentials just to silence it. |
+| Liftoff/Vungle: `Timeout.`              | Initialization did not finish before the SDK timeout. In the observed run, a preceding warning reported conflicting app IDs and selection of `fake-vungle-app-id`. | Check the provider app ID and AdMob mapping; the timeout alone does not prove which configuration value is wrong.                                        |
+
+### Why there is no automatic “missing local key → skip this network” filter
+
+Each optional module only packages dependencies; it does not call each provider's initializer. Google Mobile Ads controls adapter initialization and supplies mediation parameters from AdMob. There is no supported pre-initialization API in the Google Mobile Ads APIs used here that lets this module read all publisher mappings and selectively suppress adapters with missing credentials.
+
+A key may be absent from JavaScript or the native manifest and still be configured in AdMob. The [AppLovin adapter guide](https://developers.google.com/admob/android/mediation/applovin) instructs publishers to enter the SDK key in AdMob; its changelog says adapter 12.1.0.0 stopped checking the Android manifest. The module leaves readiness checks and provider initialization to Google, without using private SDK internals.
+
+Choose the setup that matches the application:
+
+- For Google ads alone, omit complements and call `Admob.initialize({})`. There are no third-party adapters to initialize.
+- For mediation, include one `tiapp.xml` entry per selected network, configure its account and AdMob mappings, and call `Admob.initialize({})`. Google discovers the installed adapters without an `enableMediation` flag or manual provider initializer. Check native initialization results and Ad Inspector; `getMediationStatus()` reports installed classes only.
+
+For a session that deliberately skips initialization of installed adapters, see the [initialization reference](api-reference.md#automatic-adapter-discovery). That exception is global and does not validate credentials or filter individual networks.
 
 ## Portable diagnostics
 
-`getMediationStatus()` lives in `ti.admob.unified` and reports whether each adapter is visible to the native runtime. It answers on both platforms whether or not the pack is installed:
+`getMediationStatus()` belongs to the core and reports native adapter class presence through the same six keys on both platforms. Both platforms return JavaScript Booleans. With AppLovin alone:
 
 ```js
 const Admob = require('ti.admob.unified')
-
 Ti.API.info(JSON.stringify(Admob.getMediationStatus()))
+// { appLovin: true, meta: false, inMobi: false, unity: false,
+//   liftoffMonetize: false, ironSource: false }
 ```
 
-The result has the same keys on both platforms. With the pack installed:
+With all five complements, the first five values are true. `ironSource` is false when its adapter is absent; an independently installed adapter can be detected. With only the core, all six values are false.
 
-```js
-{
-  appLovin: true,
-  meta: true,
-  inMobi: true,
-  unity: true,
-  liftoffMonetize: true,
-  ironSource: true
-}
-```
+The `isAppLovinAvailable()`, `isMetaAvailable()`, `isInMobiAvailable()`, `isVungleAvailable()`, `isUnityAvailable()` and `isIronSourceAvailable()` probes remain available. None validates credentials, initialization success or fill. The legacy `enableOptionalMediationNetworks(config)` remains callable as a diagnostic; it does not enable providers.
 
-Without it, the same six keys report `false`. That is the check to run before publishing an application that is supposed to mediate: six `false` values mean the pack is missing from the build, not that a network failed to fill.
-
-Detection is by native class lookup, so nothing throws and no ad call changes behaviour when the pack is absent. The per-network `isAppLovinAvailable()`, `isMetaAvailable()`, `isInMobiAvailable()`, `isVungleAvailable()`, `isUnityAvailable()`, and `isIronSourceAvailable()` methods answer the same question one network at a time.
-
-This is an installation diagnostic, not evidence that a network filled a request. Use Ad Inspector and the ad response information for request-level diagnostics.
-
-The module exposes the native inspector on both platforms:
+After initialization on a registered test device, inspect actual requests:
 
 ```js
 Admob.addEventListener('ad_inspector_closed', event => {
@@ -88,33 +104,23 @@ Admob.addEventListener('ad_inspector_closed', event => {
 Admob.openAdInspector()
 ```
 
-Use it only in development UI, after initialization, on a registered Google Mobile Ads test device.
+## Privacy and bundled resources
 
-The legacy `enableOptionalMediationNetworks(config)` method remains callable for existing applications, but it does not enable or initialize a network. Adapters are auto-discovered. It now logs the same availability information.
+Continue using UMP and `canRequestAds()` before requests. Each selected iOS complement includes its vendor resources and privacy manifests. Review the current Google/provider guidance for SKAdNetwork entries, privacy disclosures and consent propagation for the networks the application distributes. Android resolves each selected adapter's SDK transitively through its POM.
 
-## Applications that install the pack but sometimes skip it
-
-Auto-discovery has a cost: `initialize()` starts every installed adapter and does not report back until all of them answer or time out. An adapter with no credentials configured can consume its entire timeout, which delays the first ad.
-
-An application that installs the pack for one build flavour and not another, or that wants to skip adapter startup in a given session, passes `disableMediation: true` to `initialize()`. The adapters stay installed; the SDK simply does not start them in that session. See [`initialize(config)`](api-reference.md#initializeconfig).
-
-An application that never mediates does not need that flag. It just leaves the pack out.
-
-## Privacy and store declarations
-
-UMP determines when the application may request ads; continue using `canRequestAds()` as the only request gate. UMP does not replace the publisher's responsibility to configure every selected provider correctly or to keep App Store and Play Data safety declarations accurate.
-
-The vendored iOS frameworks include their distributed privacy manifests and resource bundles. The consuming application must still provide:
-
-- an accurate `NSUserTrackingUsageDescription` if it requests ATT;
-- the current `SKAdNetworkItems` required by Google and the enabled networks;
-- App Store privacy answers that reflect the application's actual mediation configuration;
-- a public privacy policy identifying the advertising providers in use.
-
-On Android, the pack's Maven adapter coordinates bring their matching network SDKs into the application through the module POM. Review the merged manifest and Play Data safety form for the exact providers enabled in AdMob. An application that does not install the pack inherits none of them, and its declarations shrink accordingly.
-
-Never initialize a provider manually unless its current Google mediation guide explicitly requires it. Duplicate initialization can interfere with adapter lifecycle and consent propagation.
+The public example and the test demo use only the core, with no mediation flag. No provider credentials are required to run Google demo ads. Adding a selected complement to `tiapp.xml` makes its adapter discoverable at SDK startup; configure the provider account and AdMob mapping before using that network. Automatic discovery does not validate credentials or eliminate initialization timeouts.
 
 ## Release validation
 
-Before release, verify both platforms with official test ads, inspect adapter versions and initialization status in Ad Inspector, and confirm that only the intended networks are active in the AdMob mediation group. Confirm `getMediationStatus()` reports what the build is supposed to contain. A development build must not use or click production ads.
+Build twelve ZIPs and inspect their framework inventories and generated POMs. Compile isolated consumer applications on both platforms with core only, each of the five complements individually, AppLovin + Unity, and all five together. Check that no framework is duplicated and that resolved dependency versions remain pinned.
+
+Record separately:
+
+- Integration and linking: the build succeeds, expected adapter classes are visible, and official Google test ads load.
+- Provider ad delivery: the provider returns its own test ad with valid publisher accounts and AdMob mappings, confirmed by single-source testing in Ad Inspector.
+
+Google test ads do not prove provider delivery. iOS simulator results do not substitute for device results. Re-run device validation when hardware is available. Do not use or click production ads during development.
+
+## Unity consent with the pinned adapter
+
+The distribution uses Unity adapter `4.20.1.0` on both platforms. It includes the automatic forwarding of `IABTCF_AddtlConsent` introduced in `4.19.0.1` on [Android](https://developers.google.com/admob/android/mediation/unity) and [iOS](https://developers.google.com/admob/ios/mediation/unity). Configure Unity as a consent partner and verify signal propagation with the provider before enabling demand. Adapter presence and a Google test ad do not establish provider consent or delivery.

@@ -1,29 +1,29 @@
 # Integrating the module
 
-The native module owns Google Mobile Ads, UMP, portable proxy behavior, and host lifecycle. The consuming application owns navigation and layout because only it knows which screen is actually being shown.
+The native module manages Google Mobile Ads, UMP, portable proxy behavior and host lifecycle. The consuming application controls navigation and layout, including which screen is visible.
 
 ## Recommended path
 
-Copy the maintained [`example/lib/ads.js`](../example/lib/ads.js) into the consuming application's `lib/` directory. It covers every format implemented by version `2.0.0` and prevents each app from rebuilding the same startup, cleanup, and placement machinery.
+Copy [`example/lib/ads.js`](../example/lib/ads.js) into the consuming application's `lib/` directory. It covers every format implemented by version `1.0.0` and supplies the startup, cleanup and placement code shared by applications.
 
-The complete API and examples are in [Copy-ready JavaScript library](library.md). A compact runnable wiring is in [`example/library-usage.js`](../example/library-usage.js).
+See [Copy-ready JavaScript library](library.md) for the API and examples, and [`example/library-usage.js`](../example/library-usage.js) for a compact runnable integration.
 
 ## Division of responsibility
 
-| Responsibility | Owner |
-| --- | --- |
-| UMP, Google Mobile Ads initialization and native callbacks | Module |
-| Application/activity background and foreground | Module |
-| Automatic banner refresh | Google Mobile Ads SDK, using the ad-unit policy configured in AdMob |
-| Consent → `canRequestAds()` → initialization sequence | Copy-ready library, or the application when using the raw API |
-| Tab/window coverage | Application |
-| Permanent banner host and content inset | Application |
-| Production/test ad-unit selection | Application build configuration |
-| Frequency and natural presentation points for fullscreen ads | Application |
+| Responsibility                                               | Owner                                                               |
+| ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| UMP, Google Mobile Ads initialization and native callbacks   | Module                                                              |
+| Application/activity background and foreground               | Module                                                              |
+| Automatic banner refresh                                     | Google Mobile Ads SDK, using the ad-unit policy configured in AdMob |
+| Consent → `canRequestAds()` → initialization sequence        | Copy-ready library, or the application when using the raw API       |
+| Tab/window coverage                                          | Application                                                         |
+| Permanent banner host and content inset                      | Application                                                         |
+| Production/test ad-unit selection                            | Application build configuration                                     |
+| Frequency and natural presentation points for fullscreen ads | Application                                                         |
 
 ## Screen lifecycle
 
-Application backgrounding and application navigation are different causes.
+Handle screen navigation separately from application backgrounding.
 
 The module automatically follows the Android activity and iOS application lifecycle. Do not add duplicate `Ti.App` pause/resume handlers for banners.
 
@@ -45,20 +45,20 @@ On Android, the module handles activity recreation caused by a configuration cha
 
 Call `load()` once when creating a banner. Do not add `setInterval`, `setTimeout`, or a periodic destroy/create loop. Google Mobile Ads reads the refresh policy configured for that ad unit in AdMob and owns subsequent banner requests.
 
-The application still pauses a placement that is no longer shown. On iOS the module disables native autoload until every pause cause clears. On Android it pauses native ad-view processing; Google's refresh eligibility also requires the banner to be actually visible on screen. The application should therefore call the screen-level pause only when the screen really has been covered or deselected, not while a banner remains visible to the user.
+The application pauses a placement when navigation hides it. On iOS the module disables native autoload until every pause cause clears. On Android it pauses native ad-view processing; Google also requires the banner to be visible for automatic refresh. Keep a visible banner active even if an internal screen state changes.
 
 ## Banner layout
 
-Reserve the slot when the placement is created, not when the first creative arrives. A late expansion moves content and reads as a rendering bug.
+Reserve the slot when creating the placement. Expanding it after the first creative arrives moves content that is already on screen.
 
-Keep these three values aligned:
+Keep these layout values aligned:
 
 ```js
 bannerHost.height = dimension
 content.bottom = dimension
 ```
 
-Do not collapse either value during `pause()` or restore it during `resume()`. That would reflow lists and scroll views twice even though the same placement still exists.
+Keep both values unchanged during `pause()` and `resume()` to avoid reflowing lists and scroll views while the same placement remains in use.
 
 Adaptive banners report their real `event.height` in dp. Fixed banners should reserve the exact height of the requested size. See [Banner ads](banners.md#reserve-real-layout-space).
 
