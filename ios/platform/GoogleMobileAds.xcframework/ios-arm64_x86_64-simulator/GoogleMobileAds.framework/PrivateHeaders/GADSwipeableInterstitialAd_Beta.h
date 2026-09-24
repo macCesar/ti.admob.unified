@@ -22,12 +22,10 @@
 typedef void (^GADSwipeableInterstitialAdLoadCompletionHandler)(
     GADSwipeableInterstitialAd *_Nullable ad, NSError *_Nullable error);
 
-/// A swipeable interstitial ad. This format is large similar to an interstitial ad but is presented
-/// like a banner ad. When displayed, it is intended to occupy the full screen. Use this ad format
-/// if you require strict control over the ad's presentation and closing behavior, including custom
-/// gestures such as swipes to dismiss the interstitial. Similar to interstitial ads, swipeable
-/// interstitials have a minimum required screen hold time you must implement before allowing an ad
-/// to close.
+/// A swipeable interstitial ad. This format is similar to an interstitial ad but is
+/// presented like a banner ad. When displayed, it is intended to occupy the full screen. Use this
+/// ad format if you require strict control over the ad's presentation and closing behavior,
+/// including custom gestures such as swipes to dismiss the interstitial.
 NS_SWIFT_NAME(SwipeableInterstitialAd)
 @interface GADSwipeableInterstitialAd : NSObject
 
@@ -81,5 +79,14 @@ NS_SWIFT_NAME(SwipeableInterstitialAd)
                  options:(nullable GADSwipeableInterstitialAdOptions *)options
        completionHandler:(nonnull GADSwipeableInterstitialAdLoadCompletionHandler)completionHandler
     NS_SWIFT_NAME(load(with:request:options:completionHandler:));
+
+/// Loads a swipeable interstitial ad.
+///
+/// @param adResponseString A server-to-server ad response string.
+/// @param completionHandler A handler to execute when the load operation finishes or times out.
++ (void)loadWithAdResponseString:(nonnull NSString *)adResponseString
+               completionHandler:
+                   (nonnull GADSwipeableInterstitialAdLoadCompletionHandler)completionHandler
+    NS_SWIFT_NAME(load(with:completionHandler:));
 
 @end

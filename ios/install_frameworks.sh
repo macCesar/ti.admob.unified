@@ -4,7 +4,7 @@
 #
 # The mediation adapters and their network SDKs live in the separate
 # ti.admob.unified.mediation module; refresh those with
-# mediation/ios/install_frameworks.sh.
+# mediation/<network>/ios/install_frameworks.sh.
 #
 set -euo pipefail
 

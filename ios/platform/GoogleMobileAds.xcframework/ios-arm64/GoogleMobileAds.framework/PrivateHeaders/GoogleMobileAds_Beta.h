@@ -8,6 +8,9 @@
 #import <GoogleMobileAds/GADAppOpenAdPreloader_Beta.h>
 #import <GoogleMobileAds/GADInterstitialAdPreloader_Beta.h>
 #import <GoogleMobileAds/GADMobileAds_Beta.h>
+#import <GoogleMobileAds/GADPictureInPictureAdDelegate_Beta.h>
+#import <GoogleMobileAds/GADPictureInPictureAdOptions_Beta.h>
+#import <GoogleMobileAds/GADPictureInPictureAd_Beta.h>
 #import <GoogleMobileAds/GADPreloadConfigurationV2_Beta.h>
 #import <GoogleMobileAds/GADPreloadDelegate_Beta.h>
 #import <GoogleMobileAds/GADRequest_Beta.h>
@@ -17,3 +20,4 @@
 #import <GoogleMobileAds/GADSwipeableInterstitialAdOptions_Beta.h>
 #import <GoogleMobileAds/GADSwipeableInterstitialAd_Beta.h>
 #import <GoogleMobileAds/Mediation/GADMediationInitializationConfiguration_Beta.h>
+#import <GoogleMobileAds/Request/GADSwipeableInterstitialSignalRequest_Beta.h>

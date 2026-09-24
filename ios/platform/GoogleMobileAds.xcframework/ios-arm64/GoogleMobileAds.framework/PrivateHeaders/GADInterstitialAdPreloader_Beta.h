@@ -13,6 +13,7 @@
 @class GADInterstitialAd;
 @class GADPreloadConfigurationV2;
 
+/// Preloader for interstitial ads.
 NS_SWIFT_NAME(InterstitialAdPreloader)
 @interface GADInterstitialAdPreloader : NSObject
 

@@ -13,6 +13,7 @@
 @class GADAppOpenAd;
 @class GADPreloadConfigurationV2;
 
+/// Preloader for app open ads.
 NS_SWIFT_NAME(AppOpenAdPreloader)
 @interface GADAppOpenAdPreloader : NSObject
 

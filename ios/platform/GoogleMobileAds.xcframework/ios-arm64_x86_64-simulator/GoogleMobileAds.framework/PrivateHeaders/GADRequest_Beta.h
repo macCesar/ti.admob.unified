@@ -7,6 +7,7 @@
 
 #import <GoogleMobileAds/GADRequest.h>
 
+/// Beta GADRequest properties.
 @interface GADRequest (Beta)
 
 #pragma mark Mediation Adapters

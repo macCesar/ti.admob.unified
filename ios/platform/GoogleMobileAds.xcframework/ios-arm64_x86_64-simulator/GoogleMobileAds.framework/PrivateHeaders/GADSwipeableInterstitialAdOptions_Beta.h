@@ -23,7 +23,8 @@ NS_SWIFT_NAME(SwipeableInterstitialAdOptions)
 @property(nonatomic, assign) NSTimeInterval maxScreenHoldDuration;
 
 /// An optional ad size to request.
-/// If not set, defaults to the device's full screen size.
+/// If this property is set to CGSizeZero (the default), the SDK requests an ad using the device's
+/// full screen size.
 /// If the requested ad size is determined to be too small for an interstitial experience, the ad
 /// request will fail.
 @property(nonatomic, assign) CGSize adSize;
@@ -38,8 +39,11 @@ NS_SWIFT_NAME(SwipeableInterstitialAdOptions)
 @property(nonatomic, assign, readonly, getter=areCustomClickSwipeGestureTapsAllowed)
     BOOL customClickSwipeGestureTapsAllowed NS_SWIFT_NAME(areCustomClickSwipeGestureTapsAllowed);
 
-/// Enables custom click gestures for swipeable interstitial ads by specifying the swipe direction
-/// for detecting custom click gestures, and whether tap gestures are treated as clicks on the ad.
+/// Enables a custom click swipe gesture on the swipeable interstitial ad. Available for allowlisted
+/// publishers only. This setting is ignored for publishers not allowlisted.
+///
+/// @param direction A swipe direction on the ad that should trigger an ad click.
+/// @param tapsAllowed Whether to treat tap gestures as ad clicks.
 - (void)enableCustomClickSwipeGestureWithDirection:(UISwipeGestureRecognizerDirection)direction
                                        tapsAllowed:(BOOL)tapsAllowed
     NS_SWIFT_NAME(enableCustomClickSwipeGesture(direction:tapsAllowed:));
