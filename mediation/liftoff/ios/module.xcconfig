@@ -1,0 +1,2 @@
+// Preserve core and sibling module linker flags; retain adapter categories.
+OTHER_LDFLAGS=$(inherited) -ObjC -framework LiftoffMonetizeAdapter -framework VungleAdsSDK

@@ -1,0 +1,4 @@
+dependencies {
+    // The generated POM propagates only this adapter and its transitive SDK dependencies.
+    implementation 'com.google.ads.mediation:applovin:13.6.4.2'
+}

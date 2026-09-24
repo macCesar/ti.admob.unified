@@ -1,0 +1,28 @@
+PODS:
+  - Google-Mobile-Ads-SDK (13.10.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - GoogleMobileAdsMediationInMobi (11.4.1.0):
+    - Google-Mobile-Ads-SDK (~> 13.3)
+    - InMobiSDK (= 11.4.1)
+  - GoogleUserMessagingPlatform (3.1.0)
+  - InMobiSDK (11.4.1)
+
+DEPENDENCIES:
+  - GoogleMobileAdsMediationInMobi (= 11.4.1.0)
+
+SPEC REPOS:
+  trunk:
+    - Google-Mobile-Ads-SDK
+    - GoogleMobileAdsMediationInMobi
+    - GoogleUserMessagingPlatform
+    - InMobiSDK
+
+SPEC CHECKSUMS:
+  Google-Mobile-Ads-SDK: 8e764c4990ef82c2727fd32e0c4143817b443603
+  GoogleMobileAdsMediationInMobi: 104b8fb019771c870e6f6ecc3e949eb4054d6843
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
+  InMobiSDK: 45b8b7e2af6e241b028b94c63b3d1d6113a12945
+
+PODFILE CHECKSUM: 576b2d1b4076c0fb97c4edfc04491daf820fe74c
+
+COCOAPODS: 1.16.2

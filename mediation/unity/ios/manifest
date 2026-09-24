@@ -1,0 +1,20 @@
+#
+# ti.admob.unified.mediation.unity - AdMob unity mediation dependency module for ti.admob.unified
+# This module carries the vendored mediation XCFrameworks. It exposes no
+# JavaScript API; ti.admob.unified remains the only module an application calls.
+#
+version: 1.0.0
+apiversion: 2
+architectures: arm64 x86_64
+mac: false
+description: AdMob unity mediation dependency module for ti.admob.unified — unity
+author: César Estrada
+license: MIT License
+copyright: Copyright (c) 2026 by César Estrada
+
+# these should not be edited
+name: ti.admob.unified.mediation.unity
+moduleid: ti.admob.unified.mediation.unity
+guid: 50bf9c34-e9d3-43a7-b49b-674e7903cf37
+platform: iphone
+minsdk: 13.2.0.GA

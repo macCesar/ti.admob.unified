@@ -1,26 +1,24 @@
-# ti.admob.unified.mediation
+# Optional mediation modules
 
-The optional AdMob mediation adapter pack for [`ti.admob.unified`](../README.md). It carries the adapters and network SDKs for Meta Audience Network, InMobi, Unity Ads, AppLovin, Liftoff Monetize (Vungle), and ironSource: fourteen XCFrameworks on iOS, six Maven coordinates on Android.
+The first release, `1.0.0`, provides five optional dependency modules with identical identifiers on iOS and Android. Install only the networks the application intends to use. The core `ti.admob.unified` contains Google Mobile Ads and UMP only. Each complement has no JavaScript API and performs no manual provider initialization.
 
-## What it is
+| Network | Module ID | iOS adapter | Android adapter |
+| --- | --- | --- | --- |
+| AppLovin | `ti.admob.unified.mediation.applovin` | `13.6.4.0` | `13.6.4.2` |
+| Meta Audience Network | `ti.admob.unified.mediation.meta` | `6.22.0.0` | `6.22.0.1` |
+| InMobi | `ti.admob.unified.mediation.inmobi` | `11.4.1.0` | `11.4.1.2` |
+| Unity Ads | `ti.admob.unified.mediation.unity` | `4.20.1.0` | `4.20.1.0` |
+| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff` | `7.7.7.0` | `7.7.8.1` |
 
-A carrier module. It exposes no JavaScript API and nothing in an application ever calls it. Declaring it in `tiapp.xml` puts the adapters inside the build; Google Mobile Ads discovers them at runtime, and `ti.admob.unified` reports them through `getMediationStatus()`.
+ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib. Unity Ads 4.20.1 no longer depends on IronSourceAdQualitySDK, so it is not distributed.
 
 ```xml
 <modules>
-  <module version="2.0.0">ti.admob.unified</module>
-  <module version="2.0.0">ti.admob.unified.mediation</module>
+  <module version="1.0.0">ti.admob.unified</module>
+  <module version="1.0.0">ti.admob.unified.mediation.applovin</module>
 </modules>
 ```
 
-Both artifacts ship at the same version and are released together. Install the pack only if the application actually mediates.
+Each network lives in `mediation/<network>/`, with Android and iOS projects. Add several declarations to combine networks. Applications call only the core. See [setup and diagnostics](../documentation/mediation.md) and [dependency inventory](../DEPENDENCIES.md).
 
-## What it is not
-
-**Installing it does not raise fill by itself.** A network participates in a request only when its publisher account is approved, it is added as an ad source to an AdMob mediation group, and its credentials are mapped to the ad unit. Without that configuration the adapter is inert weight — and it is not free weight: it adds roughly 75 MB to the iOS module and brings six third-party SDKs into the Android build, each with its own Data Safety and App Privacy disclosures and its own initialization cost at startup.
-
-That is the reason the adapters no longer ship inside the core module. An application that serves AdMob demand only installs `ti.admob.unified` alone, ~14 MB on iOS, and inherits nothing on Android.
-
-## Documentation
-
-[AdMob mediation](../documentation/mediation.md) covers installation, publisher setup, the `getMediationStatus()` diagnostic, and release validation.
+Build from the platform directory or use `./scripts/build-all.sh` at the repository root. `./scripts/prepare-build.sh --all` verifies permissions and checksums for every module. A single module can be prepared with `./scripts/prepare-build.sh mediation/applovin`.

@@ -11,9 +11,16 @@
 #
 # Usage:
 #   ./scripts/prepare-build.sh              # ti.admob.unified (default)
-#   ./scripts/prepare-build.sh mediation    # ti.admob.unified.mediation
+#   ./scripts/prepare-build.sh mediation/applovin # one network
 #
 set -euo pipefail
+
+if [ "${1:-}" = "--all" ]; then
+  for module in . mediation/applovin mediation/meta mediation/inmobi mediation/unity mediation/liftoff; do
+    "$0" "$module"
+  done
+  exit 0
+fi
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 MODULE_ROOT="$(cd "$REPO_ROOT/${1:-.}" && pwd)"
 PLATFORM_DIR="$MODULE_ROOT/ios/platform"

@@ -1,0 +1,8 @@
+install! 'cocoapods', :integrate_targets => false
+platform :ios, '15.0'
+
+target 'ti.admob.unified.mediation.applovin' do
+  use_frameworks!
+  # GMA and UMP resolve here but are distributed exclusively by the core.
+  pod 'GoogleMobileAdsMediationAppLovin', '= 13.6.4.0'
+end

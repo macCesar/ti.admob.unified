@@ -1,0 +1,28 @@
+PODS:
+  - AppLovinSDK (13.6.4)
+  - Google-Mobile-Ads-SDK (13.10.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - GoogleMobileAdsMediationAppLovin (13.6.4.0):
+    - AppLovinSDK (= 13.6.4)
+    - Google-Mobile-Ads-SDK (~> 13.3)
+  - GoogleUserMessagingPlatform (3.1.0)
+
+DEPENDENCIES:
+  - GoogleMobileAdsMediationAppLovin (= 13.6.4.0)
+
+SPEC REPOS:
+  trunk:
+    - AppLovinSDK
+    - Google-Mobile-Ads-SDK
+    - GoogleMobileAdsMediationAppLovin
+    - GoogleUserMessagingPlatform
+
+SPEC CHECKSUMS:
+  AppLovinSDK: 730be87bac90c5b0f7d507c3a2530213f7685370
+  Google-Mobile-Ads-SDK: 8e764c4990ef82c2727fd32e0c4143817b443603
+  GoogleMobileAdsMediationAppLovin: bd2c7430ec7cc319f65139f18edcf48694d0bf81
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
+
+PODFILE CHECKSUM: 15837ea35fa29a2d96d5dad41801b0ba8b63fdc4
+
+COCOAPODS: 1.16.2

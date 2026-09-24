@@ -1,0 +1,4 @@
+dependencies {
+    // The generated POM propagates only this adapter and its transitive SDK dependencies.
+    implementation 'com.google.ads.mediation:unity:4.20.1.0'
+}

@@ -1,0 +1,32 @@
+PODS:
+  - Google-Mobile-Ads-SDK (13.10.0):
+    - GoogleUserMessagingPlatform (>= 1.1)
+  - GoogleMobileAdsMediationUnity (4.20.1.0):
+    - Google-Mobile-Ads-SDK (~> 13.3)
+    - UnityAds (= 4.20.1)
+  - GoogleUserMessagingPlatform (3.1.0)
+  - UnityAds (4.20.1):
+    - UnityCoherenceLib (= 0.1.0)
+  - UnityCoherenceLib (0.1.0)
+
+DEPENDENCIES:
+  - GoogleMobileAdsMediationUnity (= 4.20.1.0)
+
+SPEC REPOS:
+  trunk:
+    - Google-Mobile-Ads-SDK
+    - GoogleMobileAdsMediationUnity
+    - GoogleUserMessagingPlatform
+    - UnityAds
+    - UnityCoherenceLib
+
+SPEC CHECKSUMS:
+  Google-Mobile-Ads-SDK: 8e764c4990ef82c2727fd32e0c4143817b443603
+  GoogleMobileAdsMediationUnity: cf8c4104b642d1829ce5ad7fd70184b9599bfc50
+  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
+  UnityAds: 70ddc29f85c2e26967afca937e5379118f435747
+  UnityCoherenceLib: d9be08c5b9c2880cb220c7ecd643f97ebda422b7
+
+PODFILE CHECKSUM: 089f077772ff363f59f05834b27760bec9956e52
+
+COCOAPODS: 1.16.2

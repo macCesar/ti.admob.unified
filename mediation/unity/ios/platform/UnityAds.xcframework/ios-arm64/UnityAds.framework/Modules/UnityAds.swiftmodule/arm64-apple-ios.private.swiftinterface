@@ -1,0 +1,487 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.2 effective-5.10 (swiftlang-6.2.0.19.9 clang-1700.3.19.1)
+// swift-module-flags: -target arm64-apple-ios13.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name UnityAds
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.2
+import AVFAudio
+import AVFoundation
+import AdAttributionKit
+import AdSupport
+import AppTrackingTransparency
+import AudioToolbox.AudioServices
+import AudioToolbox
+import CommonCrypto
+import CoreMotion
+import CoreTelephony
+import CryptoKit
+import Foundation
+import Network
+import ObjectiveC
+import QuartzCore
+import StoreKit
+import Swift
+import SystemConfiguration
+import UIKit
+@_exported import UnityAds
+import WebKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+import zlib
+@_hasMissingDesignatedInitializers @objc public class UADSBannerAd : NSObject {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public static func load(_ config: UADSBannerLoadConfiguration, completion: @escaping (UADSBannerAd?, UnityAdsError?) -> Void)
+  #endif
+  @objc public var view: UIView {
+    @objc get
+  }
+  @objc public var onAdExpired: ((UADSBannerAd) -> Void)?
+  @objc deinit
+}
+@objc public protocol UADSBannerAdDelegate : ObjectiveC.NSObjectProtocol {
+  @objc func bannerImpression(_ banner: UADSBannerAd)
+  @objc func bannerDidClick(_ banner: UADSBannerAd)
+  @objc func bannerDidFailShow(_ banner: UADSBannerAd, error: UnityAdsError)
+}
+@objc public class UADSBannerLoadConfigurationBuilder : NSObject {
+  @objc public init(placementId: String, bannerSize: CGSize, delegate: UADSBannerAdDelegate)
+  @objc public func with(adMarkup: String) -> Self
+  @objc public func with(mediationAdUnitId: String) -> Self
+  @objc public func with(mediationInfo: UADSMediationInfo) -> Self
+  @objc public func with(extras: [String : String]) -> Self
+  @objc public func build() -> UADSBannerLoadConfiguration
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class UADSBannerLoadConfiguration : NSObject {
+  @objc public var placementId: String {
+    get
+  }
+  @objc public var adMarkup: String? {
+    get
+  }
+  @objc public var bannerSize: CGSize {
+    get
+  }
+  @objc public var delegate: UADSBannerAdDelegate? {
+    get
+  }
+  @objc public var mediationAdUnitId: String? {
+    get
+  }
+  @objc public var mediationInfo: UADSMediationInfo? {
+    get
+  }
+  @objc public var extras: [String : String] {
+    get
+  }
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class UADSInterstitialAd : UnityAd {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public static func load(_ configuration: UADSLoadConfiguration, completion: @escaping (UADSInterstitialAd?, UnityAdsError?) -> Void)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public func show(_ configuration: UADSShowConfiguration? = nil, delegate: UADSInterstitialShowDelegate)
+  #endif
+  @objc deinit
+}
+@objc public protocol UADSInterstitialShowDelegate : ObjectiveC.NSObjectProtocol {
+  @objc func showDidStart(_ unityAd: UADSInterstitialAd)
+  @objc func showDidClick(_ unityAd: UADSInterstitialAd)
+  @objc func showDidComplete(_ unityAd: UADSInterstitialAd, with finishState: UADSShowFinishState)
+  @objc func showDidFail(_ unityAd: UADSInterstitialAd, error: UnityAdsError)
+}
+@objc public enum UADSShowFinishState : Int {
+  case skipped = 0
+  case completed
+}
+extension UADSShowFinishState : Equatable {
+  public static func == (lhs: UADSShowFinishState, rhs: UADSShowFinishState) -> Bool
+}
+extension UADSShowFinishState : Hashable {
+  public func hash(into hasher: inout Hasher)
+}
+extension UADSShowFinishState : RawRepresentable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  public init?(rawValue: Int)
+  #endif
+  public var rawValue: Int {
+    get
+  }
+  public typealias RawValue = Swift.Int
+}
+@objc public class UADSLoadConfigurationBuilder : NSObject {
+  @objc public init(placementId: String)
+  @objc public func with(adMarkup: String) -> Self
+  @objc public func with(mediationAdUnitId: String) -> Self
+  @objc public func with(mediationInfo: UADSMediationInfo) -> Self
+  @objc public func with(extras: [String : String]) -> Self
+  @objc public func build() -> UADSLoadConfiguration
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class UADSLoadConfiguration : NSObject {
+  @objc public var placementId: String {
+    get
+  }
+  @objc public var adMarkup: String? {
+    get
+  }
+  @objc public var mediationAdUnitId: String? {
+    get
+  }
+  @objc public var mediationInfo: UADSMediationInfo? {
+    get
+  }
+  @objc public var extras: [String : String] {
+    get
+  }
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class UADSRewardedAd : UnityAd {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public static func load(_ configuration: UADSLoadConfiguration, completion: @escaping (UADSRewardedAd?, UnityAdsError?) -> Void)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public func show(_ configuration: UADSShowConfiguration? = nil, delegate: UADSRewardedShowDelegate)
+  #endif
+  @objc deinit
+}
+@objc public protocol UADSRewardedShowDelegate : ObjectiveC.NSObjectProtocol {
+  @objc func showDidStart(_ unityAd: UADSRewardedAd)
+  @objc func showDidClick(_ unityAd: UADSRewardedAd)
+  @objc func showDidComplete(_ unityAd: UADSRewardedAd, with finishState: UADSShowFinishState)
+  @objc func showDidFail(_ unityAd: UADSRewardedAd, error: UnityAdsError)
+  @objc func showDidReceiveReward(_ unityAd: UADSRewardedAd)
+}
+@_inheritsConvenienceInitializers @objc public class UADSShowConfigurationBuilder : NSObject {
+  @objc override dynamic public init()
+  @objc public func with(viewController: UIViewController) -> Self
+  @objc public func with(customRewardString: String) -> Self
+  @objc public func with(extras: [String : String]) -> Self
+  @objc public func build() -> UADSShowConfiguration
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class UADSShowConfiguration : NSObject {
+  @objc public var viewController: UIViewController? {
+    get
+  }
+  @objc public var customRewardString: String? {
+    get
+  }
+  @objc public var extras: [String : String] {
+    get
+  }
+  @objc deinit
+}
+extension Data {
+  public var isGzipped: Bool {
+    get
+  }
+}
+extension Dictionary where Key == Swift.String, Value == Any {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @inlinable public func compactMapKeys<T>(_ transform: (Key) throws -> T?) rethrows -> [T : Value] where T : Swift.Hashable {
+        try reduce(into: [:]) { partialResult, element in
+            let newKey = try transform(element.key)
+            guard let key = newKey else { return }
+            partialResult[key] = element.value
+        }
+    }
+  #endif
+}
+#if compiler(>=5.3) && $NonescapableTypes
+extension Optional {
+  public func filter(if predicate: (Wrapped) -> Bool) -> Wrapped?
+  public func filter(if predicate: (Wrapped) -> Bool, default: Wrapped) -> Wrapped?
+  @discardableResult
+  public func `do`(_ work: (Wrapped) -> Void) -> Wrapped?
+  @discardableResult
+  public func onNone(_ work: () -> Void) -> Wrapped?
+  @discardableResult
+  public func debug(message: String? = nil) -> Wrapped?
+}
+#endif
+#if compiler(>=5.3) && $NonescapableTypes
+extension Result {
+  @discardableResult
+  @inlinable public func `do`(_ work: (Success) -> Void) -> Swift.Result<Success, Failure> {
+        if case .success(let val) = self {
+            work(val)
+        }
+        return self
+    }
+  @discardableResult
+  @inlinable public func onFailure(_ work: (Failure) -> Void) -> Swift.Result<Success, Failure> {
+        if case .failure(let err) = self {
+            work(err)
+        }
+        return self
+    }
+  @inlinable public func sink(_ completion: @escaping (`Self`) -> Void) {
+        completion(self)
+    }
+  @inlinable public func sink(_ completion: ((`Self`) -> Void)?) {
+        completion?(self)
+    }
+  @inlinable public func recover(_ transform: (Failure) -> Success) -> Swift.Result<Success, Failure> {
+        if case .failure(let err) = self {
+            return .success(transform(err))
+        }
+        return self
+    }
+  @inlinable public func getValue(_ transform: (Failure) -> Success) -> Success {
+        switch self {
+        case .success(let success): return success
+        case .failure( let error): return transform(error)
+        }
+    }
+}
+#endif
+#if compiler(>=5.3) && $NonescapableTypes
+extension Result where Failure == any Swift.Error {
+  @inlinable public func tryMap<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> Result<NewSuccess, Failure> {
+        switch self {
+        case let .success(val):
+            do {
+                return try .success(transform(val))
+            } catch {
+                return .failure(error)
+            }
+
+        case let .failure(err):
+            return .failure(err)
+        }
+    }
+  @inlinable public func tryFlatMap<NewSuccess>(_ transform: (Success) throws -> Result<NewSuccess, Failure>) -> Result<NewSuccess, Failure> {
+        switch self {
+        case let .success(val):
+            do {
+                return try transform(val)
+            } catch {
+                return .failure(error)
+            }
+
+        case let .failure(err):
+            return .failure(err)
+        }
+    }
+}
+#endif
+@_inheritsConvenienceInitializers @objc final public class LoggerWrapper : NSObject {
+  @objc final public func log(_ message: String)
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc @_hasMissingDesignatedInitializers public class UnityAd : NSObject {
+  @objc public var onAdExpired: ((UnityAd) -> Void)?
+  @objc deinit
+}
+@objc public class UADSInitializationConfigurationBuilder : NSObject {
+  @objc public init(gameId: String)
+  @objc public func with(testMode: Bool) -> Self
+  @objc public func with(logLevel: UADSLogLevel) -> Self
+  @objc public func with(mediationInfo: UADSMediationInfo) -> Self
+  @objc public func with(extras: [String : String]) -> Self
+  @objc public func build() -> UADSInitializationConfiguration
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class UADSInitializationConfiguration : NSObject {
+  @objc public var gameId: String {
+    get
+  }
+  @objc public var isTestModeEnabled: Bool {
+    get
+  }
+  @objc public var logLevel: UADSLogLevel {
+    get
+  }
+  @objc public var mediationInfo: UADSMediationInfo? {
+    get
+  }
+  @objc public var extras: [String : String] {
+    get
+  }
+  @objc deinit
+}
+@objc public class UADSMediationInfo : NSObject {
+  @objc public var name: String {
+    get
+  }
+  @objc public var version: String {
+    get
+  }
+  @objc public var adapterVersion: String {
+    get
+  }
+  @objc public init(name: String, version: String, adapterVersion: String)
+  @objc deinit
+}
+@objc public enum UADSLogLevel : Int {
+  case disabled
+  case error
+  case info
+  case debug
+}
+extension UADSLogLevel : Equatable {
+  public static func == (lhs: UADSLogLevel, rhs: UADSLogLevel) -> Bool
+}
+extension UADSLogLevel : Hashable {
+  public func hash(into hasher: inout Hasher)
+}
+extension UADSLogLevel : RawRepresentable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  public init?(rawValue: Int)
+  #endif
+  public var rawValue: Int {
+    get
+  }
+  public typealias RawValue = Swift.Int
+}
+@objc @available(*, deprecated, message: "Use UADSTokenConfiguration instead.")
+@objcMembers public class UnityAdsTokenConfiguration : NSObject {
+  @objc public init(adFormat: UnityAdsAdFormat, extras: [String : String] = [:])
+  @objc public static func newWith(adFormat: UnityAdsAdFormat) -> UnityAdsTokenConfiguration
+  @objc public static func newWith(adFormat: UnityAdsAdFormat, extras: [String : String] = [:]) -> UnityAdsTokenConfiguration
+  @objc deinit
+}
+@available(*, deprecated, message: "Use UADSAdFormat instead.")
+@objc public enum UnityAdsAdFormat : Int {
+  case interstitial = 0, rewarded, banner
+}
+extension UnityAdsAdFormat : Equatable {
+  public static func == (lhs: UnityAdsAdFormat, rhs: UnityAdsAdFormat) -> Bool
+}
+extension UnityAdsAdFormat : Hashable {
+  public func hash(into hasher: inout Hasher)
+}
+extension UnityAdsAdFormat : RawRepresentable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  public init?(rawValue: Int)
+  #endif
+  public var rawValue: Int {
+    get
+  }
+  @available(*, deprecated, message: "Use UADSAdFormat instead.")
+  public typealias RawValue = Swift.Int
+}
+@objc public class UADSTokenConfigurationBuilder : NSObject {
+  @objc public init(adFormat: UADSAdFormat)
+  @objc public func with(mediationInfo: UADSMediationInfo) -> Self
+  @objc public func with(extras: [String : String]) -> Self
+  @objc public func with(mediationAdUnitId: String) -> Self
+  @objc public func with(placementId: String) -> Self
+  @objc public func with(bannerSize: CGSize) -> Self
+  @objc public func build() -> UADSTokenConfiguration
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers @objc public class UADSTokenConfiguration : NSObject {
+  @objc public var adFormat: UADSAdFormat {
+    get
+  }
+  @objc public var mediationInfo: UADSMediationInfo? {
+    get
+  }
+  @objc public var extras: [String : String] {
+    get
+  }
+  @objc public var mediationAdUnitId: String? {
+    get
+  }
+  @objc public var placementId: String? {
+    get
+  }
+  @objc public var bannerSize: CGSize {
+    get
+  }
+  @objc deinit
+}
+@objc public enum UADSAdFormat : Int {
+  case unspecified = 0
+  case interstitial
+  case rewarded
+  case banner
+}
+extension UADSAdFormat : Equatable {
+  public static func == (lhs: UADSAdFormat, rhs: UADSAdFormat) -> Bool
+}
+extension UADSAdFormat : Hashable {
+  public func hash(into hasher: inout Hasher)
+}
+extension UADSAdFormat : RawRepresentable {
+  #if compiler(>=5.3) && $NonescapableTypes
+  public init?(rawValue: Int)
+  #endif
+  public var rawValue: Int {
+    get
+  }
+  public typealias RawValue = Swift.Int
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class UnityAds : NSObject {
+  @available(*, deprecated, message: "Use initialize(_:completion:) instead.")
+  @objc public static func initialize(_ gameId: String)
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use initialize(_:completion:) instead.")
+  @objc public static func initialize(_ gameId: String, initializationDelegate: UnityAdsInitializationDelegate?)
+  #endif
+  @available(*, deprecated, message: "Use initialize(_:completion:) instead.")
+  @objc public static func initialize(_ gameId: String, testMode: Bool)
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use initialize(_:completion:) instead.")
+  @objc public static func initialize(_ gameId: String, testMode: Bool, initializationDelegate: UnityAdsInitializationDelegate?)
+  #endif
+  @available(*, deprecated, message: "Use UADSInterstitialAd or UADSRewardedAd instead.")
+  @objc public static func load(_ placementId: String)
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use UADSInterstitialAd or UADSRewardedAd instead.")
+  @objc public static func load(_ placementId: String, loadDelegate: UnityAdsLoadDelegate?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use UADSInterstitialAd or UADSRewardedAd instead.")
+  @objc public static func load(_ placementId: String, options: UADSLoadOptions, loadDelegate: UnityAdsLoadDelegate?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use UADSInterstitialAd or UADSRewardedAd instead.")
+  @objc public static func show(_ viewController: UIViewController, placementId: String, showDelegate: UnityAdsShowDelegate?)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use UADSInterstitialAd or UADSRewardedAd instead.")
+  @objc public static func show(_ viewController: UIViewController, placementId: String, options: UADSShowOptions, showDelegate: UnityAdsShowDelegate?)
+  #endif
+  @available(*, deprecated, message: "This method will be removed in a future version.")
+  @objc public static func getDebugMode() -> Bool
+  @available(*, deprecated, message: "Use UADSInitializationConfigurationBuilder.with(logLevel:) instead.")
+  @objc public static func setDebugMode(_ enableDebugMode: Bool)
+  @available(*, deprecated, message: "This method will be removed in a future version.")
+  @objc public static func isSupported() -> Bool
+  @objc public static func getVersion() -> String
+  @objc public static func isInitialized() -> Bool
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use getToken(_:completion:) with a UADSTokenConfiguration instead.")
+  @objc public static func getToken() -> String?
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use getToken(_:completion:) with a UADSTokenConfiguration instead.")
+  @objc public static func getToken(_ completion: @escaping (String?) -> Void)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @available(*, deprecated, message: "Use getToken(_:completion:) with a UADSTokenConfiguration instead.")
+  @objc public static func getToken(with configuration: UnityAdsTokenConfiguration, completion: @escaping (String?) -> Void)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public static func getToken(_ configuration: UADSTokenConfiguration, completion: @escaping (String?) -> Void)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public static func initialize(_ configuration: UADSInitializationConfiguration, completion: @escaping (UnityAdsError?) -> Void)
+  #endif
+  @objc public static var userIdentifier: String {
+    @objc get
+    @objc set
+  }
+  @objc public static func setUserConsent(_ consentGranted: Bool)
+  @objc public static func setUserOptOut(_ optOut: Bool)
+  @objc public static func setNonBehavioral(_ nonBehavioral: Bool)
+  @objc deinit
+}
+@objc public protocol UnityAdsError {
+  @objc var code: Int { get }
+  @objc var message: String { get }
+}

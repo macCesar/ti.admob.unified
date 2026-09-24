@@ -1,0 +1,20 @@
+#
+# ti.admob.unified.mediation.inmobi - AdMob inmobi mediation dependency module for ti.admob.unified
+# This module carries the vendored mediation XCFrameworks. It exposes no
+# JavaScript API; ti.admob.unified remains the only module an application calls.
+#
+version: 1.0.0
+apiversion: 2
+architectures: arm64 x86_64
+mac: false
+description: AdMob inmobi mediation dependency module for ti.admob.unified — inmobi
+author: César Estrada
+license: MIT License
+copyright: Copyright (c) 2026 by César Estrada
+
+# these should not be edited
+name: ti.admob.unified.mediation.inmobi
+moduleid: ti.admob.unified.mediation.inmobi
+guid: ffa003bc-bac7-4abe-a3d7-35090f3136db
+platform: iphone
+minsdk: 13.2.0.GA

@@ -54,18 +54,18 @@ ios/dist/
 ios/build/
 ios/titanium.xcconfig.bak
 ios/*.xcodeproj/project.xcworkspace/xcuserdata/*
-mediation/ios/metadata.json
-mediation/ios/ti.admob.unified.mediation-iphone-*.zip
-mediation/ios/dist/
-mediation/ios/build/
-mediation/ios/titanium.xcconfig.bak
-mediation/ios/*.xcodeproj/project.xcworkspace/xcuserdata/*
+mediation/*/ios/metadata.json
+mediation/*/ios/ti.admob.unified.mediation-iphone-*.zip
+mediation/*/ios/dist/
+mediation/*/ios/build/
+mediation/*/ios/titanium.xcconfig.bak
+mediation/*/ios/*.xcodeproj/project.xcworkspace/xcuserdata/*
 
 # CocoaPods (temporales - se regeneran con install_frameworks.sh)
 ios/Pods/
 ios/*.xcworkspace
-mediation/ios/Pods/
-mediation/ios/*.xcworkspace
+mediation/*/ios/Pods/
+mediation/*/ios/*.xcworkspace
 
 # ===================================================================
 # ANDROID SPECIFIC
@@ -79,13 +79,13 @@ android/build/
 android/java-sources.txt
 android/.gradle/
 android/local.properties
-mediation/android/libs/
-mediation/android/build.properties
-mediation/android/dist/
-mediation/android/build/
-mediation/android/java-sources.txt
-mediation/android/.gradle/
-mediation/android/local.properties
+mediation/*/android/libs/
+mediation/*/android/build.properties
+mediation/*/android/dist/
+mediation/*/android/build/
+mediation/*/android/java-sources.txt
+mediation/*/android/.gradle/
+mediation/*/android/local.properties
 
 # Gradle wrapper
 android/gradle/wrapper/gradle-wrapper.jar
@@ -98,7 +98,7 @@ android/gradle/wrapper/gradle-wrapper.properties
 # IMPORTANTE: Los frameworks NO se ignoran porque son necesarios
 # para que otros desarrolladores puedan compilar el módulo
 # ios/platform/ - MANTENER EN GIT
-# mediation/ios/platform/ - MANTENER EN GIT
+# mediation/*/ios/platform/ - MANTENER EN GIT
 # android/lib/ - MANTENER EN GIT
 
 # ===================================================================

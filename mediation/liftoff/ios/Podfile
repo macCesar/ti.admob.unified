@@ -1,0 +1,8 @@
+install! 'cocoapods', :integrate_targets => false
+platform :ios, '15.0'
+
+target 'ti.admob.unified.mediation.liftoff' do
+  use_frameworks!
+  # GMA and UMP resolve here but are distributed exclusively by the core.
+  pod 'GoogleMobileAdsMediationVungle', '= 7.7.7.0'
+end
