@@ -74,7 +74,9 @@ function openChildWindow() {
   child.open()
 }
 
-win.addEventListener('close', () => ads.destroyAll())
+win.addEventListener('close', event => {
+  if (!event._closeFromActivityForcedToDestroy) ads.destroyAll()
+})
 win.open()
 
 ads.start({

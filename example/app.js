@@ -961,7 +961,10 @@ Admob.addEventListener('ad_inspector_closed', onAdInspectorClosed)
 win.add(content)
 win.add(bannerHost)
 
-win.addEventListener('close', () => {
+// On Android, Titanium also fires close while it recreates the activity, for
+// example on a light/dark switch. The window survives, so its ads must too.
+win.addEventListener('close', event => {
+  if (event._closeFromActivityForcedToDestroy) return
   windowClosed = true
   content.removeEventListener('postlayout', layoutPage)
 

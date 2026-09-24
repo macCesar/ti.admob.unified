@@ -235,7 +235,10 @@ test('layout adapts to the viewport and closing releases ads and module listener
     assert.equal(card.width, expected)
   }
   const button = app.button('Loading…')
-  app.views.find(view => view.type === 'Window').emit('close')
+  const win = app.views.find(view => view.type === 'Window')
+  win.emit('close', { _closeFromActivityForcedToDestroy: true })
+  assert.ok(app.ads.every(ad => !ad.destroyed))
+  win.emit('close')
   assert.ok(app.ads.every(ad => ad.destroyed))
   app.ads[0].emit('AD_CLOSED')
   assert.equal(app.ads.length, 4)

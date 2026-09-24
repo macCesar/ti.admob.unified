@@ -14,6 +14,7 @@
 - Remove targeting values and test-device IDs from module-owned debug messages.
 - Fix library callback reentrancy, share concurrent privacy/Inspector operations, and wait for iOS adaptive layout.
 - Keep banner-button feedback in the button with light-green styling; reuse the current banner on reload without collapsing its slot.
+- Keep ads and listeners through an Android light/dark switch: the example and the cleanup guide ignore the `close` event Titanium fires while it recreates the activity.
 
 
 First public release. Earlier development snapshots were not published releases.

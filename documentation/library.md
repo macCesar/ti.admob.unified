@@ -155,10 +155,14 @@ ads.openAdInspector().then(event => {
 
 ## Cleanup
 
-Destroy a placement when its owning window closes. For application shutdown or a test harness, dispose every registered placement at once:
+Destroy a placement when its owning window closes. For application shutdown or a test harness, dispose every registered placement at once.
+
+On Android, Titanium also fires `close` while it recreates the window's activity, for example when the user switches between light and dark mode. The window survives, and the event carries `_closeFromActivityForcedToDestroy`. Skip that event, or the ads and their listeners are gone when the window comes back:
 
 ```js
-win.addEventListener('close', () => banner.destroy())
+win.addEventListener('close', event => {
+  if (!event._closeFromActivityForcedToDestroy) banner.destroy()
+})
 
 // Or, when this ads service owns every placement:
 ads.destroyAll()
