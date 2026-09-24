@@ -8,6 +8,13 @@ For migration from `ti.admob`, `ti.android.admob`, or an internal development bu
 
 Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/` to use the application integration library. It sequences privacy and initialization, manages standard/adaptive banners and interstitial, rewarded and app-open ads, and cleans up placements without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/screenshots/example-android-dark.png">
+    <img src=".github/screenshots/example-android-light.png" alt="The example app on Android with Google test ads: fullscreen ad controls and an adaptive banner" width="320">
+  </picture>
+</p>
+
 ## Why one module instead of two
 
 Separate Titanium AdMob modules use different names, events and payloads on each platform. Applications must account for those differences wherever they create ads or handle events.
