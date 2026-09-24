@@ -62,38 +62,9 @@ test('ships a complete English documentation set', () => {
 })
 
 test('documents every public module method and compatibility method', () => {
-  const methods = [
-    'initialize',
-    'requestConsent',
-    'canRequestAds',
-    'canShowAds',
-    'canShowPersonalizedAds',
-    'isGDPR',
-    'isPrivacyOptionsRequired',
-    'presentPrivacyOptions',
-    'resetConsent',
-    'requestTrackingAuthorization',
-    'openAdInspector',
-    'createRewarded',
-    'createInterstitial',
-    'createBanner',
-    'createAdaptiveBanner',
-    'createAppOpen',
-    'setAppVolume',
-    'setTestDevice',
-    'isTestDevice',
-    'isAppLovinAvailable',
-    'isMetaAvailable',
-    'isInMobiAvailable',
-    'isVungleAvailable',
-    'isUnityAvailable',
-    'isIronSourceAvailable',
-    'getMediationStatus',
-    'setAppLovinGDPRConsent',
-    'setInMobiGDPRConsent',
-    'setVungleGDPRConsent',
-    'enableOptionalMediationNetworks'
-  ]
+  const source = read('android/src/ti/admob/unified/TiAdmobUnifiedModule.java')
+  const methods = [...source.matchAll(/@Kroll\.method(?:\([^\n]*\))?\s+public\s+[\w<>]+\s+(\w+)\(/g)].map(match => match[1])
+  assert.ok(methods.length >= 30, 'derive the complete current module surface')
 
   for (const method of methods) {
     assert.match(
@@ -155,7 +126,7 @@ test('provides a modern, safe executable example', () => {
   assert.match(example, /addEventListener\('consent_complete'/)
   assert.match(example, /canRequestAds\(\)/)
   assert.match(example, /requestTrackingAuthorization\(\)/)
-  assert.match(example, /getMediationStatus\(\)/)
+  assert.doesNotMatch(example, /disableMediation|enableMediation/)
   assert.doesNotMatch(example, /OS_IOS/)
   assert.match(example, /createAdaptiveBanner/)
   assert.match(example, /event\.height/)
@@ -302,7 +273,7 @@ test('documents mediation without revenue promises', () => {
   )
 })
 
-test('documents how to install the optional mediation pack', () => {
+test('documents how to install optional network modules', () => {
   const mediation = read('documentation/mediation.md')
   const gettingStarted = read('documentation/getting-started.md')
   const migration = read('documentation/migration.md')
@@ -310,7 +281,7 @@ test('documents how to install the optional mediation pack', () => {
   // The pack is a second <module> line and nothing else. A page that names it
   // without showing that line leaves the reader to guess.
   for (const page of [mediation, gettingStarted, migration]) {
-    assert.match(page, /<module version="2\.0\.0">ti\.admob\.unified\.mediation<\/module>/)
+    assert.match(page, /<module version="1\.0\.0">ti\.admob\.unified\.mediation\.applovin<\/module>/)
   }
 
   // The premise this whole split corrects: an adapter is not a network.
@@ -339,4 +310,30 @@ test('documents how to install the optional mediation pack', () => {
     assert.match(apiSurface, new RegExp(`\\b${method}\\b`))
   }
   assert.doesNotMatch(mediation, /require\('ti\.admob\.unified\.mediation'\)/)
+})
+
+test('describes the first release and five optional networks consistently', () => {
+  for (const file of allDocumentation) {
+    const page = read(file)
+    assert.doesNotMatch(page, /version="2\.0\.0"|Version `2\.0\.0`|Through `1\.x`|From 1\.x/)
+    assert.doesNotMatch(page, /<module[^>]*>ti\.admob\.unified\.mediation<\/module>/)
+  }
+  const mediation = read('documentation/mediation.md')
+  for (const network of ['applovin', 'meta', 'inmobi', 'unity', 'liftoff']) {
+    assert.ok(mediation.includes(`ti.admob.unified.mediation.${network}`))
+  }
+  assert.match(mediation, /IronSourceAdQualitySDK/)
+  assert.match(mediation, /ironSource mediation is deferred/)
+})
+
+
+test('documents native proxy methods and properties derived from Android exports', () => {
+  const directory = path.join(root, 'android/src/ti/admob/unified')
+  for (const file of fs.readdirSync(directory).filter(name => name.endsWith('Proxy.java'))) {
+    const source = fs.readFileSync(path.join(directory, file), 'utf8')
+    for (const match of source.matchAll(/@Kroll\.(method|getProperty|setProperty)(?:\([^\n]*\))?\s+public\s+[\w<>\[\]]+\s+(\w+)\(/g)) {
+      const name = match[1] === 'method' ? match[2] : match[2][3].toLowerCase() + match[2].slice(4)
+      assert.match(apiReference, new RegExp(`\\b${name}\\b`), `${file}: missing ${name}`)
+    }
+  }
 })
