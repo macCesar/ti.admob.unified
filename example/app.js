@@ -17,6 +17,24 @@
 
 const Admob = require('ti.admob.unified')
 
+// Demo-only settings. No personal test-device identifiers ship in this file.
+const consentTestingEnabled = Ti.App.deployType !== 'production'
+const consentModes = {
+  normal: { label: 'Normal', geography: null },
+  eea: { label: 'EEA', geography: Admob.DEBUG_GEOGRAPHY_EEA },
+  us: { label: 'Regulated US state', geography: Admob.DEBUG_GEOGRAPHY_REGULATED_US_STATE },
+  other: { label: 'Other', geography: Admob.DEBUG_GEOGRAPHY_OTHER }
+}
+let consentMode = consentTestingEnabled ? Ti.App.Properties.getString('demo.consentMode', 'normal') : 'normal'
+if (!consentModes[consentMode]) consentMode = 'normal'
+let consentBusy = false
+let adsStoppedForConsent = false
+let consentDeviceInput
+let consentDemoFeedback
+const consentTestButtons = []
+let openUSOptionsAfterRequest = false
+let preserveConsentBannerSlot = false
+
 let initializationStarted = false
 let initializationComplete = false
 let trackingRequestStarted = false
@@ -27,16 +45,19 @@ let interstitial = null
 let rewarded = null
 let appOpen = null
 
-// A small, shared palette keeps the sample easy to restyle.
+// Native semantic color names keep existing views in sync with the system theme.
+// Copy semantic.colors.json beside app.js in a classic app's Resources directory.
 const colors = {
-  canvas: '#F4F6F5', surface: '#FFFFFF', ink: '#182D2B', muted: '#586D68',
-  accent: '#176B58', pressed: '#104F42', tint: '#E5F1EC', line: '#DCE5E0',
-  quiet: '#EDF1EF', error: '#A33030'
+  canvas: 'playgroundCanvas', surface: 'playgroundSurface', ink: 'playgroundInk', muted: 'playgroundMuted',
+  accent: 'playgroundAccent', pressed: 'playgroundPressed', tint: 'playgroundTint', line: 'playgroundLine',
+  quiet: 'playgroundQuiet', error: 'playgroundError'
 }
 const isAndroid = Ti.Platform.osname === 'android'
 const win = Ti.UI.createWindow({
   backgroundColor: colors.canvas,
   title: 'AdMob Playground',
+  barColor: colors.canvas,
+  titleAttributes: { color: colors.ink },
   layout: 'composite',
   extendSafeArea: false
 })
@@ -85,7 +106,7 @@ const sessionLabel = Ti.UI.createLabel({
 const statusLabel = Ti.UI.createLabel({
   text: 'Requesting privacy information…',
   top: '8dp', left: '16dp', right: '16dp', bottom: '16dp',
-  height: Ti.UI.SIZE, color: colors.ink,
+  height: '48dp', verticalAlign: Ti.UI.TEXT_VERTICAL_ALIGNMENT_TOP, color: colors.ink,
   font: { fontSize: '16dp', fontWeight: 'semibold' }
 })
 session.add(sessionLabel)
@@ -103,8 +124,8 @@ function setStatus(message) {
   const now = new Date()
   const time = [now.getHours(), now.getMinutes(), now.getSeconds()]
     .map(value => String(value).padStart(2, '0')).join(':')
-  events.unshift(`${time}  ${message}`)
-  events.length = Math.min(events.length, 8)
+  events.push(`${time}  ${message}`)
+  if (events.length > 8) events.shift()
   activity.text = events.join('\n\n')
   Ti.API.info(`[ti.admob.unified example] ${message}`)
 }
@@ -112,8 +133,8 @@ function setStatus(message) {
 function setBannerHeight(value) {
   const height = Math.max(0, Number(value) || 0)
   const dimension = `${height}dp`
-  bannerHost.height = dimension
-  content.bottom = dimension
+  if (bannerHost.height !== dimension) bannerHost.height = dimension
+  if (content.bottom !== dimension) content.bottom = dimension
 }
 
 let currentSection
@@ -145,7 +166,6 @@ function createAdButton(title, handlers) {
     height: Ti.UI.SIZE, layout: 'vertical', backgroundColor: colors.surface,
     borderRadius: '12dp', borderColor: colors.line, borderWidth: 1
   }) : null
-  let stateLabel
   if (card) {
     card.add(Ti.UI.createLabel({
       text: title, top: '20dp', left: '20dp', right: '20dp', height: Ti.UI.SIZE,
@@ -155,17 +175,12 @@ function createAdButton(title, handlers) {
       text: handlers.description, top: '8dp', left: '20dp', right: '20dp',
       height: Ti.UI.SIZE, color: colors.muted, font: { fontSize: '14dp' }
     }))
-    stateLabel = Ti.UI.createLabel({
-      text: fullscreen ? 'Waiting for initialization…' : 'Not selected', top: '20dp', left: '20dp', right: '20dp',
-      height: Ti.UI.SIZE, color: colors.muted, font: { fontSize: '12dp', fontWeight: 'semibold' }
-    })
-    card.add(stateLabel)
     currentSection.add(card)
     formatCards.push(card)
   }
   const button = Ti.UI.createButton({
-    title: idleTitle,
-    enabled: !fullscreen,
+    title: isFormat ? 'Waiting for initialization…' : idleTitle,
+    enabled: !isFormat,
     top: isFormat ? '12dp' : '8dp', left: isFormat ? '20dp' : '8dp',
     right: isFormat ? '20dp' : '8dp', bottom: isFormat ? '20dp' : 0,
     height: '48dp', color: colors.accent, backgroundColor: colors.tint,
@@ -176,12 +191,10 @@ function createAdButton(title, handlers) {
   let state = 'idle'
   button.creating = function () {
     state = 'creating'
-    if (stateLabel) stateLabel.applyProperties({ text: 'Loading…', color: colors.muted })
     button.applyProperties({ title: 'Loading…', backgroundColor: colors.quiet, color: colors.muted, enabled: false })
   }
   button.ready = function () {
     state = 'ready'
-    if (stateLabel) stateLabel.applyProperties({ text: 'Ready to show', color: colors.accent })
     button.applyProperties({
       title: `Show ${title.toLowerCase()}`, backgroundColor: colors.accent,
       backgroundSelectedColor: colors.pressed, color: colors.surface, enabled: true
@@ -189,25 +202,28 @@ function createAdButton(title, handlers) {
   }
   button.reset = function () {
     state = 'idle'
-    if (stateLabel) stateLabel.applyProperties({ text: fullscreen ? 'Waiting to load…' : 'Not selected', color: colors.muted })
     button.applyProperties({
-      title: idleTitle,
+      title: isFormat && consentBusy ? 'Waiting for consent…'
+        : isFormat && !initializationComplete ? 'Waiting for initialization…'
+          : fullscreen ? 'Waiting to load…' : idleTitle,
       backgroundColor: colors.tint, backgroundSelectedColor: colors.line,
-      color: colors.accent, enabled: !fullscreen
+      color: colors.accent, enabled: !fullscreen && (!isFormat || (initializationComplete && !consentBusy && Admob.canRequestAds()))
     })
   }
   button.failed = function () {
     button.reset()
     state = 'failed'
     button.applyProperties({ title: `Retry ${title.toLowerCase()}`, enabled: true })
-    if (stateLabel) stateLabel.applyProperties({ text: 'Could not load or show. Tap to retry.', color: colors.error })
   }
-  button.loaded = function (message = 'Loaded in the banner slot') {
-    button.reset()
-    if (stateLabel) stateLabel.applyProperties({ text: message, color: colors.accent })
+  button.loaded = function () {
+    state = 'loaded'
+    button.applyProperties({
+      title: `Reload ${title.toLowerCase()}`, backgroundColor: colors.tint,
+      backgroundSelectedColor: colors.line, color: colors.accent, enabled: true
+    })
   }
   button.load = function () {
-    if (windowClosed || state === 'creating' || state === 'showing') return
+    if (windowClosed || consentBusy || state === 'creating' || state === 'showing') return
     if (!handlers.privacy && (!initializationComplete || !Admob.canRequestAds())) {
       setStatus(`${title} blocked until privacy and initialization complete`)
       return
@@ -216,14 +232,13 @@ function createAdButton(title, handlers) {
     handlers.onLoad(button)
   }
   button.addEventListener('click', () => {
-    if (state === 'creating' || state === 'showing') return
+    if (consentBusy || state === 'creating' || state === 'showing') return
     if (state === 'ready') {
       if (windowClosed || !Admob.canRequestAds()) {
         setStatus(`${title} blocked by privacy settings`)
         return
       }
       state = 'showing'
-      if (stateLabel) stateLabel.text = 'Showing…'
       button.applyProperties({ title: 'Showing…', enabled: false, backgroundColor: colors.quiet, color: colors.muted })
       handlers.onShow(button)
       return
@@ -276,13 +291,19 @@ function onModuleInitialized(event) {
   }
 
   initializationComplete = true
+  updateConsentTools()
   sessionLabel.text = 'TEST ADS / SDK READY'
-  Ti.API.info(`Mediation adapters: ${JSON.stringify(Admob.getMediationStatus())}`)
+  loadExampleAds()
+}
+
+function loadExampleAds() {
   setStatus('Preparing ads automatically…')
   interstitialButton.load()
   rewardedButton.load()
   appOpenButton.load()
   adaptiveButton.load()
+  adsStoppedForConsent = false
+  preserveConsentBannerSlot = false
 }
 
 function onTrackingAuthorizationCompleted(event) {
@@ -293,6 +314,7 @@ function onTrackingAuthorizationCompleted(event) {
   )
   Ti.API.info(`ATT status: ${event.status}`)
   initializeAdsOnce()
+  updateConsentTools()
 }
 
 function continueAfterPrivacyGate(canRequestAds) {
@@ -312,52 +334,125 @@ function continueAfterPrivacyGate(canRequestAds) {
   Admob.requestTrackingAuthorization()
 }
 
-// UMP decides whether this user gets a privacy form at all: it is required in
-// the EEA and where a message is configured in the AdMob console, and not
-// elsewhere. Hiding the button alone would leave the section empty, and a
-// hidden view still occupies its slot in a vertical layout, so the space is
-// collapsed too and the reason is written where the button would have been.
-function setPrivacyOptionsAvailable(available) {
-  privacyNote.text = 'No privacy form is required for this session.'
+// Reopening is separate from initial consent; unknown/error is not NOT_REQUIRED.
+function setPrivacyOptionsAvailable(available, error) {
+  const required = available === true || available === 1
+  privacyNote.text = error ? 'Privacy update failed. See Session activity for details.'
+    : available === false || available === 0 ? 'No privacy form is required for this session.'
+      : 'Checking whether privacy options are required…'
   privacyButton.applyProperties({
-    visible: available,
-    touchEnabled: available,
-    height: available ? '48dp' : 0,
-    top: available ? '8dp' : 0
+    visible: required, touchEnabled: required,
+    height: '48dp', top: '8dp'
+  })
+  privacyNote.applyProperties({
+    visible: !required, height: '48dp', top: '8dp'
+  })
+}
+
+function updateConsentTools() {
+  const busy = consentBusy || trackingRequestStarted || (initializationStarted && !initializationComplete)
+  consentTestButtons.forEach(button => {
+    button.enabled = !busy
+    button.title = busy ? 'Run test — please wait…' : 'Run test'
   })
 
-  privacyNote.applyProperties({
-    visible: !available,
-    height: available ? 0 : Ti.UI.SIZE,
-    top: available ? 0 : 10
-  })
+}
+
+function stopAdsForConsent() {
+  preserveConsentBannerSlot = true
+  destroyBanner()
+  destroyInterstitial()
+  destroyRewarded()
+  destroyAppOpen()
+  interstitialButton.reset()
+  rewardedButton.reset()
+  appOpenButton.reset()
+  adsStoppedForConsent = true
+}
+
+function requestExampleConsent(mode, reset = false) {
+  if (windowClosed || consentBusy || trackingRequestStarted || (initializationStarted && !initializationComplete)) return
+  if (!consentTestingEnabled && (reset || mode !== 'normal')) return
+  let deviceIds = []
+  if (consentTestingEnabled) {
+    const value = consentDeviceInput.value.trim()
+    deviceIds = value.split(/[\s,]+/).filter(Boolean)
+    if (mode !== 'normal' && deviceIds.some(id => !/^[a-f0-9]{32}$/i.test(id))) {
+      consentDemoFeedback.text = 'Check the test-device hash: use 32 hexadecimal characters per device, separated by commas.'
+      setStatus(consentDemoFeedback.text)
+      return
+    }
+    if (mode !== 'normal' && isAndroid && !deviceIds.length) {
+      consentDemoFeedback.text = 'Paste this phone’s UMP test-device hash above, then tap Run test. Enter alone does not start the test.'
+      setStatus(consentDemoFeedback.text)
+      return
+    }
+    consentDeviceInput.blur()
+    Ti.App.Properties.setString('demo.consentDeviceIds', value)
+    Ti.App.Properties.setString('demo.consentMode', mode)
+  }
+  if (consentDemoFeedback) consentDemoFeedback.text = `Requesting ${consentModes[mode].label}… Please wait for Google’s response.`
+  consentMode = mode
+  openUSOptionsAfterRequest = reset && mode === 'us'
+  consentBusy = true
+  if (reset) {
+    stopAdsForConsent()
+    Admob.resetConsent()
+  }
+  setPrivacyOptionsAvailable(undefined)
+  updateConsentTools()
+  setStatus(`Requesting consent — ${consentModes[mode].label}${reset ? ' (test consent reset)' : ''}`)
+  const config = mode === 'normal' ? {} : { geography: consentModes[mode].geography, testDeviceIds: deviceIds }
+  Admob.requestConsent(config)
+}
+
+function finishExampleConsent(event, source) {
+  const requiresOptions = event.privacyOptionsRequired === true || event.privacyOptionsRequired === 1
+  if (openUSOptionsAfterRequest && source === 'Consent completed') {
+    openUSOptionsAfterRequest = false
+    if (event.success && requiresOptions) {
+      if (consentDemoFeedback) consentDemoFeedback.text = 'Opening the US privacy form… Choose your preference, then save and close.'
+      setPrivacyOptionsAvailable(event.privacyOptionsRequired)
+      Admob.presentPrivacyOptions({})
+      return
+    }
+  }
+  consentBusy = false
+  if (consentDemoFeedback) {
+    const result = !event.success ? 'Request failed. See Session activity; tap Run test to retry.'
+      : source === 'Privacy options closed' ? 'Privacy form closed. Your choice has been processed.'
+        : requiresOptions ? 'Completed. Review your choice in Advertising privacy options.'
+          : consentMode === 'normal' ? 'Actual region restored. Google reports no privacy form is needed.'
+            : 'Completed. No privacy form is required.'
+    consentDemoFeedback.text = `${consentModes[consentMode].label}: ${result}` + (event.canRequestAds ? ' Ads may load.' : ' Ads remain stopped.')
+  }
+  if (!event.canRequestAds) {
+    preserveConsentBannerSlot = false
+    setBannerHeight(0)
+  }
+  setPrivacyOptionsAvailable(event.privacyOptionsRequired, event.success ? null : event.error || 'Unknown error')
+  setStatus(`${source}: success=${event.success}; canRequestAds=${event.canRequestAds}; privacyOptionsRequired=${event.privacyOptionsRequired}${event.error ? `; error=${event.error}` : ''}`)
+  if (event.canRequestAds) {
+    if (initializationComplete && adsStoppedForConsent) loadExampleAds()
+    else continueAfterPrivacyGate(true)
+  }
+  updateConsentTools()
 }
 
 function onConsentComplete(event) {
-  setPrivacyOptionsAvailable(event.privacyOptionsRequired)
-
-  if (!event.success) {
-    Ti.API.warn(`UMP completed with an error: ${event.error} (${event.code})`)
-  }
-
-  if (!event.canRequestAds) {
-    setStatus('UMP does not currently allow ad requests')
-    return
-  }
-
-  continueAfterPrivacyGate(event.canRequestAds)
+  finishExampleConsent(event, 'Consent completed')
 }
 
 function onPrivacyOptionsDismissed(event) {
-  setPrivacyOptionsAvailable(event.privacyOptionsRequired)
+  finishExampleConsent(event, 'Privacy options closed')
+}
 
+function onAdInspectorClosed(event) {
   if (!event.success) {
-    setStatus(`Privacy options failed: ${event.error}`)
+    setStatus(`Ad Inspector failed: ${event.error} (${event.code})`)
     return
   }
-
-  setStatus(`Privacy options closed; canRequestAds=${event.canRequestAds}`)
-  continueAfterPrivacyGate(event.canRequestAds)
+  setStatus('Ad Inspector closed')
 }
 
 // ---------------------------------------------------------------------------
@@ -388,8 +483,8 @@ function onBannerLoaded(event) {
         ? 'Google returned a standard banner. No collapse arrow.'
         : 'Banner loaded. Collapse capability was not reported.'
   }
-  setStatus(`Adaptive banner loaded at ${event.height}${event.heightUnit}; isCollapsible=${event.isCollapsible}`)
-  activeBannerButton.loaded(message)
+  setStatus(`Adaptive banner loaded at ${event.height}${event.heightUnit}; isCollapsible=${event.isCollapsible}. ${message}`)
+  activeBannerButton.loaded()
 }
 
 function onFixedBannerLoaded() {
@@ -408,13 +503,13 @@ function onBannerDestroyed() {
   setBannerHeight(0)
 }
 
-function destroyBanner() {
+function destroyBanner(preserveSlot = false) {
   fixedButton.reset()
   adaptiveButton.reset()
   collapsibleButton.reset()
   activeBannerButton = null
   if (!banner) {
-    setBannerHeight(0)
+    if (!preserveSlot && !preserveConsentBannerSlot) setBannerHeight(0)
     return
   }
 
@@ -432,7 +527,7 @@ function destroyBanner() {
   }
 
   banner = null
-  setBannerHeight(0)
+  if (!preserveSlot && !preserveConsentBannerSlot) setBannerHeight(0)
 }
 
 // A fixed slot as wide as the screen and 50dp tall. Both numbers come from the
@@ -441,7 +536,11 @@ function destroyBanner() {
 // height is known up front, the slot is reserved before the ad arrives and
 // nothing on screen moves when it loads.
 function loadFixedFullWidthBanner() {
-  destroyBanner()
+  if (banner && activeBannerButton === fixedButton) {
+    banner.load()
+    return
+  }
+  destroyBanner(true)
   activeBannerButton = fixedButton
   fixedButton.creating()
 
@@ -471,8 +570,14 @@ function onAdaptiveLayout() {
 }
 
 function loadAdaptiveBanner(collapsible = false) {
-  destroyBanner()
-  activeBannerButton = collapsible ? collapsibleButton : adaptiveButton
+  const selectedButton = collapsible ? collapsibleButton : adaptiveButton
+  if (banner && activeBannerButton === selectedButton) {
+    if (isAndroid || (banner.rect.width > 0 && banner.rect.height > 0)) banner.load()
+    else banner.addEventListener('postlayout', onAdaptiveLayout)
+    return
+  }
+  destroyBanner(true)
+  activeBannerButton = selectedButton
   activeBannerButton.creating()
 
   banner = Admob.createAdaptiveBanner({
@@ -726,10 +831,16 @@ createAdButton('Resume banner', {
 })
 
 createSection('Privacy & consent', 'Your choices are managed by Google’s consent form.', false)
+// Button and status share one stable slot instead of changing the page height.
+currentSection.layout = 'composite'
+currentSection.height = '64dp'
 
 const privacyButton = createAdButton('Advertising privacy options', {
   privacy: true,
   onLoad: button => {
+    consentBusy = true
+    stopAdsForConsent()
+    updateConsentTools()
     Admob.presentPrivacyOptions({})
     button.reset()
   }
@@ -747,20 +858,96 @@ const privacyNote = Ti.UI.createLabel({
 })
 currentSection.add(privacyNote)
 
-setPrivacyOptionsAvailable(false)
-privacyNote.text = 'Checking whether privacy options are required…'
+setPrivacyOptionsAvailable(undefined)
 
-createSection('Session activity', 'Latest events first. Only Google demo ad units are used.', false)
-const activityPanel = Ti.UI.createView({
-  top: '16dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
-  layout: 'vertical', backgroundColor: colors.surface, borderRadius: '12dp'
+if (consentTestingEnabled) {
+  createSection('Consent demo', 'Choose a scenario and run it. Testing clears the previous consent choice.', false)
+  currentSection.add(Ti.UI.createLabel({
+    text: 'Test device', top: '12dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
+    color: colors.ink, font: { fontSize: '14dp', fontWeight: 'bold' }
+  }))
+  currentSection.add(Ti.UI.createLabel({
+    text: 'Paste the UMP hash once; this app remembers it. Leave empty on an iOS simulator.',
+    top: '4dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
+    color: colors.muted, font: { fontSize: '13dp' }
+  }))
+  consentDeviceInput = Ti.UI.createTextField({
+    value: Ti.App.Properties.getString('demo.consentDeviceIds', ''), hintText: 'UMP test-device hash (from SDK log)',
+    top: '8dp', left: '8dp', right: '8dp', height: '48dp',
+    color: colors.ink, backgroundColor: colors.surface,
+    borderColor: colors.line, borderWidth: 1, borderRadius: '8dp',
+    autocorrect: false, autocapitalization: Ti.UI.TEXT_AUTOCAPITALIZATION_NONE, font: { fontSize: '13dp' }
+  })
+  currentSection.add(consentDeviceInput)
+  const scenarios = [
+    ['eea', 'Europe — consent form', 'Shows the European consent flow.'],
+    ['us', 'US — privacy options', 'Opens US privacy options when available.'],
+    ['other', 'Other region — no form', 'Tests a region where no dialog is normally needed.'],
+    ['normal', 'My actual region', 'Removes the override; Google decides whether a form is needed.']
+  ]
+  let selectedScenario = Math.max(0, scenarios.findIndex(item => item[0] === consentMode))
+  const selector = Ti.UI.createButton({
+    title: scenarios[selectedScenario][1] + ' ▾', enabled: true,
+    top: '8dp', left: '8dp', right: '8dp', height: '48dp',
+    color: colors.accent, backgroundColor: colors.tint, borderRadius: '8dp',
+    font: { fontSize: '14dp', fontWeight: 'semibold' }
+  })
+  currentSection.add(selector)
+  selector.addEventListener('click', () => {
+    const dialog = Ti.UI.createOptionDialog({
+      title: 'Privacy scenario', options: [...scenarios.map(item => item[1]), 'Cancel'], cancel: scenarios.length
+    })
+    dialog.addEventListener('click', event => {
+      if (event.index < 0 || event.index >= scenarios.length) return
+      selectedScenario = event.index
+      selector.title = scenarios[selectedScenario][1] + ' ▾'
+      scenarioHint.text = scenarios[selectedScenario][2]
+    })
+    dialog.show(isAndroid ? {} : { view: selector })
+  })
+  selector.title = scenarios[selectedScenario][1] + ' ▾'
+  const scenarioHint = Ti.UI.createLabel({
+    text: scenarios[selectedScenario][2], top: '8dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
+    color: colors.muted, font: { fontSize: '13dp' }
+  })
+  currentSection.add(scenarioHint)
+  const runButton = createAdButton('Run test', {
+    privacy: true,
+    onLoad: button => { button.reset(); requestExampleConsent(scenarios[selectedScenario][0], true) }
+  })
+  consentTestButtons.push(runButton)
+  consentDemoFeedback = Ti.UI.createLabel({
+    text: 'Ready to test.', top: '8dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
+    color: colors.accent, font: { fontSize: '13dp' }
+  })
+  consentDemoFeedback.height = '64dp'
+  consentDemoFeedback.verticalAlign = Ti.UI.TEXT_VERTICAL_ALIGNMENT_TOP
+  currentSection.add(consentDemoFeedback)
+  updateConsentTools()
+}
+
+createSection('Developer tools', 'Inspect live ad requests with Google’s native Ad Inspector.', false)
+
+createAdButton('Open Ad Inspector', {
+  onLoad: button => {
+    Admob.openAdInspector()
+    button.reset()
+  }
+})
+
+createSection('Session activity', 'Only Google demo ad units are used.', false)
+const activityPanel = Ti.UI.createScrollView({
+  top: '16dp', left: '8dp', right: '8dp', height: '240dp',
+  contentHeight: Ti.UI.SIZE, scrollType: 'vertical', showVerticalScrollIndicator: true,
+  backgroundColor: colors.surface, borderRadius: '12dp'
 })
 activityPanel.add(activity)
 currentSection.add(activityPanel)
 page.add(Ti.UI.createLabel({
+  textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER,
+  color: colors.muted, font: { fontSize: '12dp' },
   text: 'ti.admob.unified 1.0.0  /  Google Mobile Ads + UMP',
-  top: '24dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE,
-  color: colors.muted, font: { fontSize: '12dp' }
+  top: '24dp', left: '24dp', right: '24dp', height: Ti.UI.SIZE
 }))
 
 Admob.addEventListener('module_initialized', onModuleInitialized)
@@ -769,6 +956,7 @@ Admob.addEventListener(
   'privacy_options_dismissed',
   onPrivacyOptionsDismissed
 )
+Admob.addEventListener('ad_inspector_closed', onAdInspectorClosed)
 
 win.add(content)
 win.add(bannerHost)
@@ -783,6 +971,7 @@ win.addEventListener('close', () => {
     'privacy_options_dismissed',
     onPrivacyOptionsDismissed
   )
+  Admob.removeEventListener('ad_inspector_closed', onAdInspectorClosed)
   Admob.removeEventListener(
     'tracking_authorization_completed',
     onTrackingAuthorizationCompleted
@@ -795,5 +984,8 @@ win.addEventListener('close', () => {
   destroyAppOpen()
 })
 
+win.addEventListener('open', function onOpen() {
+  win.removeEventListener('open', onOpen)
+  requestExampleConsent(consentMode)
+})
 win.open()
-Admob.requestConsent({})

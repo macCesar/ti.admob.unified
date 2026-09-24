@@ -19,6 +19,8 @@ let startupOptions = {}
 let gateResolved = false
 let canRequest = false
 let sdkReady = false
+let privacyOperation = null
+let inspectorOperation = null
 
 function call(handler, event) {
   if (typeof handler !== 'function') {
@@ -79,7 +81,7 @@ async function initializeIfAllowed() {
     Admob.initialize(startupOptions.initialization || {})
   })
 
-  sdkReady = initialized.success !== false
+  sdkReady = initialized.success === true || initialized.success === 1
   if (!sdkReady) {
     Ti.API.warn(`[ads] Google Mobile Ads initialization failed: ${initialized.error || 'unknown error'}`)
   }
@@ -105,7 +107,7 @@ function start(options) {
       Admob.requestConsent(startupOptions.consent || {})
     })
 
-    if (consent.success === false) {
+    if (consent.success === false || consent.success === 0) {
       Ti.API.warn(`[ads] UMP completed with an error: ${consent.error || 'unknown error'}`)
     }
 
@@ -158,6 +160,7 @@ function bannerProperties(options, adaptive) {
   }
 
   if (adaptive) {
+    if (Ti.Platform && Ti.Platform.osname !== 'android') properties.height = Ti.UI.FILL
     properties.adaptiveType = options.adaptiveType || Admob.ADAPTIVE_ANCHORED
     for (const key of ['maxHeight', 'collapsible']) {
       if (options[key] !== undefined) {
@@ -227,17 +230,17 @@ function createBannerPlacement(options, adaptive) {
   }
 
   function onFailedToLoad(event) {
-    call(options.onFailedToLoad, event)
     detach(true)
     if (options.collapseOnFailure !== false) {
       reserve(0)
     }
+    call(options.onFailedToLoad, event)
   }
 
   function onDestroyed(event) {
-    call(options.onDestroyed, event)
     detach(false)
     reserve(0)
+    call(options.onDestroyed, event)
   }
 
   function attachForwarder(name, optionName) {
@@ -270,8 +273,31 @@ function createBannerPlacement(options, adaptive) {
       attachForwarder(Admob.AD_OPENED, 'onOpened')
       attachForwarder(Admob.AD_CLOSED, 'onClosed')
 
-      host.add(proxy)
-      proxy.load()
+      if (adaptive && Ti.Platform && Ti.Platform.osname !== 'android') {
+        const target = proxy
+        const anchored = !options.adaptiveType || options.adaptiveType === Admob.ADAPTIVE_ANCHORED
+        let measuredWidth = 0
+        function prepareSize(width) {
+          if (!anchored || width <= 0 || measuredWidth === width) return false
+          measuredWidth = width
+          const height = Admob.getAnchoredAdaptiveBannerSize(width).height
+          const changed = host.height !== `${height}dp`
+          reserve(height)
+          return changed
+        }
+        prepareSize(host.rect ? host.rect.width : 0)
+        function loadAfterLayout() {
+          if (destroyed || proxy !== target || target.rect.width <= 0 || target.rect.height <= 0) return
+          if (prepareSize(target.rect.width)) return
+          target.removeEventListener('postlayout', loadAfterLayout)
+          target.load()
+        }
+        addListener(target, listeners, 'postlayout', loadAfterLayout)
+        host.add(target)
+      } else {
+        host.add(proxy)
+        proxy.load()
+      }
     },
 
     pause() {
@@ -424,8 +450,8 @@ function createFullscreen(options, factoryName) {
             loadRequested = false
           }
           if (entry[0] === 'AD_DESTROYED') {
-            call(options[entry[1]], event)
             detach(false)
+            call(options[entry[1]], event)
             return
           }
           call(options[entry[1]], event)
@@ -510,14 +536,18 @@ function createAppOpen(options) {
   return createFullscreen(options, 'createAppOpen')
 }
 
-async function showPrivacyOptions() {
-  const result = await waitForEvent('privacy_options_dismissed', () => {
-    Admob.presentPrivacyOptions({})
-  })
+function showPrivacyOptions() {
+  if (privacyOperation) return privacyOperation
+  privacyOperation = (async () => {
+    const result = await waitForEvent('privacy_options_dismissed', () => {
+      Admob.presentPrivacyOptions({})
+    })
 
-  await initializeIfAllowed()
-  synchronizeResources('authorizationChanged')
-  return result
+    await initializeIfAllowed()
+    synchronizeResources('authorizationChanged')
+    return result
+  })().finally(() => { privacyOperation = null })
+  return privacyOperation
 }
 
 function isPrivacyOptionsRequired() {
@@ -525,7 +555,10 @@ function isPrivacyOptionsRequired() {
 }
 
 function openAdInspector() {
-  return waitForEvent('ad_inspector_closed', () => Admob.openAdInspector())
+  if (inspectorOperation) return inspectorOperation
+  inspectorOperation = waitForEvent('ad_inspector_closed', () => Admob.openAdInspector())
+    .finally(() => { inspectorOperation = null })
+  return inspectorOperation
 }
 
 function isReady() {

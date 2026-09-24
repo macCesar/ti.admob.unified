@@ -1,0 +1,42 @@
+{
+  "playgroundCanvas": {
+    "light": "#F4F6F5",
+    "dark": "#101A18"
+  },
+  "playgroundSurface": {
+    "light": "#FFFFFF",
+    "dark": "#192724"
+  },
+  "playgroundInk": {
+    "light": "#182D2B",
+    "dark": "#EAF2EE"
+  },
+  "playgroundMuted": {
+    "light": "#586D68",
+    "dark": "#B0C2B9"
+  },
+  "playgroundAccent": {
+    "light": "#176B58",
+    "dark": "#8DD7BE"
+  },
+  "playgroundPressed": {
+    "light": "#104F42",
+    "dark": "#6DB99F"
+  },
+  "playgroundTint": {
+    "light": "#E5F1EC",
+    "dark": "#223F35"
+  },
+  "playgroundLine": {
+    "light": "#DCE5E0",
+    "dark": "#344B43"
+  },
+  "playgroundQuiet": {
+    "light": "#EDF1EF",
+    "dark": "#26352F"
+  },
+  "playgroundError": {
+    "light": "#A33030",
+    "dark": "#FFB4AB"
+  }
+}

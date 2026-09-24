@@ -79,7 +79,7 @@ win.open()
 
 ads.start({
   consent: { tagForUnderAgeOfConsent: false },
-  initialization: { disableMediation: true }
+  initialization: {}
 }).then(result => {
   if (!result.initialized) {
     return
