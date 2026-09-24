@@ -13,7 +13,7 @@
 #import "TiViewProxy.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 
-@interface TiAdmobUnifiedAdaptiveBannerAdProxy : TiViewProxy <GADBannerViewDelegate>
+@interface TiAdmobUnifiedAdaptiveBannerAdProxy : TiViewProxy
 
 @property (nonatomic, strong) NSString *adUnitId;
 // ADAPTIVE_ANCHORED (default) or ADAPTIVE_INLINE, same constants as Android.

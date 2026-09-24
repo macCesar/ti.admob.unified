@@ -11,6 +11,7 @@
 
 #import "TiAdmobUnifiedAdaptiveBannerAdProxy.h"
 #import "TiApp.h"
+#import "TiAdmobUnifiedModule.h"
 #import "TiBase.h"
 #import "TiHost.h"
 #import "TiUtils.h"
@@ -45,20 +46,37 @@
 @end
 
 @interface TiAdmobUnifiedAdaptiveBannerAdProxy ()
-@property (nonatomic, assign) BOOL pendingLoad;
+{
+    TiAdmobUnifiedNativeDelegate *_nativeDelegate;
+    BOOL _pendingLoad;
+    BOOL _pausedByApp;
+    BOOL _pausedByLifecycle;
+    BOOL _isDestroyed;
+    BOOL _destroyedEventFired;
+    BOOL _lifecycleObserved;
+}
 // Two independent pause causes. The application pauses a placement it owns but
 // no longer shows; the application lifecycle pauses everything while the app is
 // in the background. Either one holds the banner paused, so neither may resume
 // the other's. `isPaused` stays readable as the combined state.
-@property (nonatomic, assign) BOOL pausedByApp;
-@property (nonatomic, assign) BOOL pausedByLifecycle;
-@property (nonatomic, assign) BOOL isDestroyed;
-@property (nonatomic, assign) BOOL destroyedEventFired;
-@property (nonatomic, assign) BOOL lifecycleObserved;
-- (BOOL)isPaused;
+- (BOOL)isPaused:(id)unused internal:(id)context;
 @end
 
 @implementation TiAdmobUnifiedAdaptiveBannerAdProxy
+- (TiAdmobUnifiedNativeDelegate *)nativeDelegate:(id)unused context:(id)context
+{
+    if (_nativeDelegate == nil) {
+        _nativeDelegate = [[TiAdmobUnifiedNativeDelegate alloc] init];
+        _nativeDelegate.target = self;
+    }
+    return _nativeDelegate;
+}
+
+
++ (BOOL)accessInstanceVariablesDirectly
+{
+    return NO;
+}
 
 #pragma mark - Lifecycle
 
@@ -71,12 +89,12 @@
         // is not wired yet during init.
         _adaptiveType = @"adaptive_anchored";
         _maxHeight = 50;
-        [self startObservingLifecycle];
+        [self startObservingLifecycle:nil internal:nil];
     }
     return self;
 }
 
-- (BOOL)isInlineAdaptive
+- (BOOL)isInlineAdaptive:(id)unused internal:(id)context
 {
     return [self.adaptiveType isEqualToString:@"adaptive_inline"];
 }
@@ -88,7 +106,7 @@
 
 - (void)dealloc
 {
-    [self stopObservingLifecycle];
+    [self stopObservingLifecycle:nil internal:nil];
     DebugLog(@"[DEBUG] AdaptiveBanner proxy deallocated");
 }
 
@@ -101,51 +119,51 @@
 // a Control Center pull or an incoming-call banner resigns active while the ad
 // is still on screen and still viewable. Pausing there would blank a visible
 // banner for a transient interruption.
-- (void)startObservingLifecycle
+- (void)startObservingLifecycle:(id)unused internal:(id)context
 {
-    if (self.lifecycleObserved) {
+    if (self->_lifecycleObserved) {
         return;
     }
-    self.lifecycleObserved = YES;
+    self->_lifecycleObserved = YES;
 
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    [center addObserver:self
+    [center addObserver:[self nativeDelegate:nil context:nil]
                selector:@selector(applicationDidEnterBackground:)
                    name:UIApplicationDidEnterBackgroundNotification
                  object:nil];
-    [center addObserver:self
+    [center addObserver:[self nativeDelegate:nil context:nil]
                selector:@selector(applicationWillEnterForeground:)
                    name:UIApplicationWillEnterForegroundNotification
                  object:nil];
 }
 
-- (void)stopObservingLifecycle
+- (void)stopObservingLifecycle:(id)unused internal:(id)context
 {
-    if (!self.lifecycleObserved) {
+    if (!self->_lifecycleObserved) {
         return;
     }
-    self.lifecycleObserved = NO;
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    self->_lifecycleObserved = NO;
+    [[NSNotificationCenter defaultCenter] removeObserver:_nativeDelegate];
 }
 
-- (void)applicationDidEnterBackground:(NSNotification *)notification
+- (void)applicationDidEnterBackground:(NSNotification *)notification internal:(id)unused
 {
-    if (self.isDestroyed || self.pausedByLifecycle) {
+    if (self->_isDestroyed || self->_pausedByLifecycle) {
         return;
     }
-    self.pausedByLifecycle = YES;
+    self->_pausedByLifecycle = YES;
     DebugLog(@"[DEBUG] Application backgrounded, pausing adaptive banner");
-    [self applyPause];
+    [self applyPause:nil internal:nil];
 }
 
-- (void)applicationWillEnterForeground:(NSNotification *)notification
+- (void)applicationWillEnterForeground:(NSNotification *)notification internal:(id)unused
 {
-    if (self.isDestroyed || !self.pausedByLifecycle) {
+    if (self->_isDestroyed || !self->_pausedByLifecycle) {
         return;
     }
-    self.pausedByLifecycle = NO;
+    self->_pausedByLifecycle = NO;
     DebugLog(@"[DEBUG] Application foregrounded, resuming adaptive banner");
-    [self applyResume];
+    [self applyResume:nil internal:nil];
 }
 
 - (void)windowWillClose
@@ -172,21 +190,21 @@
 {
     TiAdmobUnifiedAdaptiveBannerAdView *v = [[TiAdmobUnifiedAdaptiveBannerAdView alloc] init];
     v.proxy = self;
-    if (self.isDestroyed) {
+    if (self->_isDestroyed) {
         [v destroyAd];
         return v;
     }
     [v createBannerView];
-    if (self.isPaused) {
+    if ([self isPaused:nil internal:nil]) {
         [v pauseAd];
     }
-    if (self.pendingLoad) {
-        self.pendingLoad = NO;
+    if (self->_pendingLoad) {
+        self->_pendingLoad = NO;
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!self.isDestroyed && !self.isPaused) {
+            if (!self->_isDestroyed && ![self isPaused:nil internal:nil]) {
                 [v loadAd];
-            } else if (!self.isDestroyed) {
-                self.pendingLoad = YES;
+            } else if (!self->_isDestroyed) {
+                self->_pendingLoad = YES;
             }
         });
     }
@@ -197,7 +215,7 @@
 
 - (void)load:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->_isDestroyed) {
         [self fireAdEvent:@"failed_to_load"
                  withData:@{
                      @"error": @"Banner has been destroyed",
@@ -205,8 +223,8 @@
                  }];
         return;
     }
-    if (self.isPaused) {
-        self.pendingLoad = YES;
+    if ([self isPaused:nil internal:nil]) {
+        self->_pendingLoad = YES;
         return;
     }
 
@@ -215,19 +233,19 @@
         if ([tiView isKindOfClass:[TiAdmobUnifiedAdaptiveBannerAdView class]]) {
             [(TiAdmobUnifiedAdaptiveBannerAdView *)tiView loadAd];
         } else {
-            self.pendingLoad = YES;
+            self->_pendingLoad = YES;
         }
     }, NO);
 }
 
 - (void)destroy:(id)args
 {
-    if (self.isDestroyed) {
+    if (self->_isDestroyed) {
         return;
     }
-    self.isDestroyed = YES;
-    self.pendingLoad = NO;
-    [self stopObservingLifecycle];
+    self->_isDestroyed = YES;
+    self->_pendingLoad = NO;
+    [self stopObservingLifecycle:nil internal:nil];
 
     TiThreadPerformOnMainThread(^{
         if ([self viewInitialized]) {
@@ -238,36 +256,36 @@
         }
     }, YES);
 
-    if (!self.destroyedEventFired) {
-        self.destroyedEventFired = YES;
+    if (!self->_destroyedEventFired) {
+        self->_destroyedEventFired = YES;
         [self fireAdEvent:@"destroyed" withData:nil];
     }
 }
 
-- (BOOL)isPaused
+- (BOOL)isPaused:(id)unused internal:(id)context
 {
-    return self.pausedByApp || self.pausedByLifecycle;
+    return self->_pausedByApp || self->_pausedByLifecycle;
 }
 
 - (void)pause:(id)args
 {
-    if (self.isDestroyed || self.pausedByApp) {
+    if (self->_isDestroyed || self->_pausedByApp) {
         return;
     }
-    self.pausedByApp = YES;
-    [self applyPause];
+    self->_pausedByApp = YES;
+    [self applyPause:nil internal:nil];
 }
 
 - (void)resume:(id)args
 {
-    if (self.isDestroyed || !self.pausedByApp) {
+    if (self->_isDestroyed || !self->_pausedByApp) {
         return;
     }
-    self.pausedByApp = NO;
-    [self applyResume];
+    self->_pausedByApp = NO;
+    [self applyResume:nil internal:nil];
 }
 
-- (void)applyPause
+- (void)applyPause:(id)unused internal:(id)context
 {
     TiThreadPerformOnMainThread(^{
         if ([self viewInitialized]) {
@@ -282,9 +300,9 @@
 // Resumes only once every pause cause is gone. A banner the application paused
 // stays paused while the app returns from the background, and vice versa, so a
 // deferred load never fires into a placement nobody is looking at.
-- (void)applyResume
+- (void)applyResume:(id)unused internal:(id)context
 {
-    if (self.isDestroyed || self.isPaused) {
+    if (self->_isDestroyed || [self isPaused:nil internal:nil]) {
         return;
     }
 
@@ -295,8 +313,8 @@
                 [(TiAdmobUnifiedAdaptiveBannerAdView *)tiView resumeAd];
             }
         }
-        if (self.pendingLoad) {
-            self.pendingLoad = NO;
+        if (self->_pendingLoad) {
+            self->_pendingLoad = NO;
             [self load:nil];
         }
     }, NO);
@@ -304,7 +322,7 @@
 
 - (NSNumber *)isLoaded:(id)args
 {
-    if (self.isDestroyed || ![self viewInitialized]) {
+    if (self->_isDestroyed || ![self viewInitialized]) {
         return @(NO);
     }
 
@@ -315,7 +333,7 @@
             loaded = [(TiAdmobUnifiedAdaptiveBannerAdView *)tiView isAdLoaded];
         }
     }, YES);
-    return @(loaded);
+    return [NSNumber numberWithBool:(loaded)];
 }
 
 - (void)destroyAdViewAndCancelRequest:(id)args
@@ -338,9 +356,9 @@
 
 #pragma mark - GADBannerViewDelegate
 
-- (void)bannerViewDidReceiveAd:(GADBannerView *)bannerView
+- (void)bannerViewDidReceiveAd:(GADBannerView *)bannerView internal:(id)unused
 {
-    if (self.isDestroyed) {
+    if (self->_isDestroyed) {
         return;
     }
     TiUIView *tiView = [self view];
@@ -351,22 +369,22 @@
             [tiView layoutIfNeeded];
         });
     }
-    NSMutableDictionary *event = [[self sizeEventForBannerView:bannerView] mutableCopy];
-    event[@"isCollapsible"] = @(bannerView.isCollapsible);
+    NSMutableDictionary *event = [[self sizeEventForBannerView:bannerView internal:nil] mutableCopy];
+    event[@"isCollapsible"] = [NSNumber numberWithBool:(bannerView.isCollapsible)];
     [self fireAdEvent:@"loaded" withData:event];
 }
 
 // Mirrors Android's buildSizeEvent (TiAdmobUnifiedAdaptiveBannerAdView.java):
 // the same seven keys, with the same meaning. GADAdSize is expressed in points,
 // which is what Android calls density-independent pixels.
-- (NSDictionary *)sizeEventForBannerView:(GADBannerView *)bannerView
+- (NSDictionary *)sizeEventForBannerView:(GADBannerView *)bannerView internal:(id)unused
 {
     CGSize size = bannerView.adSize.size;
     UIScreen *screen = bannerView.window.screen ?: [UIScreen mainScreen];
     CGFloat density = screen.scale;
 
     return @{
-        @"adUnitId": self.adUnitId ?: @"",
+        @"adUnitId": bannerView.adUnitID ?: @"",
         @"width": @(size.width),
         @"height": @(size.height),
         @"widthUnit": @"dp",
@@ -379,7 +397,7 @@
 
 - (void)bannerView:(GADBannerView *)bannerView didFailToReceiveAdWithError:(NSError *)error
 {
-    if (self.isDestroyed) {
+    if (self->_isDestroyed) {
         return;
     }
     NSLog(@"[ERROR] Adaptive banner failed to load: %@", error.localizedDescription);
@@ -391,28 +409,28 @@
     }
     [self fireAdEvent:@"failed_to_load"
              withData:@{@"error": error.localizedDescription,
-                        @"code": @(error.code),
-                        @"adUnitId": self.adUnitId ?: @""}];
+                        @"code": @(TiAdmobUnifiedLoadErrorCode(error)),
+                        @"adUnitId": bannerView.adUnitID ?: @""}];
 }
 
-- (void)bannerViewDidRecordImpression:(GADBannerView *)bannerView
+- (void)bannerViewDidRecordImpression:(GADBannerView *)bannerView internal:(id)unused
 {
-    [self fireAdEvent:@"impression" withData:@{@"adUnitId": self.adUnitId ?: @""}];
+    [self fireAdEvent:@"impression" withData:@{@"adUnitId": bannerView.adUnitID ?: @""}];
 }
 
-- (void)bannerViewDidRecordClick:(GADBannerView *)bannerView
+- (void)bannerViewDidRecordClick:(GADBannerView *)bannerView internal:(id)unused
 {
-    [self fireAdEvent:@"clicked" withData:@{@"adUnitId": self.adUnitId ?: @""}];
+    [self fireAdEvent:@"clicked" withData:@{@"adUnitId": bannerView.adUnitID ?: @""}];
 }
 
-- (void)bannerViewWillPresentScreen:(GADBannerView *)bannerView
+- (void)bannerViewWillPresentScreen:(GADBannerView *)bannerView internal:(id)unused
 {
-    [self fireAdEvent:@"opened" withData:@{@"adUnitId": self.adUnitId ?: @""}];
+    [self fireAdEvent:@"opened" withData:@{@"adUnitId": bannerView.adUnitID ?: @""}];
 }
 
-- (void)bannerViewDidDismissScreen:(GADBannerView *)bannerView
+- (void)bannerViewDidDismissScreen:(GADBannerView *)bannerView internal:(id)unused
 {
-    [self fireAdEvent:@"closed" withData:@{@"adUnitId": self.adUnitId ?: @""}];
+    [self fireAdEvent:@"closed" withData:@{@"adUnitId": bannerView.adUnitID ?: @""}];
 }
 
 #pragma mark - Internal
@@ -426,7 +444,7 @@
         // The constant the caller passed, not a shortened label. Android already
         // echoed the constant back, so comparing against ADAPTIVE_ANCHORED now
         // works the same on both platforms.
-        @"adaptiveType": [self isInlineAdaptive] ? @"adaptive_inline" : @"adaptive_anchored"
+        @"adaptiveType": [self isInlineAdaptive:nil internal:nil] ? @"adaptive_inline" : @"adaptive_anchored"
     } mutableCopy];
     if (data != nil) {
         [payload addEntriesFromDictionary:data];
@@ -473,7 +491,7 @@
     // is set in loadAd just before the ad request, when we know the on-screen width.
     bannerView = [[GADBannerView alloc] initWithAdSize:GADAdSizeBanner];
     bannerView.adUnitID = self.proxy.adUnitId;
-    bannerView.delegate = self.proxy;
+    bannerView.delegate = [self.proxy nativeDelegate:nil context:nil];
 
     UIViewController *rootViewController = [TiApp app].controller;
     if (rootViewController) {
@@ -501,6 +519,13 @@
         DebugLog(@"[DEBUG] Adaptive banner load ignored; a request is already active");
         return;
     }
+    if (bannerView && (![bannerView.adUnitID isEqualToString:self.proxy.adUnitId])) {
+        bannerView.delegate = nil;
+        [bannerView removeFromSuperview];
+        bannerView = nil;
+        isAdLoaded = NO;
+        [self createBannerView];
+    }
     if (!bannerView) {
         NSLog(@"[ERROR] Adaptive banner view not initialized");
         [self.proxy fireAdEvent:@"failed_to_load"
@@ -522,7 +547,7 @@
     // with the content and the app caps it, which is why only inline reads
     // maxHeight — same split as AdSize.getInlineAdaptiveBannerAdSize on Android.
     GADAdSize adaptiveSize;
-    if ([self.proxy isInlineAdaptive]) {
+    if ([self.proxy isInlineAdaptive:nil internal:nil]) {
         CGFloat maxHeight = (CGFloat)self.proxy.maxHeight;
         if (maxHeight <= 0) {
             maxHeight = 50;
@@ -542,12 +567,12 @@
 
     if (self.proxy.keywords && [self.proxy.keywords count] > 0) {
         request.keywords = self.proxy.keywords;
-        DebugLog(@"[DEBUG] Added keywords: %@", self.proxy.keywords);
+        DebugLog(@"[DEBUG] Added keywords");
     }
 
     if (self.proxy.contentUrl && [self.proxy.contentUrl length] > 0) {
         request.contentURL = self.proxy.contentUrl;
-        DebugLog(@"[DEBUG] Set content URL: %@", self.proxy.contentUrl);
+        DebugLog(@"[DEBUG] Set content URL");
     }
 
     if (self.proxy.requestAgent && [self.proxy.requestAgent length] > 0) {
@@ -573,6 +598,9 @@
 
     isLoading = YES;
     isAdLoaded = NO;
+    DebugLog(@"[DEBUG] Adaptive geometry host=%@ window=%@ controller=%@ requested=%@",
+        NSStringFromCGRect(self.bounds), NSStringFromCGRect(self.window.bounds),
+        NSStringFromCGRect(bannerView.rootViewController.view.bounds), NSStringFromCGSize(bannerView.adSize.size));
     [bannerView loadRequest:request];
     DebugLog(@"[DEBUG] Adaptive banner load request sent (width=%.0f)", width);
 }

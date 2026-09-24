@@ -18,6 +18,37 @@
 #import "TiAdmobUnifiedBannerAdProxy.h"
 #import "TiAdmobUnifiedAppOpenAdProxy.h"
 
+static void TiAdmobForward(id target, NSString *name, id first, id second)
+{
+    SEL selector = NSSelectorFromString(name);
+    NSMethodSignature *signature = [target methodSignatureForSelector:selector];
+    if (signature == nil) return;
+    NSInvocation *invocation = [NSInvocation invocationWithMethodSignature:signature];
+    invocation.selector = selector;
+    [invocation setArgument:&first atIndex:2];
+    [invocation setArgument:&second atIndex:3];
+    [invocation invokeWithTarget:target];
+}
+
+@implementation TiAdmobUnifiedNativeDelegate
+- (void)bannerViewDidReceiveAd:(GADBannerView *)value { TiAdmobForward(self.target, @"bannerViewDidReceiveAd:internal:", value, nil); }
+- (void)bannerViewDidRecordImpression:(GADBannerView *)value { TiAdmobForward(self.target, @"bannerViewDidRecordImpression:internal:", value, nil); }
+- (void)bannerViewDidRecordClick:(GADBannerView *)value { TiAdmobForward(self.target, @"bannerViewDidRecordClick:internal:", value, nil); }
+- (void)bannerViewWillPresentScreen:(GADBannerView *)value { TiAdmobForward(self.target, @"bannerViewWillPresentScreen:internal:", value, nil); }
+- (void)bannerViewWillDismissScreen:(GADBannerView *)value { TiAdmobForward(self.target, @"bannerViewWillDismissScreen:internal:", value, nil); }
+- (void)bannerViewDidDismissScreen:(GADBannerView *)value { TiAdmobForward(self.target, @"bannerViewDidDismissScreen:internal:", value, nil); }
+- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)value { TiAdmobForward(self.target, @"adDidRecordImpression:internal:", value, nil); }
+- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)value { TiAdmobForward(self.target, @"adDidRecordClick:internal:", value, nil); }
+- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)value { TiAdmobForward(self.target, @"adWillPresentFullScreenContent:internal:", value, nil); }
+- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)value { TiAdmobForward(self.target, @"adDidDismissFullScreenContent:internal:", value, nil); }
+- (void)applicationDidEnterBackground:(NSNotification *)value { TiAdmobForward(self.target, @"applicationDidEnterBackground:internal:", value, nil); }
+- (void)applicationWillEnterForeground:(NSNotification *)value { TiAdmobForward(self.target, @"applicationWillEnterForeground:internal:", value, nil); }
+- (void)bannerView:(GADBannerView *)view didFailToReceiveAdWithError:(NSError *)error
+{ TiAdmobForward(self.target, @"bannerView:didFailToReceiveAdWithError:", view, error); }
+- (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
+{ TiAdmobForward(self.target, @"ad:didFailToPresentFullScreenContentWithError:", ad, error); }
+@end
+
 typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     TiAdmobUnifiedOperationStateNotStarted = 0,
     TiAdmobUnifiedOperationStateInFlight,
@@ -25,15 +56,25 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 };
 
 @interface TiAdmobUnifiedModule ()
+{
+    TiAdmobUnifiedOperationState _initializationState;
+    NSDictionary * _initializationResult;
+    TiAdmobUnifiedOperationState _consentState;
+    NSDictionary * _consentResult;
+    BOOL _consentResetPending;
+    BOOL _privacyInFlight;
+    NSDictionary *_queuedConsent;
+}
 
-@property(nonatomic, assign) TiAdmobUnifiedOperationState initializationState;
-@property(nonatomic, copy) NSDictionary *initializationResult;
-@property(nonatomic, assign) TiAdmobUnifiedOperationState consentState;
-@property(nonatomic, copy) NSDictionary *consentResult;
 
 @end
 
 @implementation TiAdmobUnifiedModule
+
++ (BOOL)accessInstanceVariablesDirectly
+{
+    return NO;
+}
 
 #pragma mark Internal
 
@@ -115,18 +156,20 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // ===================================================================
 - (void)initialize:(id)args
 {
+    ENSURE_UI_THREAD(initialize, args);
     ENSURE_ARG_COUNT(args, 1);
     NSDictionary *config = [args objectAtIndex:0];
+    ENSURE_TYPE(config, NSDictionary);
 
     NSDictionary *cachedResult = nil;
     @synchronized(self) {
-        if (self.initializationState == TiAdmobUnifiedOperationStateComplete) {
-            cachedResult = self.initializationResult;
-        } else if (self.initializationState == TiAdmobUnifiedOperationStateInFlight) {
+        if (self->_initializationState == TiAdmobUnifiedOperationStateComplete) {
+            cachedResult = self->_initializationResult;
+        } else if (self->_initializationState == TiAdmobUnifiedOperationStateInFlight) {
             DebugLog(@"[DEBUG] Google Mobile Ads SDK initialization already in flight");
             return;
         } else {
-            self.initializationState = TiAdmobUnifiedOperationStateInFlight;
+            self->_initializationState = TiAdmobUnifiedOperationStateInFlight;
         }
     }
 
@@ -135,11 +178,12 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
         return;
     }
 
+    @try {
     DebugLog(@"[DEBUG] Initializing Google Mobile Ads SDK");
 
     // Configure request configuration if provided
     if (config != nil) {
-        [self buildRequestConfiguration:config];
+        [self buildRequestConfiguration:config internal:nil];
     }
 
     // Skip mediation adapter initialization when the application declares it
@@ -161,12 +205,16 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
         };
 
         @synchronized(self) {
-            self.initializationResult = event;
-            self.initializationState = TiAdmobUnifiedOperationStateComplete;
+            self->_initializationResult = event;
+            self->_initializationState = TiAdmobUnifiedOperationStateComplete;
         }
 
         [self fireEvent:@"module_initialized" withObject:event];
     }];
+    } @catch (NSException *exception) {
+        @synchronized(self) { self->_initializationState = TiAdmobUnifiedOperationStateNotStarted; }
+        @throw;
+    }
 }
 
 - (void)openAdInspector:(id)args
@@ -188,7 +236,7 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     }];
 }
 
-- (GADRequestConfiguration *)buildRequestConfiguration:(NSDictionary *)config
+- (GADRequestConfiguration *)buildRequestConfiguration:(NSDictionary *)config internal:(id)unused
 {
     GADRequestConfiguration *requestConfig = GADMobileAds.sharedInstance.requestConfiguration;
     
@@ -231,18 +279,27 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // ===================================================================
 - (void)requestConsent:(id)args
 {
+    ENSURE_UI_THREAD(requestConsent, args);
+    if (_consentResetPending || _privacyInFlight) {
+        ENSURE_ARG_COUNT(args, 1);
+        NSDictionary *config = [args objectAtIndex:0];
+        ENSURE_TYPE(config, NSDictionary);
+        _queuedConsent = [config copy];
+        return;
+    }
     ENSURE_ARG_COUNT(args, 1);
     NSDictionary *config = [args objectAtIndex:0];
+    ENSURE_TYPE(config, NSDictionary);
 
     NSDictionary *cachedResult = nil;
     @synchronized(self) {
-        if (self.consentState == TiAdmobUnifiedOperationStateComplete) {
-            cachedResult = self.consentResult;
-        } else if (self.consentState == TiAdmobUnifiedOperationStateInFlight) {
+        if (self->_consentState == TiAdmobUnifiedOperationStateComplete) {
+            cachedResult = self->_consentResult;
+        } else if (self->_consentState == TiAdmobUnifiedOperationStateInFlight) {
             DebugLog(@"[DEBUG] Consent request already in flight");
             return;
         } else {
-            self.consentState = TiAdmobUnifiedOperationStateInFlight;
+            self->_consentState = TiAdmobUnifiedOperationStateInFlight;
         }
     }
 
@@ -251,6 +308,7 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
         return;
     }
 
+    @try {
     DebugLog(@"[DEBUG] Requesting consent");
 
     UMPRequestParameters *parameters = [[UMPRequestParameters alloc] init];
@@ -282,9 +340,10 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     [UMPConsentInformation.sharedInstance
         requestConsentInfoUpdateWithParameters:parameters
         completionHandler:^(NSError *_Nullable error) {
+            if ([self finishPendingConsentReset:nil context:nil]) return;
             if (error) {
                 DebugLog(@"[ERROR] Consent info update failed: %@", error.localizedDescription);
-                [self completeConsentWithError:error];
+                [self completeConsentWithError:error internal:nil];
                 return;
             }
 
@@ -295,27 +354,32 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
                 if (formError != nil) {
                     DebugLog(@"[ERROR] Consent form failed: %@", formError.localizedDescription);
                 }
-                [self completeConsentWithError:formError];
+                [self completeConsentWithError:formError internal:nil];
             }];
         }];
+    } @catch (NSException *exception) {
+        @synchronized(self) { self->_consentState = TiAdmobUnifiedOperationStateNotStarted; }
+        @throw;
+    }
 }
 
-- (void)completeConsentWithError:(NSError *)error
+- (void)completeConsentWithError:(NSError *)error internal:(id)unused
 {
+    if ([self finishPendingConsentReset:nil context:nil]) return;
     BOOL canRequestAds = UMPConsentInformation.sharedInstance.canRequestAds;
     BOOL privacyOptionsRequired =
         UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus
         == UMPPrivacyOptionsRequirementStatusRequired;
 
     NSMutableDictionary *result = [@{
-        @"success": @(error == nil),
-        @"canRequestAds": @(canRequestAds),
-        @"privacyOptionsRequired": @(privacyOptionsRequired),
+        @"success": [NSNumber numberWithBool:(error == nil)],
+        @"canRequestAds": [NSNumber numberWithBool:(canRequestAds)],
+        @"privacyOptionsRequired": [NSNumber numberWithBool:(privacyOptionsRequired)],
         // Compatibility payload keys retained for one transition release.
-        @"canShowAds": @(canRequestAds),
+        @"canShowAds": [NSNumber numberWithBool:(canRequestAds)],
         @"canShowPersonalizedAds": @NO,
         @"isGDPR": [self isGDPR:nil],
-        @"isPrivacyOptionsRequired": @(privacyOptionsRequired)
+        @"isPrivacyOptionsRequired": [NSNumber numberWithBool:(privacyOptionsRequired)]
     } mutableCopy];
 
     if (error != nil) {
@@ -324,8 +388,8 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     }
 
     @synchronized(self) {
-        self.consentResult = result;
-        self.consentState = TiAdmobUnifiedOperationStateComplete;
+        self->_consentResult = result;
+        self->_consentState = error == nil ? TiAdmobUnifiedOperationStateComplete : TiAdmobUnifiedOperationStateNotStarted;
     }
 
     if (error != nil) {
@@ -346,7 +410,7 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 
 - (NSNumber *)canRequestAds:(id)args
 {
-    return @(UMPConsentInformation.sharedInstance.canRequestAds);
+    return [NSNumber numberWithBool:(UMPConsentInformation.sharedInstance.canRequestAds)];
 }
 
 - (NSNumber *)canShowPersonalizedAds:(id)args
@@ -360,18 +424,35 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 {
     NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
     NSString *gdprApplies = [userDefaults stringForKey:@"IABTCF_gdprApplies"] ?: @"0";
-    return @([gdprApplies isEqualToString:@"1"]);
+    return [NSNumber numberWithBool:([gdprApplies isEqualToString:@"1"])];
 }
 
 - (NSNumber *)isPrivacyOptionsRequired:(id)args
 {
-    return @(UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus == UMPPrivacyOptionsRequirementStatusRequired);
+    return [NSNumber numberWithBool:(UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus == UMPPrivacyOptionsRequirementStatusRequired)];
 }
 
 - (void)presentPrivacyOptions:(id)args
 {
+    ENSURE_UI_THREAD(presentPrivacyOptions, args);
+    if (_privacyInFlight) return;
+    if (_consentState == TiAdmobUnifiedOperationStateInFlight) {
+        [self fireEvent:@"privacy_options_dismissed" withObject:@{
+            @"success": @NO, @"code": @(-1), @"error": @"Consent request is still in progress",
+            @"canRequestAds": [self canRequestAds:nil], @"privacyOptionsRequired": [self isPrivacyOptionsRequired:nil]}];
+        return;
+    }
+    _privacyInFlight = YES;
     [UMPConsentForm presentPrivacyOptionsFormFromViewController:nil
                                               completionHandler:^(NSError *_Nullable error) {
+        _privacyInFlight = NO;
+        if (_consentResetPending) {
+            [self fireEvent:@"privacy_options_dismissed" withObject:@{
+                @"success": @NO, @"code": @(-1), @"error": @"Consent reset during privacy options",
+                @"canRequestAds": @NO, @"privacyOptionsRequired": @NO}];
+            [self finishPendingConsentReset:nil context:nil];
+            return;
+        }
         NSMutableDictionary *result = [[NSMutableDictionary alloc] init];
         if (error != nil) {
             [result setObject:@NO forKey:@"success"];
@@ -381,20 +462,55 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
             [result setObject:@YES forKey:@"success"];
         }
 
-        result[@"canRequestAds"] = @(UMPConsentInformation.sharedInstance.canRequestAds);
+        result[@"canRequestAds"] = [NSNumber numberWithBool:(UMPConsentInformation.sharedInstance.canRequestAds)];
         result[@"privacyOptionsRequired"] =
-            @(UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus
-              == UMPPrivacyOptionsRequirementStatusRequired);
+            [NSNumber numberWithBool:(UMPConsentInformation.sharedInstance.privacyOptionsRequirementStatus
+              == UMPPrivacyOptionsRequirementStatusRequired)];
+        // Rebuild cached compatibility fields from the current UMP state.
+        @synchronized(self) {
+            NSMutableDictionary *cached = [result mutableCopy];
+            cached[@"canShowAds"] = result[@"canRequestAds"];
+            cached[@"canShowPersonalizedAds"] = @NO;
+            cached[@"isGDPR"] = [self isGDPR:nil];
+            cached[@"isPrivacyOptionsRequired"] = result[@"privacyOptionsRequired"];
+            self->_consentResult = cached;
+            self->_consentState = error == nil ? TiAdmobUnifiedOperationStateComplete : TiAdmobUnifiedOperationStateNotStarted;
+        }
         [self fireEvent:@"privacy_options_dismissed" withObject:result];
+        NSDictionary *next = _queuedConsent;
+        _queuedConsent = nil;
+        if (next != nil) [self requestConsent:@[next]];
     }];
+}
+
+// Reset only after UMP's outstanding update/form completes. UMP callbacks can
+// mutate SDK state, so ignoring a callback alone would not cancel the operation.
+- (BOOL)finishPendingConsentReset:(id)unused context:(id)context
+{
+    if (!_consentResetPending) return NO;
+    NSDictionary *next = _queuedConsent;
+    _queuedConsent = nil;
+    _consentResetPending = NO;
+    _consentState = TiAdmobUnifiedOperationStateNotStarted;
+    [self resetConsent:nil];
+    if (next != nil) [self requestConsent:@[next]];
+    else [self completeConsentWithError:[NSError errorWithDomain:@"ti.admob.unified" code:-1
+        userInfo:@{NSLocalizedDescriptionKey: @"Consent reset during request"}] internal:nil];
+    return YES;
 }
 
 - (void)resetConsent:(id)args
 {
+    ENSURE_UI_THREAD(resetConsent, args);
+    if (_consentState == TiAdmobUnifiedOperationStateInFlight || _privacyInFlight) {
+        _consentResetPending = YES;
+        _queuedConsent = nil;
+        return;
+    }
     [UMPConsentInformation.sharedInstance reset];
     @synchronized(self) {
-        self.consentState = TiAdmobUnifiedOperationStateNotStarted;
-        self.consentResult = nil;
+        self->_consentState = TiAdmobUnifiedOperationStateNotStarted;
+        self->_consentResult = nil;
     }
     DebugLog(@"[DEBUG] Consent information has been reset");
 }
@@ -404,12 +520,13 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // ===================================================================
 - (void)requestTrackingAuthorization:(id)args
 {
+    ENSURE_UI_THREAD(requestTrackingAuthorization, args);
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 140000
     if (@available(iOS 14, *)) {
         [ATTrackingManager requestTrackingAuthorizationWithCompletionHandler:^(ATTrackingManagerAuthorizationStatus status) {
             NSDictionary *result = @{
                 @"status": @(status),
-                @"authorized": @(status == ATTrackingManagerAuthorizationStatusAuthorized),
+                @"authorized": [NSNumber numberWithBool:(status == ATTrackingManagerAuthorizationStatusAuthorized)],
                 @"applicable": @YES
             };
 
@@ -485,61 +602,69 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // ===================================================================
 - (void)setAppVolume:(id)args
 {
-    // GADMobileAds.applicationVolume was removed by Google. The method is kept as
-    // a no-op for backwards compatibility with JS code that still calls it.
-    // Use the device system volume for ad audio control.
-    ENSURE_ARG_COUNT(args, 1);
-    DebugLog(@"[DEBUG] setAppVolume() is a no-op in GMA 13.x+; use device system volume");
+    id valueArgument = [args isKindOfClass:[NSArray class]] ? ([args count] ? [args objectAtIndex:0] : nil) : args;
+    NSString *value = [[TiUtils stringValue:valueArgument] stringByTrimmingCharactersInSet:NSCharacterSet.whitespaceAndNewlineCharacterSet];
+    if ([value hasSuffix:@"%"]) value = [value substringToIndex:value.length - 1];
+    NSScanner *scanner = [NSScanner scannerWithString:value ?: @""];
+    double percentage;
+    if (![scanner scanDouble:&percentage] || !scanner.isAtEnd || !isfinite(percentage) || percentage < 0 || percentage > 100) {
+        DebugLog(@"[WARN] App volume requires a finite percentage between 0 and 100");
+        return;
+    }
+    TiThreadPerformOnMainThread(^{
+        GADMobileAds.sharedInstance.applicationVolume = percentage / 100.0;
+    }, YES);
 }
 
 - (void)setTestDevice:(id)args
 {
-    ENSURE_ARG_COUNT(args, 1);
-    NSString *deviceId = [TiUtils stringValue:[args objectAtIndex:0]];
+    id value = [args isKindOfClass:[NSArray class]] ? ([args count] ? [args objectAtIndex:0] : nil) : args;
+    NSString *deviceId = [TiUtils stringValue:value];
+    if (deviceId.length == 0) return;
 
     GADRequestConfiguration *requestConfig = GADMobileAds.sharedInstance.requestConfiguration;
     requestConfig.testDeviceIdentifiers = @[deviceId];
 
-    DebugLog(@"[DEBUG] Test device ID set: %@", deviceId);
+    DebugLog(@"[DEBUG] Test device ID set");
 }
 
 - (NSNumber *)isTestDevice:(id)args
 {
     // Returns YES if any test device IDs have been registered via setTestDevice().
     NSArray<NSString *> *testIds = GADMobileAds.sharedInstance.requestConfiguration.testDeviceIdentifiers;
-    return @(testIds != nil && testIds.count > 0);
+    return [NSNumber numberWithBool:(testIds != nil && testIds.count > 0)];
 }
 
 #pragma mark - Mediation network availability (parity with Android)
 
 - (NSNumber *)isAppLovinAvailable:(id)args
 {
-    return @(NSClassFromString(@"GADMediationAdapterAppLovin") != nil);
+    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterAppLovin") != nil)];
 }
 
 - (NSNumber *)isMetaAvailable:(id)args
 {
-    return @(NSClassFromString(@"GADMediationAdapterFacebook") != nil);
+    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterFacebook") != nil)];
 }
 
 - (NSNumber *)isInMobiAvailable:(id)args
 {
-    return @(NSClassFromString(@"GADMediationAdapterInMobi") != nil);
+    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterInMobi") != nil)];
 }
 
 - (NSNumber *)isVungleAvailable:(id)args
 {
-    return @(NSClassFromString(@"GADMediationAdapterVungle") != nil);
+    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterVungle") != nil)];
 }
 
 - (NSNumber *)isUnityAvailable:(id)args
 {
-    return @(NSClassFromString(@"GADMediationAdapterUnity") != nil);
+    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterUnity") != nil)];
 }
 
 - (NSNumber *)isIronSourceAvailable:(id)args
 {
-    return @(NSClassFromString(@"GADMediationAdapterIronSource") != nil);
+    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterIronSource") != nil)];
 }
 
 - (NSDictionary *)getMediationStatus:(id)args

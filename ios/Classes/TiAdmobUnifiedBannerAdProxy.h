@@ -10,7 +10,7 @@
 #import "TiViewProxy.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 
-@interface TiAdmobUnifiedBannerAdProxy : TiViewProxy <GADBannerViewDelegate>
+@interface TiAdmobUnifiedBannerAdProxy : TiViewProxy
 
 // Configuration properties
 @property (nonatomic, strong) NSString *adUnitId;

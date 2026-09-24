@@ -15,6 +15,37 @@
 #import <AppTrackingTransparency/AppTrackingTransparency.h>
 #endif
 
+// Load failures use the shared JavaScript ERROR_CODE_* values. Presentation,
+// UMP and Ad Inspector retain their own native error-code domains.
+static inline NSInteger TiAdmobUnifiedLoadErrorCode(NSError *error)
+{
+    NSError *cause = error;
+    for (NSUInteger depth = 0; cause != nil && depth < 4; depth++) {
+        NSLog(@"[DEBUG] Ad load error domain=%@ code=%ld", cause.domain, (long)cause.code);
+        id next = cause.userInfo[NSUnderlyingErrorKey];
+        cause = [next isKindOfClass:[NSError class]] ? next : nil;
+    }
+    if (![error.domain isEqualToString:GADErrorDomain]) return 0;
+    switch (error.code) {
+        case GADErrorInvalidRequest:
+        case GADErrorInvalidArgument:
+        case GADErrorAdAlreadyUsed:
+        case GADErrorReceivedInvalidAdString: return 1;
+        case GADErrorNoFill: return 3;
+        case GADErrorNetworkError:
+        case GADErrorTimeout: return 2;
+        case GADErrorMediationDataError:
+        case GADErrorMediationAdapterError: return 0;
+        case GADErrorMediationInvalidAdSize: return 10;
+        case GADErrorApplicationIdentifierMissing: return 8;
+        default: return 0;
+    }
+}
+
+@interface TiAdmobUnifiedNativeDelegate : NSObject <GADBannerViewDelegate, GADFullScreenContentDelegate>
+@property(nonatomic, weak) id target;
+@end
+
 @interface TiAdmobUnifiedModule : TiModule {
 
 }

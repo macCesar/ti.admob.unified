@@ -38,10 +38,12 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	private AdView adView;
 	private boolean isAdLoaded = false;
 	private boolean isLoading;
+    private boolean configurationChanged;
 	private boolean isPaused;
 	private boolean isDestroyed;
 	private boolean pendingLoad;
 	private String adUnitId;
+    private String requestAdUnitId;
 	private AdSize adSize = AdSize.BANNER;
 	
 	// Advanced properties
@@ -89,6 +91,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		adView.setAdSize(adSize);
 		bannerProxy.setProperty(TiC.PROPERTY_HEIGHT, adSize.getHeight());
 		adView.setAdUnitId(adUnitId);
+        requestAdUnitId = adUnitId;
 		
 		adView.setAdListener(new com.google.android.gms.ads.AdListener() {
 			@Override
@@ -115,7 +118,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 				
 				Map<String, Object> event = new HashMap<>();
 				event.put("error", loadAdError.getMessage());
-				event.put("code", loadAdError.getCode());
+				event.put("code", TiAdmobUnifiedModule.loadErrorCode(loadAdError));
 				fireAdEvent(TiAdmobUnifiedModule.AD_FAILED_TO_LOAD, event);
 			}
 
@@ -168,6 +171,10 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			Log.d(LCAT, "Ignoring duplicate banner load while a request is active");
 			return;
 		}
+        if (configurationChanged) {
+            configurationChanged = false;
+            recreateAdView();
+        }
 		if (adView == null) {
 			Log.d(LCAT, "AdView not created yet, creating now");
 			createAdView();
@@ -187,18 +194,18 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			for (String keyword : keywords) {
 				adRequestBuilder.addKeyword(keyword);
 			}
-			Log.d(LCAT, "Added keywords: " + java.util.Arrays.toString(keywords));
+			Log.d(LCAT, "Added keywords");
 		}
 		
 		// Set content URL
 		if (contentUrl != null) {
 			adRequestBuilder.setContentUrl(contentUrl);
-			Log.d(LCAT, "Set content URL: " + contentUrl);
+			Log.d(LCAT, "Set content URL");
 		}
 
 		if (requestAgent != null && !requestAgent.isEmpty()) {
 			adRequestBuilder.setRequestAgent(requestAgent);
-			Log.d(LCAT, "Set request agent: " + requestAgent);
+			Log.d(LCAT, "Set request agent");
 		}
 		
 		// Add network extras
@@ -220,7 +227,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		Log.d(LCAT, "Ad unit ID set to: " + unitId);
 		
 		if (adView != null) {
-			adView.setAdUnitId(unitId);
+			configurationChanged = true;
 		}
 	}
 
@@ -231,7 +238,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		
 		// If AdView exists, recreate it with new size
 		if (adView != null) {
-			recreateAdView();
+			configurationChanged = true;
 		}
 	}
 	
@@ -247,7 +254,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 			
 			// If AdView exists, recreate it with new size
 			if (adView != null) {
-				recreateAdView();
+				configurationChanged = true;
 			}
 		}
 	}
@@ -255,13 +262,13 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 	public void setKeywords(String[] keywordArray)
 	{
 		this.keywords = keywordArray;
-		Log.d(LCAT, "Keywords set: " + (keywordArray != null ? java.util.Arrays.toString(keywordArray) : "null"));
+		Log.d(LCAT, "Keywords set");
 	}
 	
 	public void setContentUrl(String url)
 	{
 		this.contentUrl = url;
-		Log.d(LCAT, "Content URL set: " + url);
+		Log.d(LCAT, "Content URL set");
 	}
 
 	public void setRequestAgent(String agent)
@@ -384,7 +391,7 @@ public class TiAdmobUnifiedBannerAdView extends TiUIView
 		if (data == null) {
 			data = new HashMap<>();
 		}
-		data.put("adUnitId", adUnitId != null ? adUnitId : "");
+		data.put("adUnitId", requestAdUnitId != null ? requestAdUnitId : (adUnitId != null ? adUnitId : ""));
 		data.put("adType", TiAdmobUnifiedModule.AD_TYPE_BANNER);
 		data.put("isAdaptive", false);
 		Log.d(LCAT, "Firing event: " + eventName);

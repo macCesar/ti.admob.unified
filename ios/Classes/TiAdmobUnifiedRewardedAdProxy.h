@@ -10,13 +10,13 @@
 #import "TiProxy.h"
 #import <GoogleMobileAds/GoogleMobileAds.h>
 
-@interface TiAdmobUnifiedRewardedAdProxy : TiProxy <GADFullScreenContentDelegate>
+@interface TiAdmobUnifiedRewardedAdProxy : TiProxy
 
 // Only the configuration an application supplies is declared here. The native ad
 // object and the internal state live in a class extension in the .m, so the
 // JavaScript surface matches Android's, which exposes neither.
 @property (nonatomic, strong) NSString *adUnitId;
-@property (nonatomic, assign) BOOL autoReload;
+@property (nonatomic, strong) NSNumber *autoReload;
 @property (nonatomic, strong) NSArray *keywords;
 @property (nonatomic, strong) NSDictionary *extras;
 // Identifies what issued the request. Google reserves it for libraries that

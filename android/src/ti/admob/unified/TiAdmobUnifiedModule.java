@@ -34,6 +34,15 @@ import java.util.Map;
 @Kroll.module(name="TiAdmobUnified", id="ti.admob.unified")
 public class TiAdmobUnifiedModule extends KrollModule
 {
+    static int loadErrorCode(com.google.android.gms.ads.LoadAdError error)
+    {
+        com.google.android.gms.ads.AdError cause = error;
+        for (int depth = 0; cause != null && depth < 4; depth++, cause = cause.getCause()) {
+            Log.d("TiAdmobUnifiedModule", "Ad load error domain=" + cause.getDomain() + " code=" + cause.getCode());
+        }
+        return error.getCode();
+    }
+
 	// Standard Debugging variables
 	private static final String LCAT = "TiAdmobUnifiedModule";
 	private static final boolean DBG = TiConfig.LOGD;
@@ -48,9 +57,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 	private final Object initializationLock = new Object();
 	private OperationState initializationState = OperationState.NOT_STARTED;
 	private Map<String, Object> initializationResult;
+    private Float pendingAppVolume;
 	private final Object consentLock = new Object();
 	private OperationState consentState = OperationState.NOT_STARTED;
 	private Map<String, Object> consentResult;
+    private boolean consentResetPending;
+    private boolean privacyInFlight;
+    private KrollDict queuedConsent;
 
 	@Kroll.method
 	public KrollDict getAnchoredAdaptiveBannerSize(double width) {
@@ -177,7 +190,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// ===================================================================
 	// SDK INITIALIZATION METHODS
 	// ===================================================================
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void initialize(KrollDict config)
 	{
 		Map<String, Object> cachedResult = null;
@@ -197,6 +210,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			return;
 		}
 
+        try {
 		Log.d(LCAT, "Initializing Google Mobile Ads SDK");
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
@@ -223,7 +237,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			if (config.containsKey("testDeviceIds")) {
 				String[] testDeviceIds = config.getStringArray("testDeviceIds");
 				if (testDeviceIds != null && testDeviceIds.length > 0) {
-					Log.d(LCAT, "Setting test device IDs: " + Arrays.toString(testDeviceIds));
+					Log.d(LCAT, "Setting test device IDs");
 					requestConfigBuilder.setTestDeviceIds(Arrays.asList(testDeviceIds));
 				}
 			}
@@ -253,6 +267,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
 			@Override
 			public void onInitializationComplete(InitializationStatus initializationStatus) {
+                if (pendingAppVolume != null) MobileAds.setAppVolume(pendingAppVolume);
 				Log.d(LCAT, "AdMob SDK initialization completed successfully");
 				
 				// Log adapter statuses for debugging
@@ -273,9 +288,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 				fireEvent("module_initialized", event);
 			}
 		});
+        } catch (RuntimeException error) {
+            synchronized (initializationLock) { initializationState = OperationState.NOT_STARTED; }
+            throw error;
+        }
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void openAdInspector()
 	{
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
@@ -415,8 +434,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 	public boolean isAppLovinAvailable()
 	{
 		return isClassAvailable(
-			"com.google.ads.mediation.applovin.AppLovinMediationAdapter",
-			"com.applovin.sdk.AppLovinSdk"
+			"com.google.ads.mediation.applovin.AppLovinMediationAdapter"
 		);
 	}
 
@@ -424,20 +442,16 @@ public class TiAdmobUnifiedModule extends KrollModule
 	public boolean isMetaAvailable()
 	{
 		return isClassAvailable(
-			"com.google.ads.mediation.facebook.FacebookMediationAdapter",
-			"com.facebook.ads.AudienceNetworkAds"
+			"com.google.ads.mediation.facebook.FacebookMediationAdapter"
 		);
 	}
 
 	@Kroll.method
 	public boolean isVungleAvailable()
 	{
-		// Vungle 7.x (Liftoff Monetize) renamed the package from com.vungle.warren
-		// to com.vungle.ads. Probe both so detection works with either adapter.
+		// Report adapter presence, matching the iOS diagnostic.
 		return isClassAvailable(
-			"com.google.ads.mediation.vungle.VungleMediationAdapter",
-			"com.vungle.ads.VungleAds",
-			"com.vungle.warren.Vungle"
+			"com.google.ads.mediation.vungle.VungleMediationAdapter"
 		);
 	}
 
@@ -445,8 +459,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 	public boolean isInMobiAvailable()
 	{
 		return isClassAvailable(
-			"com.google.ads.mediation.inmobi.InMobiMediationAdapter",
-			"com.inmobi.sdk.InMobiSdk"
+			"com.google.ads.mediation.inmobi.InMobiMediationAdapter"
 		);
 	}
 
@@ -454,8 +467,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 	public boolean isUnityAvailable()
 	{
 		return isClassAvailable(
-			"com.google.ads.mediation.unity.UnityMediationAdapter",
-			"com.unity3d.ads.UnityAds"
+			"com.google.ads.mediation.unity.UnityMediationAdapter"
 		);
 	}
 
@@ -463,8 +475,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 	public boolean isIronSourceAvailable()
 	{
 		return isClassAvailable(
-			"com.google.ads.mediation.ironsource.IronSourceMediationAdapter",
-			"com.ironsource.mediationsdk.IronSource"
+			"com.google.ads.mediation.ironsource.IronSourceMediationAdapter"
 		);
 	}
 
@@ -493,9 +504,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// ===================================================================
 	// CONSENT MANAGEMENT METHODS (GDPR/CCPA/UMP)
 	// ===================================================================
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void requestConsent(KrollDict config)
-	{
+    {
+        if (consentResetPending || privacyInFlight) {
+            queuedConsent = config == null ? new KrollDict() : config;
+            return;
+        }
 		Map<String, Object> cachedResult = null;
 		synchronized (consentLock) {
 			if (consentState == OperationState.COMPLETE) {
@@ -513,6 +528,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			return;
 		}
 
+        try {
 		Log.d(LCAT, "Requesting consent");
 		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
@@ -560,6 +576,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			new ConsentInformation.OnConsentInfoUpdateSuccessListener() {
 				@Override
 				public void onConsentInfoUpdateSuccess() {
+                    if (finishPendingConsentReset(activity)) return;
 					Log.d(LCAT, "Consent info update successful");
 
 					// The activity captured when requestConsent() was called can already be
@@ -620,10 +637,15 @@ public class TiAdmobUnifiedModule extends KrollModule
 				}
 			}
 		);
+        } catch (RuntimeException error) {
+            synchronized (consentLock) { consentState = OperationState.NOT_STARTED; }
+            throw error;
+        }
 	}
 
 	private void completeConsent(Activity activity, String errorMessage, int errorCode)
 	{
+        if (finishPendingConsentReset(activity)) return;
 		boolean canRequestAds = false;
 		boolean privacyOptionsRequired = false;
 		if (activity != null) {
@@ -648,7 +670,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 		}
 
 		synchronized (consentLock) {
-			consentState = OperationState.COMPLETE;
+			consentState = errorMessage == null ? OperationState.COMPLETE : OperationState.NOT_STARTED;
 			consentResult = result;
 		}
 
@@ -697,7 +719,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			return false;
 		}
 		
-		SharedPreferences sharedPrefs = activity.getSharedPreferences("IABTCF", 0);
+		SharedPreferences sharedPrefs = activity.getSharedPreferences(activity.getPackageName() + "_preferences", 0);
 		return sharedPrefs.getInt("IABTCF_gdprApplies", 0) == 1;
 	}
 
@@ -714,10 +736,19 @@ public class TiAdmobUnifiedModule extends KrollModule
 			   ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED;
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void presentPrivacyOptions(KrollDict config)
 	{
-		Activity activity = TiApplication.getInstance().getCurrentActivity();
+		if (privacyInFlight) return;
+        if (consentState == OperationState.IN_FLIGHT) {
+            Map<String, Object> busy = new HashMap<>();
+            busy.put("success", false); busy.put("code", -1);
+            busy.put("error", "Consent request is still in progress");
+            busy.put("canRequestAds", canRequestAds()); busy.put("privacyOptionsRequired", isPrivacyOptionsRequired());
+            fireEvent("privacy_options_dismissed", busy);
+            return;
+        }
+        Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot present privacy options - no current activity");
 			Map<String, Object> result = new HashMap<>();
@@ -730,10 +761,21 @@ public class TiAdmobUnifiedModule extends KrollModule
 			return;
 		}
 		
-		UserMessagingPlatform.showPrivacyOptionsForm(activity, new ConsentForm.OnConsentFormDismissedListener() {
+		privacyInFlight = true;
+        UserMessagingPlatform.showPrivacyOptionsForm(activity, new ConsentForm.OnConsentFormDismissedListener() {
 			@Override
 			public void onConsentFormDismissed(FormError error) {
-				Map<String, Object> result = new HashMap<>();
+				privacyInFlight = false;
+                if (consentResetPending) {
+                    Map<String, Object> cancelled = new HashMap<>();
+                    cancelled.put("success", false); cancelled.put("code", -1);
+                    cancelled.put("error", "Consent reset during privacy options");
+                    cancelled.put("canRequestAds", false); cancelled.put("privacyOptionsRequired", false);
+                    fireEvent("privacy_options_dismissed", cancelled);
+                    finishPendingConsentReset(activity);
+                    return;
+                }
+                Map<String, Object> result = new HashMap<>();
 				if (error != null) {
 					result.put("success", false);
 					result.put("error", error.getMessage());
@@ -748,14 +790,45 @@ public class TiAdmobUnifiedModule extends KrollModule
 					"privacyOptionsRequired",
 					information.getPrivacyOptionsRequirementStatus()
 						== ConsentInformation.PrivacyOptionsRequirementStatus.REQUIRED);
+                synchronized (consentLock) {
+                    consentResult = new HashMap<>(result);
+                    consentResult.put("canShowAds", result.get("canRequestAds"));
+                    consentResult.put("canShowPersonalizedAds", false);
+                    consentResult.put("isGDPR", isGDPR());
+                    consentResult.put("isPrivacyOptionsRequired", result.get("privacyOptionsRequired"));
+                    consentState = error == null ? OperationState.COMPLETE : OperationState.NOT_STARTED;
+                }
 				fireEvent("privacy_options_dismissed", result);
+                KrollDict next = queuedConsent;
+                queuedConsent = null;
+                if (next != null) requestConsent(next);
 			}
 		});
 	}
 
-	@Kroll.method
+    // UMP itself is not cancellable. Wait for its outstanding callback before
+    // resetting or starting another update, so it cannot overwrite a newer result.
+    private boolean finishPendingConsentReset(Activity activity)
+    {
+        if (!consentResetPending) return false;
+        KrollDict next = queuedConsent;
+        queuedConsent = null;
+        consentResetPending = false;
+        consentState = OperationState.NOT_STARTED;
+        resetConsent();
+        if (next != null) requestConsent(next);
+        else completeConsent(activity, "Consent reset during request", -1);
+        return true;
+    }
+
+	@Kroll.method(runOnUiThread = true)
 	public void resetConsent()
-	{
+    {
+        if (consentState == OperationState.IN_FLIGHT || privacyInFlight) {
+            consentResetPending = true;
+            queuedConsent = null;
+            return;
+        }
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
 			Log.e(LCAT, "Cannot reset consent - no current activity");
@@ -836,17 +909,21 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// ===================================================================
 	// UTILITY METHODS
 	// ===================================================================
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void setAppVolume(String volume)
 	{
-		// Convert percentage string to float
-		try {
-			float volumeValue = Float.parseFloat(volume.replace("%", "")) / 100.0f;
-			MobileAds.setAppVolume(volumeValue);
-			Log.d(LCAT, "App volume set to: " + volumeValue);
-		} catch (NumberFormatException e) {
-			Log.e(LCAT, "Invalid volume format: " + volume);
-		}
+        try {
+            String value = volume == null ? "" : volume.trim();
+            if (value.endsWith("%")) value = value.substring(0, value.length() - 1).trim();
+            double percentage = Double.parseDouble(value);
+            if (!Double.isFinite(percentage) || percentage < 0 || percentage > 100) {
+                throw new NumberFormatException();
+            }
+            pendingAppVolume = (float) (percentage / 100.0);
+            if (initializationState == OperationState.COMPLETE) MobileAds.setAppVolume(pendingAppVolume);
+        } catch (NumberFormatException error) {
+            Log.w(LCAT, "App volume requires a finite percentage between 0 and 100");
+        }
 	}
 
 	@Kroll.method
@@ -859,7 +936,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			.build();
 		MobileAds.setRequestConfiguration(requestConfiguration);
 		
-		Log.d(LCAT, "Test device ID set: " + deviceId);
+		Log.d(LCAT, "Test device ID set");
 	}
 
 	@Kroll.method

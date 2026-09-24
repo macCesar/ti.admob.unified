@@ -42,11 +42,13 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 	private AdView adView;
 	private boolean isAdLoaded = false;
 	private boolean isLoading;
+    private boolean configurationChanged;
 	private boolean isPaused;
 	private boolean isDestroyed;
 	private boolean pendingLoad;
 	private View.OnLayoutChangeListener layoutChangeListener;
 	private String adUnitId;
+    private String requestAdUnitId;
 	
 	// Adaptive banner specific properties
 	private String adaptiveType = TiAdmobUnifiedModule.ADAPTIVE_ANCHORED; // Default
@@ -95,6 +97,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 
 		adView = new AdView(activity);
 		adView.setAdUnitId(adUnitId);
+        requestAdUnitId = adUnitId;
 		
 		// Calculate adaptive banner size
 		AdSize adSize = getAdaptiveAdSize(activity);
@@ -134,7 +137,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 				
 				Map<String, Object> event = new HashMap<>();
 				event.put("error", loadAdError.getMessage());
-				event.put("code", loadAdError.getCode());
+				event.put("code", TiAdmobUnifiedModule.loadErrorCode(loadAdError));
 				fireAdEvent(TiAdmobUnifiedModule.AD_FAILED_TO_LOAD, event);
 			}
 
@@ -297,6 +300,10 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 			Log.d(LCAT, "Ignoring duplicate adaptive banner load while a request is active");
 			return;
 		}
+        if (configurationChanged) {
+            configurationChanged = false;
+            recreateAdView();
+        }
 		if (adView == null) {
 			Log.d(LCAT, "AdView not created yet, creating now");
 			createAdView();
@@ -316,18 +323,18 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 			for (String keyword : keywords) {
 				adRequestBuilder.addKeyword(keyword);
 			}
-			Log.d(LCAT, "Added keywords: " + java.util.Arrays.toString(keywords));
+			Log.d(LCAT, "Added keywords");
 		}
 		
 		// Set content URL
 		if (contentUrl != null) {
 			adRequestBuilder.setContentUrl(contentUrl);
-			Log.d(LCAT, "Set content URL: " + contentUrl);
+			Log.d(LCAT, "Set content URL");
 		}
 
 		if (requestAgent != null && !requestAgent.isEmpty()) {
 			adRequestBuilder.setRequestAgent(requestAgent);
-			Log.d(LCAT, "Set request agent: " + requestAgent);
+			Log.d(LCAT, "Set request agent");
 		}
 		
 		// Add network extras (including collapsible if specified)
@@ -360,7 +367,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		Log.d(LCAT, "Ad unit ID set to: " + unitId);
 		
 		if (adView != null) {
-			adView.setAdUnitId(unitId);
+			configurationChanged = true;
 		}
 	}
 	
@@ -371,7 +378,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		
 		// If AdView exists, recreate it with new type
 		if (adView != null) {
-			recreateAdView();
+			configurationChanged = true;
 		}
 	}
 	
@@ -382,7 +389,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		
 		// If AdView exists and it's inline type, recreate it
 		if (adView != null && TiAdmobUnifiedModule.ADAPTIVE_INLINE.equals(adaptiveType)) {
-			recreateAdView();
+			configurationChanged = true;
 		}
 	}
 	
@@ -396,13 +403,13 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 	public void setKeywords(String[] keywordArray)
 	{
 		this.keywords = keywordArray;
-		Log.d(LCAT, "Keywords set: " + (keywordArray != null ? java.util.Arrays.toString(keywordArray) : "null"));
+		Log.d(LCAT, "Keywords set");
 	}
 	
 	public void setContentUrl(String url)
 	{
 		this.contentUrl = url;
-		Log.d(LCAT, "Content URL set: " + url);
+		Log.d(LCAT, "Content URL set");
 	}
 
 	public void setRequestAgent(String agent)
@@ -594,7 +601,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdView extends TiUIView
 		if (data == null) {
 			data = new HashMap<>();
 		}
-		data.put("adUnitId", adUnitId != null ? adUnitId : "");
+		data.put("adUnitId", requestAdUnitId != null ? requestAdUnitId : (adUnitId != null ? adUnitId : ""));
 		data.put("adType", TiAdmobUnifiedModule.AD_TYPE_BANNER);
 		data.put("isAdaptive", true);
 		data.put("adaptiveType", adaptiveType);

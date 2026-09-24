@@ -341,7 +341,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Kroll.setProperty
 	public void setKeywords(String[] keywords)
 	{
-		Log.d(LCAT, "Setting keywords: " + (keywords != null ? java.util.Arrays.toString(keywords) : "null"));
+		Log.d(LCAT, "Setting keywords");
 		setProperty("keywords", keywords);
 		
 		if (bannerView != null) {
@@ -358,7 +358,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Kroll.setProperty
 	public void setContentUrl(String contentUrl)
 	{
-		Log.d(LCAT, "Setting content URL: " + contentUrl);
+		Log.d(LCAT, "Setting content URL");
 		setProperty("contentUrl", contentUrl);
 		
 		if (bannerView != null) {
@@ -375,7 +375,7 @@ public class TiAdmobUnifiedAdaptiveBannerAdProxy extends TiViewProxy implements 
 	@Kroll.setProperty
 	public void setRequestAgent(String requestAgent)
 	{
-		Log.d(LCAT, "Setting request agent: " + requestAgent);
+		Log.d(LCAT, "Setting request agent");
 		setProperty("requestAgent", requestAgent);
 
 		if (bannerView != null) {

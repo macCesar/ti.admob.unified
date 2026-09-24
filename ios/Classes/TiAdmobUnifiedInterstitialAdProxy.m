@@ -9,6 +9,7 @@
 
 #import "TiAdmobUnifiedInterstitialAdProxy.h"
 #import "TiApp.h"
+#import "TiAdmobUnifiedModule.h"
 #import "TiUtils.h"
 
 // Plain ivars rather than properties: a synthesised getter is reachable from
@@ -17,17 +18,28 @@
 // remaining path, key-value coding reaching the ivar by name.
 @interface TiAdmobUnifiedInterstitialAdProxy ()
 {
+    TiAdmobUnifiedNativeDelegate *_nativeDelegate;
+    NSString *_requestAdUnitId;
     GADInterstitialAd *interstitialAd;
     BOOL isLoading;
     BOOL isShowing;
     BOOL isDestroyed;
     BOOL destroyedEventFired;
 }
-- (NSDictionary *)baseEvent;
+- (NSDictionary *)baseEvent:(id)unused internal:(id)context;
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code;
 @end
 
 @implementation TiAdmobUnifiedInterstitialAdProxy
+- (TiAdmobUnifiedNativeDelegate *)nativeDelegate:(id)unused context:(id)context
+{
+    if (_nativeDelegate == nil) {
+        _nativeDelegate = [[TiAdmobUnifiedNativeDelegate alloc] init];
+        _nativeDelegate.target = self;
+    }
+    return _nativeDelegate;
+}
+
 
 + (BOOL)accessInstanceVariablesDirectly
 {
@@ -38,16 +50,22 @@
 {
     self = [super _initWithPageContext:context];
     if (self) {
+        _autoReload = @NO;
         self->isLoading = NO;
         self->isShowing = NO;
         self->isDestroyed = NO;
         self->destroyedEventFired = NO;
         if ([args count] > 0) {
             NSDictionary *config = [args objectAtIndex:0];
-            [self configureWithDict:config];
+            [self configureWithDict:config internal:nil];
         }
     }
     return self;
+}
+
+- (void)setAutoReload:(NSNumber *)value
+{
+    _autoReload = [NSNumber numberWithBool:[TiUtils boolValue:value def:NO]];
 }
 
 - (void)_destroy
@@ -56,7 +74,7 @@
     [super _destroy];
 }
 
-- (void)configureWithDict:(NSDictionary *)config
+- (void)configureWithDict:(NSDictionary *)config internal:(id)unused
 {
     if (config == nil) {
         return;
@@ -66,7 +84,7 @@
     self.adUnitId = [TiUtils stringValue:[config objectForKey:@"adUnitId"]] ?: @"";
     
     // Auto-reload setting (default: false, but recommended: true)
-    self.autoReload = [TiUtils boolValue:[config objectForKey:@"autoReload"] def:NO];
+    self.autoReload = [NSNumber numberWithBool:[TiUtils boolValue:[config objectForKey:@"autoReload"] def:NO]];
     
     // Keywords for targeting
     if ([config objectForKey:@"keywords"]) {
@@ -84,13 +102,14 @@
     }
 
     DebugLog(@"[DEBUG] Interstitial ad configured with unit ID: %@, autoReload: %@", 
-             self.adUnitId, self.autoReload ? @"YES" : @"NO");
+             self.adUnitId, [self.autoReload boolValue] ? @"YES" : @"NO");
 }
 
 #pragma mark - Public API Methods
 
 - (void)load:(id)args
 {
+    ENSURE_UI_THREAD(load, args);
     DebugLog(@"[DEBUG] Loading interstitial ad: %@", self.adUnitId);
 
     if (self->isDestroyed) {
@@ -111,8 +130,9 @@
         return;
     }
 
+    _requestAdUnitId = [self.adUnitId copy];
     self->isLoading = YES;
-    GADRequest *request = [self buildAdRequest];
+    GADRequest *request = [self buildAdRequest:nil internal:nil];
     
     [GADInterstitialAd loadWithAdUnitID:self.adUnitId
                                 request:request
@@ -127,20 +147,20 @@
                 
                 [self fireEvent:@"failed_to_load"
                      withObject:[self errorEvent:error.localizedDescription
-                                            code:error.code]];
+                                            code:TiAdmobUnifiedLoadErrorCode(error)]];
                 return;
             }
             
             DebugLog(@"[DEBUG] Interstitial ad loaded successfully");
             self->interstitialAd = ad;
-            self->interstitialAd.fullScreenContentDelegate = self;
+            self->interstitialAd.fullScreenContentDelegate = [self nativeDelegate:nil context:nil];
             
-            [self fireEvent:@"loaded" withObject:[self baseEvent]];
+            [self fireEvent:@"loaded" withObject:[self baseEvent:nil internal:nil]];
         });
     }];
 }
 
-- (GADRequest *)buildAdRequest
+- (GADRequest *)buildAdRequest:(id)unused internal:(id)context
 {
     GADRequest *request = [GADRequest request];
     
@@ -166,6 +186,7 @@
 
 - (void)show:(id)args
 {
+    ENSURE_UI_THREAD(show, args);
     if (self->isDestroyed) {
         [self fireEvent:@"failed_to_show"
              withObject:[self errorEvent:@"Interstitial has been destroyed" code:1]];
@@ -199,12 +220,18 @@
 
 - (NSNumber *)isLoaded:(id)args
 {
-    return @(!self->isDestroyed && self->interstitialAd != nil
-             && !self->isLoading && !self->isShowing);
+    if (![NSThread isMainThread]) {
+        __block NSNumber *result;
+        TiThreadPerformOnMainThread(^{ result = [self isLoaded:args]; }, YES);
+        return result;
+    }
+    return [NSNumber numberWithBool:(!self->isDestroyed && self->interstitialAd != nil
+             && !self->isLoading && !self->isShowing)];
 }
 
 - (void)destroy:(id)args
 {
+    ENSURE_UI_THREAD(destroy, args);
     if (self->isDestroyed) {
         return;
     }
@@ -218,28 +245,28 @@
 
     if (!self->destroyedEventFired) {
         self->destroyedEventFired = YES;
-        [self fireEvent:@"destroyed" withObject:[self baseEvent]];
+        [self fireEvent:@"destroyed" withObject:[self baseEvent:nil internal:nil]];
     }
 }
 
 #pragma mark - GADFullScreenContentDelegate
 
-- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad
+- (void)adDidRecordImpression:(id<GADFullScreenPresentingAd>)ad internal:(id)unused
 {
     if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad recorded impression");
-    [self fireEvent:@"impression" withObject:[self baseEvent]];
+    [self fireEvent:@"impression" withObject:[self baseEvent:nil internal:nil]];
 }
 
-- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad
+- (void)adDidRecordClick:(id<GADFullScreenPresentingAd>)ad internal:(id)unused
 {
     if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad was clicked");
-    [self fireEvent:@"clicked" withObject:[self baseEvent]];
+    [self fireEvent:@"clicked" withObject:[self baseEvent:nil internal:nil]];
 }
 
 - (void)ad:(id<GADFullScreenPresentingAd>)ad didFailToPresentFullScreenContentWithError:(NSError *)error
@@ -255,19 +282,19 @@
          withObject:[self errorEvent:error.localizedDescription code:error.code]];
 }
 
-- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad
+- (void)adWillPresentFullScreenContent:(id<GADFullScreenPresentingAd>)ad internal:(id)unused
 {
     if (self->isDestroyed) {
         return;
     }
     DebugLog(@"[DEBUG] Interstitial ad will present full screen content");
 
-    NSDictionary *event = [self baseEvent];
+    NSDictionary *event = [self baseEvent:nil internal:nil];
     [self fireEvent:@"opened" withObject:event];
     [self fireEvent:@"showed_fullscreen_content" withObject:event];
 }
 
-- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad
+- (void)adDidDismissFullScreenContent:(id<GADFullScreenPresentingAd>)ad internal:(id)unused
 {
     if (self->isDestroyed) {
         return;
@@ -276,18 +303,18 @@
 
     self->interstitialAd = nil;
     self->isShowing = NO;
-    [self fireEvent:@"closed" withObject:[self baseEvent]];
+    [self fireEvent:@"closed" withObject:[self baseEvent:nil internal:nil]];
 
-    if (self.autoReload) {
+    if ([self.autoReload boolValue]) {
         DebugLog(@"[DEBUG] Auto-reloading interstitial ad");
         [self load:nil];
     }
 }
 
-- (NSDictionary *)baseEvent
+- (NSDictionary *)baseEvent:(id)unused internal:(id)context
 {
     return @{
-        @"adUnitId": self.adUnitId ?: @"",
+        @"adUnitId": _requestAdUnitId ?: self.adUnitId ?: @"",
         @"adType": @"interstitial"
     };
 }
@@ -295,7 +322,7 @@
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code
 {
     return @{
-        @"adUnitId": self.adUnitId ?: @"",
+        @"adUnitId": _requestAdUnitId ?: self.adUnitId ?: @"",
         @"adType": @"interstitial",
         @"error": message ?: @"Unknown error",
         @"message": message ?: @"Unknown error",

@@ -37,12 +37,13 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 	
 	// Ad configuration
 	private String adUnitId;
+    private String requestAdUnitId;
 	private boolean autoReload;
 	private String[] keywords;
 	// Identifies what issued the request. Google reserves it for libraries that
 	// wrap the SDK, which is exactly what this module is.
 	private String requestAgent;
-	private Map<String, String> extras;
+	private KrollDict extras;
 	
 	// Ad instance (Android requires fresh ads, so we'll create new instances as needed)
 	private RewardedAd rewardedAd;
@@ -66,28 +67,47 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 				this.keywords = config.getStringArray("keywords");
 			}
 			
-			// Extract extras for mediation networks
-			if (config.containsKey("extras")) {
-				KrollDict extrasDict = config.getKrollDict("extras");
-				if (extrasDict != null) {
-					this.extras = new HashMap<>();
-					for (String key : extrasDict.keySet()) {
-						Object value = extrasDict.get(key);
-						if (value != null) {
-							this.extras.put(key, value.toString());
-						}
-					}
-				}
-			}
+            if (config.containsKey("extras")) this.extras = config.getKrollDict("extras");
 		}
 		
 		Log.d(LCAT, "RewardedAdProxy created with adUnitId: " + this.adUnitId);
 	}
 
+    @Kroll.getProperty
+    public String getAdUnitId() { return adUnitId; }
+
+    @Kroll.setProperty
+    public void setAdUnitId(String value) { adUnitId = value; }
+
+    @Kroll.getProperty
+    public boolean getAutoReload() { return autoReload; }
+
+    @Kroll.setProperty
+    public void setAutoReload(boolean value) { autoReload = value; }
+
+    @Kroll.getProperty
+    public String[] getKeywords() { return keywords; }
+
+    @Kroll.setProperty
+    public void setKeywords(String[] value) { keywords = value; }
+
+    @Kroll.getProperty
+    public KrollDict getExtras() { return extras; }
+
+    @Kroll.setProperty
+    public void setExtras(KrollDict value) { extras = value; }
+
+    @Kroll.getProperty
+    public String getRequestAgent() { return requestAgent; }
+
+    @Kroll.setProperty
+    public void setRequestAgent(String value) { requestAgent = value; }
+
+
 	// ===================================================================
 	// PUBLIC METHODS
 	// ===================================================================
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void load()
 	{
 		Log.d(LCAT, "Loading rewarded ad");
@@ -115,7 +135,8 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 			return;
 		}
 		
-		isLoading = true;
+		requestAdUnitId = adUnitId;
+        isLoading = true;
 		
 		// Build ad request
 		AdRequest.Builder adRequestBuilder = new AdRequest.Builder();
@@ -129,9 +150,14 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 		
 		if (extras != null && !extras.isEmpty()) {
 			Bundle extrasBundle = new Bundle();
-			for (Map.Entry<String, String> entry : extras.entrySet()) {
-				extrasBundle.putString(entry.getKey(), entry.getValue());
-			}
+			for (Map.Entry<String, Object> entry : extras.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof Boolean) extrasBundle.putBoolean(entry.getKey(), (Boolean) value);
+                else if (value instanceof Integer) extrasBundle.putInt(entry.getKey(), (Integer) value);
+                else if (value instanceof Long) extrasBundle.putLong(entry.getKey(), (Long) value);
+                else if (value instanceof Number) extrasBundle.putDouble(entry.getKey(), ((Number) value).doubleValue());
+                else if (value instanceof String) extrasBundle.putString(entry.getKey(), (String) value);
+            }
 			adRequestBuilder.addNetworkExtrasBundle(AdMobAdapter.class, extrasBundle);
 		}
 		
@@ -174,13 +200,13 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 					isLoading = false;
 					
 					// Fire failed to load event
-					fireErrorEvent(error.getMessage(), error.getCode());
+					fireErrorEvent(error.getMessage(), TiAdmobUnifiedModule.loadErrorCode(error));
 				}
 			}
 		);
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void show()
 	{
 		Log.d(LCAT, "Showing rewarded ad");
@@ -214,16 +240,19 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 		
 		// Show rewarded ad
 		isShowing = true;
-		rewardedAd.show(activity, new OnUserEarnedRewardListener() {
+		final Map<String, Object> presentedEvent = baseEvent();
+        rewardedAd.show(activity, new OnUserEarnedRewardListener() {
+            private boolean rewardDelivered;
 			@Override
 			public void onUserEarnedReward(RewardItem rewardItem) {
 				Log.d(LCAT, "User earned reward: " + rewardItem.getType() + " " + rewardItem.getAmount());
 				
 				// Fire rewarded event with unified format
-				if (isDestroyed) {
+				if (isDestroyed || rewardDelivered) {
 					return;
 				}
-				Map<String, Object> rewardEvent = baseEvent();
+                rewardDelivered = true;
+				Map<String, Object> rewardEvent = new HashMap<>(presentedEvent);
 				rewardEvent.put("rewardType", rewardItem.getType());
 				rewardEvent.put("rewardAmount", rewardItem.getAmount());
 				fireEvent(TiAdmobUnifiedModule.AD_REWARDED, rewardEvent);
@@ -231,13 +260,13 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 		});
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public boolean isLoaded()
 	{
 		return !isDestroyed && rewardedAd != null && !isLoading && !isShowing;
 	}
 
-	@Kroll.method
+	@Kroll.method(runOnUiThread = true)
 	public void destroy()
 	{
 		if (isDestroyed) {
@@ -340,7 +369,7 @@ public class TiAdmobUnifiedRewardedAdProxy extends KrollProxy
 	private Map<String, Object> baseEvent()
 	{
 		Map<String, Object> event = new HashMap<>();
-		event.put("adUnitId", adUnitId);
+		event.put("adUnitId", requestAdUnitId != null ? requestAdUnitId : adUnitId);
 		event.put("adType", TiAdmobUnifiedModule.AD_TYPE_REWARDED);
 		return event;
 	}
