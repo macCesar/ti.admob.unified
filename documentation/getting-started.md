@@ -270,4 +270,4 @@ The module does not enforce the privacy gate inside ad proxies. The consuming ap
 
 ## Example appearance
 
-For the classic playground, copy both `example/app.js` and `example/semantic.colors.json` into `Resources/`. The named colors provide light and dark variants for the content and window title. Keep the default DayNight Android theme so system icons follow the selected appearance. The sample keeps the title and status bars visible. Changing appearance does not require rebuilding the ad proxies or resetting the scroll position.
+For the classic playground, copy `example/app.js` and `example/semantic.colors.json` into `Resources/`, and `example/lib/ads.js` into `Resources/lib/`. The named colors provide light and dark variants for the content and window title. Keep the default DayNight Android theme so system icons follow the selected appearance. The sample keeps the title and status bars visible. Changing appearance does not require rebuilding the ad proxies or resetting the scroll position.

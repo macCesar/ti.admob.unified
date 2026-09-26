@@ -405,6 +405,28 @@ function fullscreenProperties(options) {
   return properties
 }
 
+// Shared by the managers and the raw-API playground. Rotation alone does no work.
+function createFullscreenSizeGuard(getSize) {
+  let requestedSize = null
+  function sizeKey() {
+    const size = getSize()
+    return size && size.width > 0 && size.height > 0
+      ? `${Math.round(size.width)}x${Math.round(size.height)}` : null
+  }
+  return {
+    recordLoad() { requestedSize = sizeKey() },
+    show(present, reload) {
+      const currentSize = sizeKey()
+      if (currentSize && currentSize !== requestedSize) {
+        reload()
+        return false
+      }
+      present()
+      return true
+    }
+  }
+}
+
 function createFullscreen(options, factoryName) {
   if (!options || !options.adUnitId) {
     throw new Error(`${factoryName} requires adUnitId`)
@@ -414,6 +436,8 @@ function createFullscreen(options, factoryName) {
   let listeners = []
   let destroyed = false
   let loadRequested = options.autoLoad === true
+  let loading = false
+  const sizeGuard = createFullscreenSizeGuard(() => (options.window || Ti.UI.currentWindow)?.size)
 
   function detach(destroyNative) {
     if (!proxy) {
@@ -422,6 +446,7 @@ function createFullscreen(options, factoryName) {
 
     const target = proxy
     proxy = null
+    loading = false
     removeListeners(target, listeners)
     if (destroyNative) {
       target.destroy()
@@ -443,6 +468,11 @@ function createFullscreen(options, factoryName) {
         }
 
         addListener(proxy, listeners, eventName, event => {
+          if (entry[0] === 'AD_LOADED' || entry[0] === 'AD_FAILED_TO_LOAD') loading = false
+          if (entry[0] === 'AD_CLOSED' && options.autoReload === true) {
+            loading = true
+            sizeGuard.recordLoad()
+          }
           if (entry[0] === 'AD_CLOSED' && options.autoReload !== true) {
             loadRequested = false
           }
@@ -458,16 +488,20 @@ function createFullscreen(options, factoryName) {
         })
       })
 
+      loading = true
+      sizeGuard.recordLoad()
       proxy.load()
     },
 
     load() {
-      if (destroyed) {
+      if (destroyed || loading) {
         return false
       }
 
       loadRequested = true
       if (proxy) {
+        loading = true
+        sizeGuard.recordLoad()
         proxy.load()
       } else {
         manager.sync()
@@ -476,12 +510,11 @@ function createFullscreen(options, factoryName) {
     },
 
     show() {
-      if (!proxy || !proxy.isLoaded()) {
+      if (!proxy || loading || !proxy.isLoaded()) {
         return false
       }
 
-      proxy.show()
-      return true
+      return sizeGuard.show(() => proxy.show(), () => manager.retry())
     },
 
     isLoaded() {
@@ -577,6 +610,7 @@ module.exports = {
   openAdInspector,
   createBanner,
   createAdaptiveBanner,
+  createFullscreenSizeGuard,
   createInterstitial,
   createRewarded,
   createAppOpen,

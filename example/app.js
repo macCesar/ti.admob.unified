@@ -16,6 +16,7 @@
  */
 
 const Admob = require('ti.admob.unified')
+const { createFullscreenSizeGuard } = require('lib/ads')
 
 // Demo-only settings. No personal test-device identifiers ship in this file.
 const consentTestingEnabled = Ti.App.deployType !== 'production'
@@ -189,6 +190,7 @@ function createAdButton(title, handlers) {
     accessibilityHint: handlers.description || ''
   })
   let state = 'idle'
+  const sizeGuard = fullscreen ? createFullscreenSizeGuard(() => win.size) : null
   button.creating = function () {
     state = 'creating'
     button.applyProperties({ title: 'Loading…', backgroundColor: colors.quiet, color: colors.muted, enabled: false })
@@ -229,6 +231,7 @@ function createAdButton(title, handlers) {
       return
     }
     button.creating()
+    if (sizeGuard) sizeGuard.recordLoad()
     handlers.onLoad(button)
   }
   button.addEventListener('click', () => {
@@ -238,9 +241,11 @@ function createAdButton(title, handlers) {
         setStatus(`${title} blocked by privacy settings`)
         return
       }
-      state = 'showing'
-      button.applyProperties({ title: 'Showing…', enabled: false, backgroundColor: colors.quiet, color: colors.muted })
-      handlers.onShow(button)
+      sizeGuard.show(() => {
+        state = 'showing'
+        button.applyProperties({ title: 'Showing…', enabled: false, backgroundColor: colors.quiet, color: colors.muted })
+        handlers.onShow(button)
+      }, () => button.load())
       return
     }
     if (!fullscreen || state === 'failed') button.load()
@@ -466,6 +471,8 @@ function onAdInspectorClosed(event) {
 // already the unit customAdSize expects. Dividing on both platforms is the
 // mistake that looks right: on a 3x iPhone it asks for a third of the screen.
 function screenWidthInDp() {
+  const hostWidth = Ti.UI.convertUnits(content.size.width, Ti.UI.UNIT_DIP)
+  if (hostWidth > 0) return Math.round(hostWidth)
   const caps = Ti.Platform.displayCaps
 
   if (Ti.Platform.osname === 'android') {

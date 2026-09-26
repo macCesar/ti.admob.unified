@@ -37,16 +37,19 @@ function createAdaptiveBanner() {
 }
 
 const interstitial = ads.createInterstitial({
+  window: win,
   adUnitId: Admob.TEST_INTERSTITIAL,
   onLoaded: () => Ti.API.info('[ads] Interstitial ready')
 })
 
 const rewarded = ads.createRewarded({
+  window: win,
   adUnitId: Admob.TEST_REWARDED,
   onRewarded: event => grantReward(event.rewardAmount, event.rewardType)
 })
 
 const appOpen = ads.createAppOpen({
+  window: win,
   adUnitId: Admob.TEST_APP_OPEN,
   onLoaded: () => Ti.API.info('[ads] App-open ready for the next foreground')
 })

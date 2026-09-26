@@ -41,15 +41,23 @@ function openExample(osname = 'iphone', properties = {}, deployType = 'developme
   const UI = { SIZE: 'SIZE', FILL: 'FILL', UNIT_DIP: 'dp', convertUnits: value => Number(value) }
   for (const type of ['Window', 'View', 'Button', 'Label', 'ScrollView', 'TextField', 'OptionDialog']) {
     UI[`create${type}`] = properties => {
-      const view = proxy({ ...properties, type }); views.push(view); return view
+      const view = proxy({ ...(type === 'Window' ? { size: { width: 390, height: 844 } } : {}), ...properties, type }); views.push(view); return view
     }
   }
+  const library = { exports: {} }
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../example/lib/ads.js'), 'utf8'), { module: library, require: () => Admob })
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../example/app.js'), 'utf8'), {
-    require: () => Admob,
+    require: name => name === 'lib/ads' ? library.exports : Admob,
     Ti: { UI, App: { deployType, Properties: { getString: (key, fallback) => properties[key] ?? fallback, setString: (key, value) => { properties[key] = value } } }, API: { info() {}, warn() {}, debug() {} }, Platform: { osname, displayCaps: { platformWidth: 390 } } }
   })
   return {
     Admob, ads, views,
+    resize(width, height, emit = true) {
+      const win = views.find(view => view.type === 'Window')
+      win.size = { width, height }
+      views.find(view => view.type === 'ScrollView').size.width = width
+      if (emit) win.emit('postlayout')
+    },
     scenario(name) {
       const run = views.find(view => view.type === 'Button' && view.title?.startsWith('Run test'))
       if (!run) return undefined
@@ -454,6 +462,49 @@ test('banner reloads reuse the current view and never resize the scroll viewport
       assert.deepEqual(changes, [])
     }
   }
+})
+
+test('rotation requests nothing until Show, then reloads only the selected fullscreen', () => {
+  for (const platform of ['ipad', 'android']) {
+    for (const [index, name] of [[0, 'interstitial'], [1, 'rewarded'], [2, 'app open']]) {
+      const app = openExample(platform); app.ready()
+      const original = [...app.ads]
+      original.slice(0, 3).forEach(ad => ad.emit('AD_LOADED'))
+      app.resize(844, 390)
+      app.resize(820, 390)
+      assert.equal(app.ads.length, 4)
+      assert.ok(original.every(ad => !ad.destroyed))
+      app.button(`Show ${name}`).emit('click')
+      assert.equal(original[index].shows, undefined)
+      assert.equal(original[index].destroyed, true)
+      assert.equal(app.ads.length, 5)
+      assert.ok(original.filter((_, i) => i !== index).every(ad => !ad.destroyed))
+      const replacement = app.ads.at(-1)
+      assert.equal(replacement.type, original[index].type)
+      original[index].emit('AD_LOADED')
+      assert.equal(app.button(`Show ${name}`), undefined)
+      replacement.emit('AD_LOADED')
+      app.button(`Show ${name}`).emit('click')
+      assert.equal(replacement.shows, 1)
+      app.resize(390, 844)
+      assert.equal(app.ads.length, 5)
+      assert.notEqual(replacement.destroyed, true)
+    }
+  }
+})
+
+test('height-only change during load is checked at Show without a layout event', () => {
+  const app = openExample('ipad'); app.ready()
+  const ad = app.ads[0]
+  app.resize(390, 600, false)
+  assert.equal(app.ads.length, 4)
+  ad.emit('AD_LOADED')
+  app.button('Show interstitial').emit('click')
+  assert.equal(ad.shows, undefined)
+  assert.equal(ad.destroyed, true)
+  assert.equal(app.ads.length, 5)
+  app.views.find(v => v.type === 'Window').emit('close')
+  assert.ok(app.ads.every(ad => ad.destroyed))
 })
 
 test('consent device field uses configured per-platform default without overriding saved input', () => {

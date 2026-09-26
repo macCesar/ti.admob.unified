@@ -12,7 +12,7 @@ const Admob = require('ti.admob.unified')
 const ads = require('lib/ads')
 ```
 
-The library handles UMP sequencing, the `canRequestAds()` check, initialization, named-listener cleanup, banner slots, deferred loads, privacy-option reauthorization and terminal cleanup. You can also use the native module directly, as [`example/app.js`](../example/app.js) does.
+The library handles UMP sequencing, the `canRequestAds()` check, initialization, named-listener cleanup, banner slots, deferred loads, privacy-option reauthorization and terminal cleanup. You can also use the native module directly, as [`example/app.js`](../example/app.js) does while sharing the library’s fullscreen size guard.
 
 ## What it covers
 
@@ -88,6 +88,7 @@ Create once, load early, and show only at a moment chosen by the application:
 
 ```js
 const interstitial = ads.createInterstitial({
+  window: win,
   adUnitId: Admob.TEST_INTERSTITIAL,
   autoReload: true,
   onLoaded: () => Ti.API.info('Ready for the next natural break')
@@ -104,6 +105,7 @@ Rewarded ads grant value only from `onRewarded`:
 
 ```js
 const rewarded = ads.createRewarded({
+  window: win,
   adUnitId: Admob.TEST_REWARDED,
   onRewarded: event => grantReward(event.rewardAmount, event.rewardType)
 })
@@ -113,6 +115,7 @@ App-open ads are prepared the same way and shown only during the application's o
 
 ```js
 const appOpen = ads.createAppOpen({
+  window: win,
   adUnitId: Admob.TEST_APP_OPEN
 })
 
@@ -122,6 +125,10 @@ function onApplicationResumed() {
   appOpen.show()
 }
 ```
+
+Pass the owning `window` to each fullscreen factory (otherwise the library reads `Ti.UI.currentWindow`). The library remembers its dimensions when requesting the ad. Rotation alone makes no requests. At `show()`, a changed size discards and reloads only that ad and returns `false`; wait for `onLoaded` and a later user action to show it. Banners are not rebuilt by this check.
+
+The raw-API playground shares this logic through `createFullscreenSizeGuard(getSize)`: call `recordLoad()` before requesting, then `show(present, reload)` when the user requests presentation. This helper does not initialize the SDK or run consent.
 
 `show()` returns `false` when no valid ad is ready. Do not delay navigation or user work waiting for a fullscreen request.
 

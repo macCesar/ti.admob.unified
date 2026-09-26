@@ -15,7 +15,7 @@ function fixture(success = true, osname = 'android') {
   const native = emitter()
   const created = []
   Object.assign(native, {
-    AD_LOADED: 'loaded', AD_FAILED_TO_LOAD: 'failed', AD_DESTROYED: 'destroyed',
+    AD_CLOSED: 'closed', AD_LOADED: 'loaded', AD_FAILED_TO_LOAD: 'failed', AD_DESTROYED: 'destroyed',
     canRequestAds: () => true,
     ADAPTIVE_ANCHORED: 'anchored',
     getAnchoredAdaptiveBannerSize: () => ({ height: 90 }),
@@ -24,12 +24,13 @@ function fixture(success = true, osname = 'android') {
     presentPrivacyOptions() { this.privacyCalls = (this.privacyCalls || 0) + 1 },
     openAdInspector() { this.inspectorCalls = (this.inspectorCalls || 0) + 1 }
   })
-  native.createBanner = native.createAdaptiveBanner = native.createInterstitial = () => {
+  native.createBanner = native.createAdaptiveBanner = native.createInterstitial = native.createRewarded = native.createAppOpen = () => {
     const proxy = emitter()
     Object.assign(proxy, {
       rect: { width: 0, height: 0 },
       load() { this.loads = (this.loads || 0) + 1 },
       destroy() { this.destroyed = true; this.emit('destroyed', {}) },
+      show() { this.shows = (this.shows || 0) + 1 },
       pause() {}, resume() {}, isLoaded() { return !this.destroyed }
     })
     created.push(proxy)
@@ -127,4 +128,46 @@ test('iOS adaptive placements reserve native height and cancel pending layout on
   pending.emit('postlayout')
   assert.equal(pending.loads, undefined)
   assert.equal(pending.listenerCount('postlayout'), 0)
+})
+
+
+test('fullscreen managers reload on Show only and retain the request size through in-flight rotation', async () => {
+  for (const format of ['createInterstitial', 'createRewarded', 'createAppOpen']) {
+    const f = fixture(); await f.ads.start()
+    const window = { size: { width: 810, height: 1080 } }
+    const manager = f.ads[format]({ window, adUnitId: 'test', autoLoad: true })
+    const original = f.created[0]
+    window.size = { width: 1080, height: 810 }
+    assert.equal(f.created.length, 1)
+    assert.equal(manager.load(), false, 'duplicate in-flight load must not overwrite request dimensions')
+    assert.equal(manager.show(), false)
+    original.emit('loaded')
+    assert.equal(manager.show(), false)
+    assert.equal(original.destroyed, true)
+    assert.equal(original.shows, undefined)
+    assert.equal(f.created.length, 2)
+    assert.equal(manager.show(), false)
+    assert.equal(f.created.length, 2)
+    const replacement = f.created[1]
+    replacement.emit('loaded')
+    assert.equal(manager.show(), true)
+    assert.equal(replacement.shows, 1)
+    manager.destroy()
+    assert.equal(manager.show(), false)
+    assert.equal(f.created.length, 2)
+  }
+})
+
+test('native autoReload updates fullscreen request dimensions after dismissal', async () => {
+  const f = fixture(); await f.ads.start()
+  const window = { size: { width: 810, height: 1080 } }
+  const manager = f.ads.createInterstitial({ window, adUnitId: 'test', autoLoad: true, autoReload: true })
+  const ad = f.created[0]
+  ad.emit('loaded')
+  assert.equal(manager.show(), true)
+  window.size = { width: 1080, height: 810 }
+  ad.emit('closed')
+  ad.emit('loaded')
+  assert.equal(manager.show(), true)
+  assert.equal(f.created.length, 1)
 })
