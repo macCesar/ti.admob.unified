@@ -290,6 +290,7 @@ function onModuleInitialized(event) {
     return
   }
 
+  Ti.API.info('Google adapter initialization: ' + JSON.stringify(Admob.getMediationStatus()))
   initializationComplete = true
   updateConsentTools()
   sessionLabel.text = 'TEST ADS / SDK READY'

@@ -26,10 +26,13 @@ prefix = r'''
 #import <math.h>
 #define ENSURE_UI_THREAD(a,b)
 #define DebugLog(...) ((void)0)
-#define TiThreadPerformOnMainThread(block,wait) block()
+static void TiThreadPerformOnMainThread(void (^block)(void), BOOL wait) { block(); }
 #define TiAdmobUnifiedOperationStateNotStarted 0
 #define TiAdmobUnifiedOperationStateInFlight 1
 #define TiAdmobUnifiedOperationStateComplete 2
+#define TiAdmobUnifiedOperationStateFailed 3
+typedef NSInteger TiAdmobUnifiedOperationState;
+#define GADAdapterInitializationStateReady 1
 #define UMPPrivacyOptionsRequirementStatusRequired 1
 NSString *GADErrorDomain = @"GMA";
 @interface TiUtils : NSObject
@@ -38,7 +41,20 @@ NSString *GADErrorDomain = @"GMA";
 @implementation TiUtils
 + (NSString *)stringValue:(id)value { return value ? [value description] : nil; }
 @end
+@interface GADAdapterStatus : NSObject
+@property NSInteger state;
+@property NSString *adapterDescription;
+@property double latency;
+@end
+@implementation GADAdapterStatus
+- (NSString *)description { return self.adapterDescription; }
+@end
+@interface GADInitializationStatus : NSObject
+@property NSDictionary *adapterStatusesByClassName;
+@end
+@implementation GADInitializationStatus @end
 @interface GADMobileAds : NSObject
+@property GADInitializationStatus *initializationStatus;
 @property double applicationVolume;
 + (instancetype)sharedInstance;
 @end
@@ -85,6 +101,7 @@ NSString *GADErrorDomain = @"GMA";
 @end
 @interface Harness : NSObject {
 @public
+    NSInteger _initializationState;
     NSInteger _consentState;
     NSDictionary *_consentResult;
     BOOL _consentResetPending, _privacyInFlight;
@@ -109,7 +126,7 @@ NSString *GADErrorDomain = @"GMA";
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code { return @{@"error":message,@"code":@(code)}; }
 '''
 methods = '\n'.join(body(module, marker) for marker in [
-    '- (void)setAppVolume:', '- (void)resetConsent:',
+    '- (NSDictionary *)getMediationStatus:', '- (void)setAppVolume:', '- (void)resetConsent:',
     '- (BOOL)finishPendingConsentReset:', '- (void)completeConsentWithError:'])
 methods += '\n' + body(rewarded, '- (void)show:')
 main = r'''
@@ -118,6 +135,28 @@ static int assertions;
 static void check(BOOL condition, NSString *name) { assertions++; if (!condition) { NSLog(@"FAIL %@", name); exit(1); } }
 int main() { @autoreleasepool {
     Harness *h = [Harness new];
+    check([[h getMediationStatus:nil][@"initializationState"] isEqual:@"not_started"], @"pre-init");
+    check([[h getMediationStatus:nil][@"adapters"] count] == 0, @"pre-init empty");
+    h->_initializationState = 1;
+    check([[h getMediationStatus:nil][@"initializationState"] isEqual:@"initializing"], @"in-flight nil SDK status");
+    GADInitializationStatus *status = [GADInitializationStatus new];
+    GADMobileAds.sharedInstance.initializationStatus = status; status.adapterStatusesByClassName = @{};
+    check([[h getMediationStatus:nil][@"adapters"] count] == 0, @"empty map");
+    GADAdapterStatus *ready = [GADAdapterStatus new], *waiting = [GADAdapterStatus new];
+    ready.state = 1; ready.latency = .1256; ready.adapterDescription = @"SDK detail";
+    waiting.state = 0; waiting.latency = 0; waiting.adapterDescription = @"Waiting";
+    status.adapterStatusesByClassName = @{@"z.UnknownAdapter":waiting,@"a.GoogleAdapter":ready};
+    h->_initializationState = 2;
+    NSDictionary *diagnostic = [h getMediationStatus:nil]; NSArray *adapters = diagnostic[@"adapters"];
+    check([diagnostic[@"initializationState"] isEqual:@"completed"], @"completed with not-ready adapter");
+    check(adapters.count == 2 && [adapters[0][@"adapterClass"] isEqual:@"a.GoogleAdapter"] && [adapters[1][@"adapterClass"] isEqual:@"z.UnknownAdapter"], @"all adapters sorted");
+    check([adapters[0][@"state"] isEqual:@"ready"] && [adapters[1][@"state"] isEqual:@"not_ready"], @"normalized states");
+    check([adapters[0][@"latencyMs"] doubleValue] == 126 && [adapters[0][@"description"] isEqual:@"SDK detail"], @"milliseconds and SDK description");
+    ready.latency = .1254;
+    check([[[h getMediationStatus:nil][@"adapters"] firstObject][@"latencyMs"] doubleValue] == 125, @"round milliseconds down");
+    check([adapters[1][@"latencyMs"] longLongValue] == 0, @"zero latency stays zero");
+    h->_initializationState = 3;
+    check([[h getMediationStatus:nil][@"initializationState"] isEqual:@"failed"], @"failed init");
     for (id value in @[@"0", @"50%", @"100%", @25, @[@"75%"]]) {
         [h setAppVolume:value];
         id raw = [value isKindOfClass:NSArray.class] ? value[0] : value;

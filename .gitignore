@@ -138,3 +138,7 @@ coverage/
 /*.jpg
 /*.jpeg
 /Captura de pantalla*
+
+# Python tooling caches
+__pycache__/
+*.pyc

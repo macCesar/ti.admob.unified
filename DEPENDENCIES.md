@@ -64,7 +64,7 @@ Each complement declares one adapter coordinate. InMobi and Liftoff also pin OkH
 
 ## Update policy
 
-All six modules remain at version `1.0.0`. Dependency updates require rebuilding twelve ZIPs, validating checksums, checking isolated consumer combinations and testing on available devices. Verify third-party delivery separately with configured accounts and Ad Inspector.
+All six modules remain at version `1.0.0`. Dependency updates require rebuilding both platform ZIPs for every discovered module, validating checksums, checking isolated consumer combinations and testing on available devices. Verify third-party delivery separately with configured accounts and Ad Inspector.
 
 ## Transitive security review
 

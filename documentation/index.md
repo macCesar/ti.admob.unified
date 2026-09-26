@@ -18,6 +18,8 @@ This documentation describes the public JavaScript contract implemented by `ti.a
 - [Migrating to ti.admob.unified](migration.md): replace `ti.admob`, `ti.android.admob`, or an internal pre-release build.
 - [Third-party SDK notices](third-party-notices.md): licenses and terms for the distributed advertising SDKs.
 
+- [Adding a network](../CONTRIBUTING.md#adding-a-network): package and validate an existing official mediation adapter.
+
 ## Project information
 
 - [Dependency inventory](../DEPENDENCIES.md)

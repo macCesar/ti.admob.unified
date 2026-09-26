@@ -9,6 +9,7 @@
 
 #import "TiAdmobUnifiedModule.h"
 #import "TiBase.h"
+#import <math.h>
 #import "TiHost.h"
 #import "TiApp.h"
 #import "TiUtils.h"
@@ -52,7 +53,8 @@ static void TiAdmobForward(id target, NSString *name, id first, id second)
 typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     TiAdmobUnifiedOperationStateNotStarted = 0,
     TiAdmobUnifiedOperationStateInFlight,
-    TiAdmobUnifiedOperationStateComplete
+    TiAdmobUnifiedOperationStateComplete,
+    TiAdmobUnifiedOperationStateFailed
 };
 
 @interface TiAdmobUnifiedModule ()
@@ -212,7 +214,7 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
         [self fireEvent:@"module_initialized" withObject:event];
     }];
     } @catch (NSException *exception) {
-        @synchronized(self) { self->_initializationState = TiAdmobUnifiedOperationStateNotStarted; }
+        @synchronized(self) { self->_initializationState = TiAdmobUnifiedOperationStateFailed; }
         @throw;
     }
 }
@@ -635,71 +637,37 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
     return [NSNumber numberWithBool:(testIds != nil && testIds.count > 0)];
 }
 
-#pragma mark - Mediation network availability (parity with Android)
-
-- (NSNumber *)isAppLovinAvailable:(id)args
-{
-    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterAppLovin") != nil)];
-}
-
-- (NSNumber *)isMetaAvailable:(id)args
-{
-    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterFacebook") != nil)];
-}
-
-- (NSNumber *)isInMobiAvailable:(id)args
-{
-    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterInMobi") != nil)];
-}
-
-- (NSNumber *)isVungleAvailable:(id)args
-{
-    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterVungle") != nil)];
-}
-
-- (NSNumber *)isUnityAvailable:(id)args
-{
-    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterUnity") != nil)];
-}
-
-- (NSNumber *)isIronSourceAvailable:(id)args
-{
-    return [NSNumber numberWithBool:(NSClassFromString(@"GADMediationAdapterIronSource") != nil)];
-}
+#pragma mark - Mediation diagnostics
 
 - (NSDictionary *)getMediationStatus:(id)args
 {
-    return @{
-        @"appLovin": [self isAppLovinAvailable:nil],
-        @"meta": [self isMetaAvailable:nil],
-        @"inMobi": [self isInMobiAvailable:nil],
-        @"unity": [self isUnityAvailable:nil],
-        @"liftoffMonetize": [self isVungleAvailable:nil],
-        @"ironSource": [self isIronSourceAvailable:nil]
-    };
-}
-
-#pragma mark - Legacy per-network consent compatibility
-
-- (void)setAppLovinGDPRConsent:(id)args
-{
-    DebugLog(@"[WARN] setAppLovinGDPRConsent() is deprecated and intentionally does not translate one Boolean into regional privacy choices; use UMP and current provider requirements.");
-}
-
-- (void)setInMobiGDPRConsent:(id)args
-{
-    DebugLog(@"[WARN] setInMobiGDPRConsent() is deprecated and intentionally does not translate one Boolean into regional privacy choices; use UMP and current provider requirements.");
-}
-
-- (void)setVungleGDPRConsent:(id)args
-{
-    DebugLog(@"[WARN] setVungleGDPRConsent() is deprecated and intentionally does not translate one Boolean into regional privacy choices; use UMP and current provider requirements.");
-}
-
-- (void)enableOptionalMediationNetworks:(id)args
-{
-    DebugLog(@"[DEBUG] Mediation adapters are auto-discovered by Google Mobile Ads: %@",
-             [self getMediationStatus:nil]);
+    __block NSDictionary *result;
+    TiThreadPerformOnMainThread(^{
+        TiAdmobUnifiedOperationState current;
+        @synchronized(self) { current = self->_initializationState; }
+        NSString *state = @"not_started";
+        switch (current) {
+            case TiAdmobUnifiedOperationStateInFlight: state = @"initializing"; break;
+            case TiAdmobUnifiedOperationStateComplete: state = @"completed"; break;
+            case TiAdmobUnifiedOperationStateFailed: state = @"failed"; break;
+            default: break;
+        }
+        NSMutableArray *adapters = [NSMutableArray array];
+        if (current != TiAdmobUnifiedOperationStateNotStarted) {
+            NSDictionary<NSString *, GADAdapterStatus *> *statuses = GADMobileAds.sharedInstance.initializationStatus.adapterStatusesByClassName;
+            for (NSString *adapterClass in [[statuses allKeys] sortedArrayUsingSelector:@selector(compare:)]) {
+                GADAdapterStatus *adapter = statuses[adapterClass];
+                [adapters addObject:@{
+                    @"adapterClass": adapterClass,
+                    @"state": adapter.state == GADAdapterInitializationStateReady ? @"ready" : @"not_ready",
+                    @"description": adapter.description ?: @"",
+                    @"latencyMs": @(llround(adapter.latency * 1000.0))
+                }];
+            }
+        }
+        result = @{ @"initializationState": state, @"adapters": adapters };
+    }, YES);
+    return result;
 }
 
 #pragma mark - JS Constants (parity with Android @Kroll.constant)

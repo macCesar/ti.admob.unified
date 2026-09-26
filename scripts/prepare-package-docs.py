@@ -9,7 +9,7 @@ import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
-BASES = [ROOT] + [ROOT / 'mediation' / name for name in ('applovin', 'meta', 'inmobi', 'unity', 'liftoff')]
+from mediation_modules import discover_modules
 
 
 def prepare(base, archive):
@@ -62,9 +62,6 @@ def prepare(base, archive):
 
 
 if __name__ == '__main__':
-    for base in BASES:
+    for module in discover_modules(ROOT):
         for platform in ('android', 'ios'):
-            manifest = dict(re.findall(r'^([^:#]+):\s*(.+)$', (base / platform / 'manifest').read_text(), re.M))
-            suffix = 'iphone' if platform == 'ios' else 'android'
-            archive = base / platform / 'dist' / f"{manifest['moduleid']}-{suffix}-{manifest['version']}.zip"
-            prepare(base, archive)
+            prepare(module.base, module.archive(platform))

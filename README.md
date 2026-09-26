@@ -63,7 +63,7 @@ The five optional network modules use the same identifiers on both platforms. Ad
 
 ## Distribution and application configuration
 
-The distribution contains twelve ZIPs: iOS and Android archives for the core and each of the five optional network complements. Install both core archives when targeting both platforms. Add only the complements you intend to configure.
+The distribution contains iOS and Android archives for the core and each optional network complement. Scripts discover module folders and read their manifests and Gradle declarations. Install both core archives when targeting both platforms. Add only the complements you intend to configure.
 
 Your application must declare platform-specific AdMob application IDs in `tiapp.xml`. These are Google's test IDs; replace them with the corresponding production app IDs before distribution:
 
@@ -111,7 +111,7 @@ Install the core and the selected network ZIP for each target platform:
 
 For several networks, add one module line per network. Accounts, provider credentials and placement mappings must be configured in AdMob. Installing an adapter alone does not enable demand or prove ad delivery. See [AdMob mediation](documentation/mediation.md) and [Dependencies](DEPENDENCIES.md).
 
-`getMediationStatus()` is part of the core and returns six keys for installed adapter classes. These values do not validate credentials or indicate ad availability. Without complements all values are false. With all five, only `ironSource` is false unless its adapter is installed independently.
+`getMediationStatus()` returns `{ initializationState, adapters }` with every adapter status Google reports, including Google itself. Query it after `module_initialized`; `completed` can include `not_ready` adapters, and `ready` does not prove delivery. The result is not an installed-complement inventory. Add providers without changing the core using the [Adding a network guide](CONTRIBUTING.md#adding-a-network).
 
 Google Mobile Ads automatically discovers the adapters included by the selected `tiapp.xml` modules. Use `Admob.initialize({})` for both core-only and mediated apps; no `enableMediation` flag or separate provider initialization is needed. With only the core there are no third-party adapters to initialize. With complements, configure their accounts and AdMob mappings and validate them with Ad Inspector.
 
@@ -379,7 +379,7 @@ npm test
 python3 scripts/verify-packages.py
 ```
 
-These commands build and inspect twelve ZIPs: the core and five complements, each for Android and iOS. Consumer validation must also cover core only, each complement alone, AppLovin + Unity, and all five together. Successful linking and Google test ads establish integration; they do not establish delivery from third-party providers. That requires configured accounts, mappings and single-source tests in Ad Inspector. See [validation scope](documentation/mediation.md#release-validation).
+These commands build and inspect two ZIPs per discovered module, including the core. Incomplete module folders or mismatched manifests fail the operation. Consumer validation must also cover core only, each complement alone, AppLovin + Unity, and all five together. Successful linking and Google test ads establish integration; they do not establish delivery from third-party providers. That requires configured accounts, mappings and single-source tests in Ad Inspector. See [validation scope](documentation/mediation.md#release-validation).
 
 ## License
 

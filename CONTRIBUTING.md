@@ -30,7 +30,7 @@ Dependency versions are pinned in [DEPENDENCIES.md](DEPENDENCIES.md).
 
 Create a focused branch and keep unrelated local changes intact. Before editing a native dependency, establish a recoverable Git baseline and record the upstream source and checksum.
 
-This repository holds the core at its root and five dependency-only complements in `mediation/<network>/`. Each has iOS and Android projects, for twelve ZIPs at version `1.0.0`. Applications call only the core. Both script helpers accept a module directory or `--all`.
+This repository holds the core at its root and five dependency-only complements in `mediation/<network>/`. Each has iOS and Android projects at version `1.0.0`. Scripts discover complement folders and derive archive identity/version from manifests. See [Adding a network](#adding-a-network). Applications call only the core. Both script helpers accept a module directory or `--all`.
 
 Run the static checks from the repository root:
 
@@ -41,7 +41,7 @@ npm test
 node --check example/app.js
 ```
 
-Build all twelve artifacts for API or native changes:
+Build all discovered artifacts for API or native changes:
 
 ```sh
 ./scripts/prepare-build.sh
@@ -53,6 +53,18 @@ python3 scripts/verify-packages.py
 Never add a mediation network to the core module. Its `-framework` flags belong in `mediation/<network>/ios/module.xcconfig` and its Maven coordinate in `mediation/<network>/android/build.gradle`; a contract test fails if a network name reaches `ios/module.xcconfig`, `android/build.gradle`, the core `pbxproj`, or the core checksum inventory. Applications that use only the core should carry no mediation dependencies.
 
 The `example/app.js` file is the module test-harness entry point. It is not a standalone Titanium project.
+
+## Adding a network
+
+Complements package existing official Google mediation adapters; writing a new native adapter is outside this workflow. No core registration or JavaScript API is needed.
+
+1. Copy the source/configuration structure of `mediation/applovin/` to `mediation/<provider>/`, using a lowercase letter followed by lowercase letters/digits for `<provider>`. Work outside `mediation/` until both platform projects are complete: discovery treats every visible subdirectory as a module. Exclude `platform/`, `Pods/`, `build/`, `dist/`, `.gradle/`, generated Android libraries, `metadata.json`, `Podfile.lock`, checksums, Xcode user/workspace files and other caches. Copy no binaries or credentials from the reference network.
+2. Replace `ti.admob.unified.mediation.applovin`, `TiAdmobUnifiedMediationApplovin` and the Java package directory with the new identity everywhere: both manifests and `timodule.xml` files, Java source/file path, Objective-C Module/ModuleAssets headers and implementations, prefix header, `.xcodeproj` directory and `project.pbxproj`, Podfile and framework installer. Generate a GUID with `uuidgen`; use the same value in both manifests and the iOS `moduleGUID`. Update author, description and licenses. Keep matching manifest IDs and versions on both platforms. Preserve all Xcode file references, Sources and Headers registrations while renaming.
+3. Replace `android/build.gradle` with the provider's exact official adapter coordinate and required direct overrides. Use literal `implementation 'group:artifact:version'` declarations (double quotes and parentheses are also accepted), one per line. The verifier deliberately rejects variables, ranges and unsupported dependency syntax. Update repositories in `android/root.build.gradle` if needed. It checks the packaged POM against these declarations plus Titanium/Kotlin build dependencies; the core uses the same check against its own Gradle declarations.
+4. Pin the official iOS adapter in `Podfile`, run `pod install`, and review the new lockfile and transitive versions against [Dependencies](DEPENDENCIES.md). Adapt `install_frameworks.sh` with the new module path and explicit framework copy map. Stage only the adapter/network frameworks and resources, never core-owned GMA/UMP or frameworks already owned by another complement. Record and review their tree checksums using the installer's `tree_sha256` algorithm. Complete `module.xcconfig` with `$(inherited) -ObjC` and the required framework flags. Keep redistribution notices and privacy resources.
+5. Follow Google's current [Android](https://developers.google.com/admob/android/choose-networks) and [iOS](https://developers.google.com/admob/ios/choose-networks) provider guides. Document required consumer manifest/plist settings, supported formats, consent propagation, publisher accounts and AdMob placement mappings. Do not initialize the provider yourself or invent credentials.
+6. Run `./scripts/prepare-build.sh mediation/<provider>`, then build from each platform directory with `ti build -p android --build-only` or `ti build -p ios --build-only`. Inspect the generated POM and iOS objects/defined symbols. Run the tests and `./scripts/build-all.sh`; all helpers discover the new folder automatically, with two ZIPs per module. Install the resulting ZIPs alongside the core and add `<module version="1.0.0">ti.admob.unified.mediation.<provider></module>` to the consumer's `tiapp.xml` (use the manifest's version).
+7. Test core-only and core-plus-complement consumers on Android and iOS. Query `getMediationStatus()` after `module_initialized`. Test provider delivery with your own configured mediation units, registered test devices, provider test mode and Ad Inspector single-source tests. Record installation/linking and Google initialization separately from actual provider ad delivery. A build or `ready` result does not establish delivery. Keep the public demo core-only with Google's official test IDs.
 
 ## Platform notes
 
@@ -175,7 +187,7 @@ Static tests cannot establish native UI and SDK behavior. Changes affecting that
 - orientation, density, safe areas, keyboard, lists, navigation, and snackbars;
 - absence of duplicate ads and retained listeners;
 - official test IDs and Ad Inspector request evidence;
-- `getMediationStatus()` reporting the exact selected adapters in isolated consumers: core only, each complement, AppLovin + Unity, all five. Keep `ironSource` naturally false without its adapter. Record simulator and hardware evidence separately; adapter presence and Google test ads do not prove third-party delivery.
+- `getMediationStatus()` returning the documented types and Google-reported statuses in isolated consumers: core only, each complement, AppLovin + Unity, all five. Test empty/partial maps, an unknown adapter and initialization failures; do not assume this is a complete installed-module inventory. Record simulator and hardware evidence separately; adapter presence and Google test ads do not prove third-party delivery.
 
 Never click production ads while developing.
 

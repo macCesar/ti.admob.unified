@@ -76,24 +76,28 @@ A key may be absent from JavaScript or the native manifest and still be configur
 Choose the setup that matches the application:
 
 - For Google ads alone, omit complements and call `Admob.initialize({})`. There are no third-party adapters to initialize.
-- For mediation, include one `tiapp.xml` entry per selected network, configure its account and AdMob mappings, and call `Admob.initialize({})`. Google discovers the installed adapters without an `enableMediation` flag or manual provider initializer. Check native initialization results and Ad Inspector; `getMediationStatus()` reports installed classes only.
+- For mediation, include one `tiapp.xml` entry per selected network, configure its account and AdMob mappings, and call `Admob.initialize({})`. Google discovers the installed adapters without an `enableMediation` flag or manual provider initializer. Check native initialization results and Ad Inspector; `getMediationStatus()` reports the adapter initialization states known to Google.
 
 For a session that deliberately skips initialization of installed adapters, see the [initialization reference](api-reference.md#automatic-adapter-discovery). That exception is global and does not validate credentials or filter individual networks.
 
 ## Portable diagnostics
 
-`getMediationStatus()` belongs to the core and reports native adapter class presence through the same six keys on both platforms. Both platforms return JavaScript Booleans. With AppLovin alone:
+`getMediationStatus()` belongs to the core and returns `{ initializationState, adapters }`. It includes every adapter Google reports, including Google, sorted by native class name. Entries contain `adapterClass`, `state`, `description` and numeric `latencyMs`; native class names may differ across platforms.
 
 ```js
 const Admob = require('ti.admob.unified')
-Ti.API.info(JSON.stringify(Admob.getMediationStatus()))
-// { appLovin: true, meta: false, inMobi: false, unity: false,
-//   liftoffMonetize: false, ironSource: false }
+Admob.addEventListener('module_initialized', event => {
+  const diagnostic = Admob.getMediationStatus()
+  Ti.API.info(diagnostic.initializationState)
+  diagnostic.adapters.forEach(adapter => {
+    Ti.API.info(`${adapter.adapterClass}: ${adapter.state} (${adapter.latencyMs} ms) ${adapter.description}`)
+  })
+})
 ```
 
-With all five complements, the first five values are true. `ironSource` is false when its adapter is absent; an independently installed adapter can be detected. With only the core, all six values are false.
+Before `initialize()`, the result is `not_started` with no adapters. During startup it is `initializing` and Google's map may be partial or empty. `completed` means the core callback finished, even when an adapter is `not_ready`; an initialization exception reports `failed`. The query does not initialize SDKs or request ads. Neither absence from this map nor `ready` establishes installed-module inventory, valid accounts, credentials or ad delivery. See the [complete contract](api-reference.md#mediation-diagnostics).
 
-The `isAppLovinAvailable()`, `isMetaAvailable()`, `isInMobiAvailable()`, `isVungleAvailable()`, `isUnityAvailable()` and `isIronSourceAvailable()` probes remain available. None validates credentials, initialization success or fill. The legacy `enableOptionalMediationNetworks(config)` remains callable as a diagnostic; it does not enable providers.
+New providers need no core registration. Follow [Adding a network](../CONTRIBUTING.md#adding-a-network) to package an existing official adapter.
 
 After initialization on a registered test device, inspect actual requests:
 
@@ -112,7 +116,7 @@ The public example and the test demo use only the core, with no mediation flag. 
 
 ## Release validation
 
-Build twelve ZIPs and inspect their framework inventories and generated POMs. Compile isolated consumer applications on both platforms with core only, each of the five complements individually, AppLovin + Unity, and all five together. Check that no framework is duplicated and that resolved dependency versions remain pinned.
+Build all discovered modules (two ZIPs per module) and inspect their framework inventories and generated POMs. Compile isolated consumer applications on both platforms with core only, each of the five complements individually, AppLovin + Unity, and all five together. Check that no framework is duplicated and that resolved dependency versions remain pinned.
 
 Record separately:
 

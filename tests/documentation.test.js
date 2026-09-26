@@ -64,7 +64,7 @@ test('ships a complete English documentation set', () => {
 test('documents every public module method and compatibility method', () => {
   const source = read('android/src/ti/admob/unified/TiAdmobUnifiedModule.java')
   const methods = [...source.matchAll(/@Kroll\.method(?:\([^\n]*\))?\s+public\s+[\w<>]+\s+(\w+)\(/g)].map(match => match[1])
-  assert.ok(methods.length >= 30, 'derive the complete current module surface')
+  assert.ok(methods.length >= 20, 'derive the complete current module surface')
 
   for (const method of methods) {
     assert.match(
@@ -299,13 +299,7 @@ test('documents how to install optional network modules', () => {
   // JavaScript API.
   const apiSurface = read('documentation/api-reference.md')
   for (const method of [
-    'getMediationStatus',
-    'isAppLovinAvailable',
-    'isMetaAvailable',
-    'isInMobiAvailable',
-    'isVungleAvailable',
-    'isUnityAvailable',
-    'isIronSourceAvailable'
+    'getMediationStatus'
   ]) {
     assert.match(apiSurface, new RegExp(`\\b${method}\\b`))
   }

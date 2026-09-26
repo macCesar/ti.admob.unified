@@ -101,7 +101,7 @@ Skip this step unless the application already has, or is about to have, an AdMob
 
 Install the corresponding complements from step 1 when the application will mediate. AppLovin, Meta, InMobi, Unity and Liftoff are available on both platforms; ironSource mediation is deferred. Add the intended networks to the AdMob mediation groups and complete their account, placement, privacy and store-disclosure setup.
 
-No platform-specific JavaScript or manual adapter initialization is required. Before publishing, use `getMediationStatus()` to check which complements the build contains. See [AdMob mediation](mediation.md).
+No platform-specific JavaScript or manual adapter initialization is required. After `module_initialized`, use `getMediationStatus()` to inspect the adapter states reported by Google; check package contents separately. See [AdMob mediation](mediation.md).
 
 ### Automatic adapter discovery
 
@@ -266,7 +266,7 @@ The module does not enforce the privacy gate inside ad proxies. The consuming ap
 - Using a production ad unit while clicking ads during development.
 - Requesting ATT, or shipping `NSUserTrackingUsageDescription`, in an app with no tracking case. UMP does not require either one.
 - Installing mediation complements without configured ad sources adds SDK size and may delay startup while unused networks time out.
-- Publishing an app that is supposed to mediate without the selected complements installed, which `getMediationStatus()` reports as six `false` values.
+- Publishing an app that is supposed to mediate without the selected complements installed, which must be checked through package inventories and Ad Inspector; an empty diagnostic map alone is not an installation check.
 
 ## Example appearance
 

@@ -13,11 +13,17 @@ Install only the core for Google ads. If the application mediates, install a com
 </modules>
 ```
 
-The aggregate development package is not part of this release. Replace its declaration with the desired per-network modules. `getMediationStatus()` retains its six keys and reports adapter presence; it does not validate mappings or delivery. ironSource mediation is deferred. See [AdMob mediation](mediation.md).
+The aggregate development package is not part of this release. Replace its declaration with the desired per-network modules. `getMediationStatus()` now reports Google initialization states through `{ initializationState, adapters }`; it does not validate mappings or delivery. ironSource mediation is deferred. See [AdMob mediation](mediation.md).
 
 ## If you used an internal pre-release build
 
-Internal ZIPs exposed three API differences that never reached a published release. Update code that depends on them as follows.
+Internal ZIPs exposed API differences that never reached a published release. Update code that depends on them as follows.
+
+### Generic mediation diagnostics
+
+Replace reads of the old six-Boolean map (for example `status.appLovin`) with iteration over `Admob.getMediationStatus().adapters` after `module_initialized`. Use `initializationState` for the core process and each entry's `state` for Google's adapter report. There is no portable provider-key mapping: native class names differ between iOS and Android. Before startup the array is empty; during startup it may be partial. A `ready` entry does not prove account configuration or ad delivery.
+
+Remove calls to `isAppLovinAvailable`, `isMetaAvailable`, `isInMobiAvailable`, `isVungleAvailable`, `isUnityAvailable`, `isIronSourceAvailable` and `enableOptionalMediationNetworks`. Also remove `setAppLovinGDPRConsent`, `setInMobiGDPRConsent` and `setVungleGDPRConsent`; those pre-release setters only logged warnings. Continue using UMP and each provider's documented consent requirements. `disableMediation` and the `module_initialized` payload are unchanged.
 
 ### There is no `COLLAPSIBLE_TOP` or `COLLAPSIBLE_BOTTOM`
 
@@ -236,7 +242,7 @@ An application that serves AdMob demand only leaves the complements out and uses
 - Test interstitial, rewarded, and app open duplicate loads, show failures, close, reward delivery, and repeated destruction.
 - Confirm no duplicate banners or retained listeners.
 - Inspect requests with Ad Inspector.
-- Confirm `getMediationStatus()` matches what the build is supposed to contain.
+- Inspect `getMediationStatus()` after `module_initialized`, and verify installed complements separately through package inventories and Ad Inspector.
 - Run `npm test` and `./scripts/verify-artifacts.sh`.
 
 

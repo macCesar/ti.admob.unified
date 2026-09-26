@@ -12,4 +12,4 @@ The first release, `1.0.0`, provides five optional dependency modules with ident
 
 ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib; Unity Ads 4.20.1 no longer requires IronSourceAdQualitySDK.
 
-All requests use the core factories and event contracts. Network selection requires installing the corresponding complement and configuring the source in AdMob. `getMediationStatus()` preserves six keys on both platforms, including ironSource, and reports class presence. Initialization and ad delivery require separate verification. See [AdMob mediation](documentation/mediation.md).
+All requests use the core factories and event contracts. Network selection requires installing the corresponding complement and configuring the source in AdMob. `getMediationStatus()` reports `{ initializationState, adapters }` with all statuses known to Google on both platforms. Entries include native class name, state, description and latency in milliseconds. Initialization and ad delivery require separate verification. See [AdMob mediation](documentation/mediation.md).

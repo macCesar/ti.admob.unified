@@ -42,8 +42,8 @@ First public release. Earlier development snapshots were not published releases.
 - Unity includes UnityAdapter, UnityAds and UnityCoherenceLib. Its updated SDK no longer requires IronSourceAdQualitySDK.
 - ironSource mediation is deferred; IronSourceAdapter and IronSource are not distributed.
 - SDKs and adapters were updated to the published September 23, 2026 versions; framework checksums were regenerated. See [Dependencies](DEPENDENCIES.md).
-- `getMediationStatus()` keeps six keys and reports adapter presence. `disableMediation` remains a global startup control.
-- Twelve release artifacts: core plus five complements, each for Android and iOS. Nothing is published or tagged by the build scripts.
+- `getMediationStatus()` returns generic Google initialization diagnostics; pre-release provider probes and no-op consent setters were removed. `disableMediation` remains a global startup control.
+- Release artifacts are discovered from complement folders and manifests; packaged dependencies are checked against literal Gradle declarations without a provider list. Nothing is published or tagged by the build scripts.
 
 ### Validation
 

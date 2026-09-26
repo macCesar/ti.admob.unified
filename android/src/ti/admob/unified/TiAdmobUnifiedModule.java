@@ -14,6 +14,8 @@ import android.os.Bundle;
 
 import com.google.android.gms.ads.*;
 import com.google.android.gms.ads.initialization.InitializationStatus;
+import com.google.android.gms.ads.initialization.AdapterStatus;
+import java.util.TreeMap;
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.ump.*;
 
@@ -289,7 +291,7 @@ public class TiAdmobUnifiedModule extends KrollModule
 			}
 		});
         } catch (RuntimeException error) {
-            synchronized (initializationLock) { initializationState = OperationState.NOT_STARTED; }
+            synchronized (initializationLock) { initializationState = OperationState.FAILED; }
             throw error;
         }
 	}
@@ -354,33 +356,6 @@ public class TiAdmobUnifiedModule extends KrollModule
 		}
 	}
 
-	// ===================================================================
-	// MEDIATION NETWORK CONFIGURATION METHODS
-	// ===================================================================
-	@Kroll.method
-	public void setAppLovinGDPRConsent(KrollDict config)
-	{
-		Log.w(LCAT, "setAppLovinGDPRConsent() is deprecated and intentionally does not "
-			+ "translate one Boolean into regional privacy choices; use UMP and current "
-			+ "provider requirements");
-	}
-
-	@Kroll.method
-	public void setInMobiGDPRConsent(KrollDict config)
-	{
-		Log.w(LCAT, "setInMobiGDPRConsent() is deprecated and intentionally does not "
-			+ "translate one Boolean into regional privacy choices; use UMP and current "
-			+ "provider requirements");
-	}
-
-	@Kroll.method
-	public void setVungleGDPRConsent(KrollDict config)
-	{
-		Log.w(LCAT, "setVungleGDPRConsent() is deprecated and intentionally does not "
-			+ "translate one Boolean into regional privacy choices; use UMP and current "
-			+ "provider requirements");
-	}
-
 	// Converts the `extras` dictionary an application passes from JavaScript into the
 	// Bundle AdMob expects. Shared by both banner views so a value keeps the same type
 	// no matter which one receives it. Returns null for a null or empty dictionary.
@@ -406,99 +381,38 @@ public class TiAdmobUnifiedModule extends KrollModule
 		return bundle;
 	}
 
-	// Returns the first of the given class names that is present on the classpath,
-	// or throws ClassNotFoundException if none of them are.
-	private static Class<?> findClass(String... classNames) throws ClassNotFoundException
-	{
-		for (String className : classNames) {
-			try {
-				return Class.forName(className);
-			} catch (ClassNotFoundException ignored) {
-				// try the next candidate
-			}
-		}
-		throw new ClassNotFoundException(java.util.Arrays.toString(classNames));
-	}
-
-	private static boolean isClassAvailable(String... classNames)
-	{
-		try {
-			findClass(classNames);
-			return true;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
-	}
-
-	@Kroll.method
-	public boolean isAppLovinAvailable()
-	{
-		return isClassAvailable(
-			"com.google.ads.mediation.applovin.AppLovinMediationAdapter"
-		);
-	}
-
-	@Kroll.method
-	public boolean isMetaAvailable()
-	{
-		return isClassAvailable(
-			"com.google.ads.mediation.facebook.FacebookMediationAdapter"
-		);
-	}
-
-	@Kroll.method
-	public boolean isVungleAvailable()
-	{
-		// Report adapter presence, matching the iOS diagnostic.
-		return isClassAvailable(
-			"com.google.ads.mediation.vungle.VungleMediationAdapter"
-		);
-	}
-
-	@Kroll.method
-	public boolean isInMobiAvailable()
-	{
-		return isClassAvailable(
-			"com.google.ads.mediation.inmobi.InMobiMediationAdapter"
-		);
-	}
-
-	@Kroll.method
-	public boolean isUnityAvailable()
-	{
-		return isClassAvailable(
-			"com.google.ads.mediation.unity.UnityMediationAdapter"
-		);
-	}
-
-	@Kroll.method
-	public boolean isIronSourceAvailable()
-	{
-		return isClassAvailable(
-			"com.google.ads.mediation.ironsource.IronSourceMediationAdapter"
-		);
-	}
-
+	// A read-only snapshot of Google's reported adapter initialization status.
 	@Kroll.method
 	public KrollDict getMediationStatus()
 	{
-		KrollDict status = new KrollDict();
-		status.put("appLovin", isAppLovinAvailable());
-		status.put("meta", isMetaAvailable());
-		status.put("inMobi", isInMobiAvailable());
-		status.put("unity", isUnityAvailable());
-		status.put("liftoffMonetize", isVungleAvailable());
-		status.put("ironSource", isIronSourceAvailable());
-		return status;
-	}
-
-	// Compatibility method retained for 1.1.x consumers. AdMob discovers the
-	// bundled adapters automatically; this method only reports their status.
-	@Kroll.method
-	public void enableOptionalMediationNetworks(KrollDict config)
-	{
-		Log.d(LCAT, "Mediation adapters are auto-discovered by Google Mobile Ads: "
-			+ getMediationStatus());
+		OperationState current;
+		synchronized (initializationLock) { current = initializationState; }
+		String state = "not_started";
+		switch (current) {
+			case IN_FLIGHT: state = "initializing"; break;
+			case COMPLETE: state = "completed"; break;
+			case FAILED: state = "failed"; break;
+			default: break;
+		}
+		List<KrollDict> adapters = new ArrayList<>();
+		if (current != OperationState.NOT_STARTED) {
+			InitializationStatus status = MobileAds.getInitializationStatus();
+			if (status != null) {
+				for (Map.Entry<String, AdapterStatus> entry : new TreeMap<>(status.getAdapterStatusMap()).entrySet()) {
+					AdapterStatus adapter = entry.getValue();
+					KrollDict item = new KrollDict();
+					item.put("adapterClass", entry.getKey());
+					item.put("state", adapter.getInitializationState() == AdapterStatus.State.READY ? "ready" : "not_ready");
+					item.put("description", adapter.getDescription());
+					item.put("latencyMs", adapter.getLatency());
+					adapters.add(item);
+				}
+			}
+		}
+		KrollDict result = new KrollDict();
+		result.put("initializationState", state);
+		result.put("adapters", adapters.toArray());
+		return result;
 	}
 
 	// ===================================================================

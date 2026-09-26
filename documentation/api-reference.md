@@ -28,16 +28,6 @@ const Admob = require('ti.admob.unified')
 | `isTestDevice()`                           | iOS, Android | Supported                  |
 | `setAppVolume(volume)`                     | iOS, Android | Available                  |
 | `getMediationStatus()`                     | iOS, Android | Supported diagnostic       |
-| `isMetaAvailable()`                        | iOS, Android | Supported diagnostic       |
-| `isInMobiAvailable()`                      | iOS, Android | Supported diagnostic       |
-| `isUnityAvailable()`                       | iOS, Android | Supported diagnostic       |
-| `isAppLovinAvailable()`                    | iOS, Android | Supported diagnostic       |
-| `isVungleAvailable()`                      | iOS, Android | Supported diagnostic       |
-| `isIronSourceAvailable()`                  | iOS, Android | Supported diagnostic       |
-| `enableOptionalMediationNetworks(config)`  | iOS, Android | Legacy; logs availability  |
-| `setAppLovinGDPRConsent(config)`           | iOS, Android | Deprecated no-op           |
-| `setInMobiGDPRConsent(config)`             | iOS, Android | Deprecated no-op           |
-| `setVungleGDPRConsent(config)`             | iOS, Android | Deprecated no-op           |
 | `canShowAds()`                             | iOS, Android | Deprecated alias           |
 | `canShowPersonalizedAds()`                 | iOS, Android | Deprecated; always `false` |
 | `isGDPR()`                                 | iOS, Android | Deprecated diagnostic      |
@@ -538,50 +528,34 @@ Use the constant in shared code so it selects the platform value.
 
 The reserved constants allow code targeting future releases to compile, although no current factory accepts them. See [Reserved and unavailable APIs](#reserved-and-unavailable-apis).
 
-## Mediation diagnostics and compatibility
+## Mediation diagnostics
 
-AppLovin, Meta, InMobi, Unity and Liftoff are distributed as optional per-network complements on both platforms. ironSource mediation is deferred. These diagnostics stay in the core and detect adapter classes, including independently installed ironSource adapters. See [AdMob mediation](mediation.md).
-
-`getMediationStatus()` returns the same object shape on both platforms:
+`getMediationStatus()` takes no arguments and returns the same structure and JavaScript types on iOS and Android:
 
 ```js
 {
-  appLovin: Boolean,
-  meta: Boolean,
-  inMobi: Boolean,
-  unity: Boolean,
-  liftoffMonetize: Boolean,
-  ironSource: Boolean
+  initializationState: 'completed',
+  adapters: [
+    { adapterClass: 'native.AdapterClass', state: 'ready', description: 'SDK status', latencyMs: 125 }
+  ]
 }
 ```
 
-With only the core, every key is `false`. With all five complements, the first five values are true and `ironSource` is false. These values report installed classes. They do not validate credentials, initialization success or fill.
+`initializationState` is a String: `not_started`, `initializing`, `completed` or `failed`. Before this module's first `initialize()` call the result is `not_started` with an empty Array. A failed initialization attempt reports `failed` and may be retried. `completed` means the core initialization callback finished, even if some adapters remain `not_ready`.
 
-Individual methods return the corresponding value:
+`adapters` contains every entry Google reports, including Google itself, sorted by `adapterClass`. Each entry contains String `adapterClass`, String `state` (`ready` or `not_ready`), String `description` from Google, and Number `latencyMs`. iOS seconds are converted to milliseconds. Native class names can differ between platforms; do not compare them as portable provider identifiers.
 
-| Method                    | Network                 |
-| ------------------------- | ----------------------- |
-| `isAppLovinAvailable()`   | AppLovin                |
-| `isMetaAvailable()`       | Meta Audience Network   |
-| `isInMobiAvailable()`     | InMobi                  |
-| `isUnityAvailable()`      | Unity Ads               |
-| `isVungleAvailable()`     | Liftoff Monetize/Vungle |
-| `isIronSourceAvailable()` | ironSource              |
+The method reads Google's current public initialization status without starting SDKs or ad requests. During initialization the map can be empty or partial. An absent entry does not prove that a complement is missing. This is not an installed-module inventory, account check, credential check or guarantee of provider delivery. `ready` does not guarantee an ad.
 
-Availability confirms that the native adapter is installed. It does not prove that the provider account, AdMob mapping, consent, or inventory can serve an ad.
+Query after the unchanged `module_initialized` event:
 
-The following legacy methods remain callable so that code written against an older AdMob module keeps compiling:
+```js
+Admob.addEventListener('module_initialized', event => {
+  Ti.API.info(JSON.stringify(Admob.getMediationStatus()))
+})
+```
 
-| Method                                    | Behavior                                                 |
-| ----------------------------------------- | -------------------------------------------------------- |
-| `setAppLovinGDPRConsent({ enabled })`     | Deprecated compatibility no-op.                          |
-| `setInMobiGDPRConsent({ enabled })`       | Deprecated compatibility no-op.                          |
-| `setVungleGDPRConsent({ enabled })`       | Deprecated compatibility no-op.                          |
-| `enableOptionalMediationNetworks(config)` | Logs adapter availability; adapters are auto-discovered. |
-
-New integrations should use UMP, `canRequestAds()`, and each enabled provider's current privacy requirements. They should not manually initialize mediation networks. See [AdMob mediation](mediation.md).
-
-The legacy setters leave GDPR consent and US-state sale/sharing choices separate; one Boolean cannot represent both legal signals.
+Use UMP, `canRequestAds()` and each selected provider's current privacy requirements. `disableMediation` remains a global startup option. See [AdMob mediation](mediation.md) and the [pre-release migration](migration.md#generic-mediation-diagnostics).
 
 ## Reserved and unavailable APIs
 

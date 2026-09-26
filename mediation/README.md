@@ -22,3 +22,5 @@ ironSource mediation is deferred: neither its adapter nor its advertising SDK is
 Each network lives in `mediation/<network>/`, with Android and iOS projects. Add several declarations to combine networks. Applications call only the core. See [setup and diagnostics](../documentation/mediation.md) and [dependency inventory](../DEPENDENCIES.md).
 
 Build from the platform directory or use `./scripts/build-all.sh` at the repository root. `./scripts/prepare-build.sh --all` verifies permissions and checksums for every module. A single module can be prepared with `./scripts/prepare-build.sh mediation/applovin`.
+
+See [Adding a network](../CONTRIBUTING.md#adding-a-network) to create another complement. Build tooling discovers module folders without a provider list.

@@ -372,29 +372,16 @@ test('does not infer personalization from TCF storage', () => {
   )
 })
 
-test('avoids keyWindow and preserves compatibility APIs', () => {
+test('avoids keyWindow and preserves banner compatibility APIs', () => {
   const iosSources = fs.readdirSync(path.join(root, 'ios/Classes'))
     .filter(name => name.endsWith('.m'))
     .map(name => read(path.join('ios/Classes', name)))
     .join('\n')
   assert.doesNotMatch(iosSources, /keyWindow/)
 
-  const compatibilityMethods = [
-    'isAppLovinAvailable',
-    'isMetaAvailable',
-    'isInMobiAvailable',
-    'isVungleAvailable',
-    'isUnityAvailable',
-    'isIronSourceAvailable',
-    'getMediationStatus',
-    'setAppLovinGDPRConsent',
-    'setInMobiGDPRConsent',
-    'setVungleGDPRConsent',
-    'enableOptionalMediationNetworks'
-  ]
-  for (const method of compatibilityMethods) {
-    assert.match(iosModule, new RegExp(method))
-    assert.match(androidModule, new RegExp(method))
+  for (const source of [iosModule, androidModule]) {
+    assert.match(source, /getMediationStatus/)
+    assert.doesNotMatch(source, /is(?:AppLovin|Meta|InMobi|Vungle|Unity|IronSource)Available|set(?:AppLovin|InMobi|Vungle)GDPRConsent|enableOptionalMediationNetworks/)
   }
 
   const androidBannerSources = [
@@ -405,41 +392,15 @@ test('avoids keyWindow and preserves compatibility APIs', () => {
   assert.match(androidBannerSources, /destoyAdViewAndCancelRequest/)
 })
 
-test('exposes one six-network mediation diagnostic contract', () => {
+test('exposes a generic Google adapter diagnostic contract', () => {
   for (const source of [iosModule, androidModule]) {
-    for (const key of [
-      'appLovin',
-      'meta',
-      'inMobi',
-      'unity',
-      'liftoffMonetize',
-      'ironSource'
-    ]) {
-      assert.match(source, new RegExp(`["']${key}["']`))
+    for (const key of ['initializationState', 'adapters', 'adapterClass', 'state', 'description', 'latencyMs', 'not_started', 'initializing', 'completed', 'failed', 'ready', 'not_ready']) {
+      assert.ok(source.includes('"' + key + '"'), key)
     }
+    assert.doesNotMatch(source, /FacebookMediationAdapter|AppLovinMediationAdapter|NSClassFromString|Class.forName/)
   }
-
-  for (const adapterClass of [
-    'FacebookMediationAdapter',
-    'InMobiMediationAdapter',
-    'UnityMediationAdapter',
-    'AppLovinMediationAdapter',
-    'VungleMediationAdapter',
-    'IronSourceMediationAdapter'
-  ]) {
-    assert.match(androidModule, new RegExp(adapterClass))
-  }
-})
-
-test('does not derive regional mediation consent from one legacy Boolean', () => {
-  for (const source of [iosModule, androidModule]) {
-    assert.doesNotMatch(
-      source,
-      /setDoNotSellMethod|updateGDPRConsentMethod|setCCPAStatusMethod/
-    )
-    assert.match(source, /setAppLovinGDPRConsent/)
-    assert.match(source, /deprecated/)
-  }
+  assert.match(androidModule, /getAdapterStatusMap/)
+  assert.match(iosModule, /adapterStatusesByClassName/)
 })
 
 test('keeps documentation on the implemented API surface', () => {

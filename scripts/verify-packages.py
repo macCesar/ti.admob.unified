@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inspect all twelve release archives; fail on unwanted or altered dependencies."""
+"""Inspect all discovered release archives; fail on unwanted or altered dependencies."""
 from pathlib import Path
 import hashlib
 from io import BytesIO
@@ -11,30 +11,24 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 ROOT = Path(__file__).resolve().parent.parent
-NETWORKS = {
-    'applovin': ('applovin', '13.6.4.2'),
-    'meta': ('facebook', '6.22.0.1'),
-    'inmobi': ('inmobi', '11.4.1.2'),
-    'unity': ('unity', '4.20.1.0'),
-    'liftoff': ('vungle', '7.7.8.1'),
-}
+from mediation_modules import discover_modules
 
 
 def verify():
     owned = set()
-    for network in [None, *NETWORKS]:
-        base = ROOT / 'mediation' / network if network else ROOT
-        module_id = 'ti.admob.unified' + ('.mediation.' + network if network else '')
+    modules = discover_modules(ROOT)
+    for module in modules:
+        base, module_id, version = module.base, module.module_id, module.version
         inventory = dict(line.split()[::-1] for line in (base / 'ios/framework-checksums.sha256').read_text().splitlines())
         assert not owned.intersection(inventory), 'Framework shared by multiple modules'
         owned.update(inventory)
         for platform, target in [('android', 'android'), ('ios', 'iphone')]:
-            archive = base / platform / 'dist' / f'{module_id}-{target}-1.0.0.zip'
+            archive = module.archive(platform)
             with zipfile.ZipFile(archive) as z:
-                prefix = f'modules/{target}/{module_id}/1.0.0/'
+                prefix = f'modules/{target}/{module_id}/{version}/'
                 assert all(n.startswith(prefix) for n in z.namelist()), f'Unexpected module path in {archive}'
                 manifest = z.read(prefix + 'manifest').decode()
-                assert re.search(r'^version: 1\.0\.0$', manifest, re.M)
+                assert re.search(r'^version: ' + re.escape(version) + '$', manifest, re.M)
                 assert re.search(r'^minsdk: 13\.2\.0\.GA$', manifest, re.M)
                 assert re.search(r'^moduleid: ' + re.escape(module_id) + '$', manifest, re.M)
                 for source in (base / 'example').rglob('*'):
@@ -52,10 +46,7 @@ def verify():
                     pom = ET.fromstring(z.read(poms[0]))
                     ns = {'m': 'http://maven.apache.org/POM/4.0.0'}
                     dependencies = {(d.findtext('m:groupId', namespaces=ns), d.findtext('m:artifactId', namespaces=ns), d.findtext('m:version', namespaces=ns)) for d in pom.findall('m:dependencies/m:dependency', ns)}
-                    expected = {('com.google.ads.mediation', *NETWORKS[network])} if network else {('com.google.android.gms', 'play-services-ads', '25.5.0'), ('com.google.android.ump', 'user-messaging-platform', '4.0.0'), ('com.google.guava', 'guava', '33.7.1-android')}
-                    if network in ('inmobi', 'liftoff'):
-                        expected.add(('com.squareup.okhttp3', 'okhttp', '4.12.0'))
-                    expected |= {('org.appcelerator', 'titanium', '13.2.0.GA'), ('org.jetbrains.kotlin', 'kotlin-stdlib-jdk8', '2.3.0')}
+                    expected = {tuple(coordinate.split(':')) for coordinate in module.android_dependencies}
                     assert dependencies == expected, (archive, dependencies, expected)
                 else:
                     module_plist = plistlib.loads(z.read(prefix + module_id + '.xcframework/Info.plist'))
@@ -88,7 +79,7 @@ def verify():
                             resolved = posixpath.normpath(posixpath.join(posixpath.dirname(name), target))
                             assert resolved in z.namelist(), f'Broken packaged link: {archive}: {name} -> {href}'
             print(f'OK {archive.relative_to(ROOT)}')
-    print('Verified 12 ZIPs, 6 POMs, disjoint frameworks, link flags, versions, architectures, permissions and tree checksums.')
+    print(f'Verified {2 * len(modules)} ZIPs, {len(modules)} POMs, disjoint frameworks, link flags, versions, architectures, permissions and tree checksums.')
 
 
 if __name__ == '__main__':

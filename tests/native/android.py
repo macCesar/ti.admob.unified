@@ -11,19 +11,25 @@ def method(signature):
     return src[start:end]
 code = '''import java.util.*;
 public class Harness {
- enum OperationState { NOT_STARTED, IN_FLIGHT, COMPLETE }
+ enum OperationState { NOT_STARTED, IN_FLIGHT, COMPLETE, FAILED }
  OperationState initializationState=OperationState.NOT_STARTED, consentState=OperationState.NOT_STARTED;
  Float pendingAppVolume;
  boolean consentResetPending, privacyInFlight;
  KrollDict queuedConsent;
  Map<String,Object> consentResult;
- Object consentLock=new Object();
+ Object consentLock=new Object(), initializationLock=new Object();
  List<Map<String,Object>> events=new ArrayList<>();
  int requests;
  static String LCAT="test";
  static class KrollDict extends HashMap<String,Object> {}
  static class Log { static void d(String a,String b) {} static void e(String a,String b) {} static void w(String a,String b) {} }
- static class MobileAds { static float volume=1; static void setAppVolume(float v) { volume=v; } }
+ static class AdapterStatus {
+ enum State { READY, NOT_READY }
+ State state; AdapterStatus(State value) {state=value;}
+ State getInitializationState() {return state;} String getDescription() {return "SDK detail";} int getLatency() {return 125;}
+ }
+ static class InitializationStatus { Map<String,AdapterStatus> adapters=new HashMap<>(); Map<String,AdapterStatus> getAdapterStatusMap() {return adapters;} }
+ static class MobileAds { static InitializationStatus status; static int reads; static InitializationStatus getInitializationStatus() {reads++;return status;} static float volume=1; static void setAppVolume(float v) { volume=v; } }
  static class Activity {
    String selected;
    String getPackageName() {return "audit.app";}
@@ -45,12 +51,30 @@ public class Harness {
  void requestConsent(KrollDict config) {requests++;consentState=OperationState.IN_FLIGHT;}
  void fireEvent(String name,Map<String,Object> event) {events.add(event);}
 '''
-for sig in ['public void setAppVolume(', 'public boolean isGDPR(', 'private void completeConsent(', 'private boolean finishPendingConsentReset(', 'public void resetConsent(']: code+=method(sig)+'\n'
+for sig in ['public KrollDict getMediationStatus(', 'public void setAppVolume(', 'public boolean isGDPR(', 'private void completeConsent(', 'private boolean finishPendingConsentReset(', 'public void resetConsent(']: code+=method(sig)+'\n'
 code+='''
  static int checks;
  static void check(boolean value,String name) {checks++;if(!value)throw new AssertionError(name);}
  public static void main(String[] args) {
-  Harness h=new Harness(); h.setAppVolume("50%");
+  Harness h=new Harness();
+  check(h.getMediationStatus().get("initializationState").equals("not_started"),"diagnostic pre-init");
+  check(((Object[])h.getMediationStatus().get("adapters")).length==0 && MobileAds.reads==0,"no SDK access before init");
+  h.initializationState=OperationState.IN_FLIGHT;
+  check(h.getMediationStatus().get("initializationState").equals("initializing"),"in flight null SDK status");
+  MobileAds.status=new InitializationStatus();
+  check(((Object[])h.getMediationStatus().get("adapters")).length==0,"empty map");
+  MobileAds.status.adapters.put("z.UnknownAdapter",new AdapterStatus(AdapterStatus.State.NOT_READY));
+  MobileAds.status.adapters.put("a.GoogleAdapter",new AdapterStatus(AdapterStatus.State.READY));
+  h.initializationState=OperationState.COMPLETE;
+  KrollDict diagnostic=h.getMediationStatus(); Object[] adapters=(Object[])diagnostic.get("adapters");
+  check(diagnostic.get("initializationState").equals("completed"),"completed despite not ready adapter");
+  Map first=(Map)adapters[0], second=(Map)adapters[1];
+  check(first.get("adapterClass").equals("a.GoogleAdapter") && second.get("adapterClass").equals("z.UnknownAdapter"),"all adapters sorted");
+  check(first.get("state").equals("ready") && second.get("state").equals("not_ready"),"states normalized");
+  check(first.get("latencyMs").equals(125) && first.get("description").equals("SDK detail"),"latency and description");
+  h.initializationState=OperationState.FAILED; check(h.getMediationStatus().get("initializationState").equals("failed"),"failure");
+  h.initializationState=OperationState.NOT_STARTED;
+  h.setAppVolume("50%");
   check(h.pendingAppVolume==.5f && MobileAds.volume==1,"pre-init stores without calling SDK");
   h.initializationState=OperationState.COMPLETE;
   for(String value:new String[]{"0","25%"," 50 % ","100"}) {h.setAppVolume(value);check(MobileAds.volume==Float.parseFloat(value.replace("%","").trim())/100,"volume applies");}
