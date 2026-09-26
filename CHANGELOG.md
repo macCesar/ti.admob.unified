@@ -15,6 +15,7 @@
 - Fix library callback reentrancy, share concurrent privacy/Inspector operations, and wait for iOS adaptive layout.
 - Keep banner-button feedback in the button with light-green styling; reuse the current banner on reload without collapsing its slot.
 - Keep ads and listeners through an Android light/dark switch: the example and the cleanup guide ignore the `close` event Titanium fires while it recreates the activity.
+- Accept iOS UMP UUID test identifiers and support per-platform consent test defaults in the example application's properties.
 
 
 First public release. Earlier development snapshots were not published releases.

@@ -286,6 +286,18 @@ test('physical Android requires a hash and production ignores saved demo setting
   assert.equal(Object.keys(production.Admob.consentRequests[0]).length, 0)
 })
 
+test('iOS consent demo forwards UMP UUID identifiers unchanged and rejects malformed IDs', () => {
+  const app = openExample('ipad'); app.ready()
+  const field = app.views.find(view => view.type === 'TextField')
+  field.value = '00000000-1111-2222-3333-44444444444Z'
+  app.scenario('eea').emit('click')
+  assert.equal(app.Admob.resets, undefined)
+  field.value = '00000000-1111-2222-3333-444444444444'
+  app.scenario('eea').emit('click')
+  assert.equal(app.Admob.resets, 1)
+  assert.equal(app.Admob.consentRequests.at(-1).testDeviceIds[0], field.value)
+})
+
 test('consent errors do not claim that no form is required or load ads', () => {
   const app = openExample()
   app.Admob.emit('consent_complete', { success: false, error: 'Offline', canRequestAds: false })
@@ -442,4 +454,13 @@ test('banner reloads reuse the current view and never resize the scroll viewport
       assert.deepEqual(changes, [])
     }
   }
+})
+
+test('consent device field uses configured per-platform default without overriding saved input', () => {
+  const key = 'demo.consentDeviceIds.ios'
+  const id = '00000000-1111-2222-3333-444444444444'
+  const app = openExample('ipad', { [key]: id })
+  assert.equal(app.views.find(v => v.type === 'TextField').value, id)
+  const saved = openExample('ipad', { [key]: id, 'demo.consentDeviceIds': 'saved' })
+  assert.equal(saved.views.find(v => v.type === 'TextField').value, 'saved')
 })

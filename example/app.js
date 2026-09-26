@@ -378,8 +378,9 @@ function requestExampleConsent(mode, reset = false) {
   if (consentTestingEnabled) {
     const value = consentDeviceInput.value.trim()
     deviceIds = value.split(/[\s,]+/).filter(Boolean)
-    if (mode !== 'normal' && deviceIds.some(id => !/^[a-f0-9]{32}$/i.test(id))) {
-      consentDemoFeedback.text = 'Check the test-device hash: use 32 hexadecimal characters per device, separated by commas.'
+    const deviceIdPattern = isAndroid ? /^[a-f0-9]{32}$/i : /^(?:[a-f0-9]{32}|[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12})$/i
+    if (mode !== 'normal' && deviceIds.some(id => !deviceIdPattern.test(id))) {
+      consentDemoFeedback.text = 'Paste the UMP test-device identifier exactly as logged by the SDK, including any hyphens. Separate devices with commas.'
       setStatus(consentDemoFeedback.text)
       return
     }
@@ -868,12 +869,12 @@ if (consentTestingEnabled) {
     color: colors.ink, font: { fontSize: '14dp', fontWeight: 'bold' }
   }))
   currentSection.add(Ti.UI.createLabel({
-    text: 'Paste the UMP hash once; this app remembers it. Leave empty on an iOS simulator.',
+    text: 'Paste the UMP test-device identifier from the SDK log, including any hyphens. This app remembers it. Leave empty on an iOS simulator.',
     top: '4dp', left: '8dp', right: '8dp', height: Ti.UI.SIZE,
     color: colors.muted, font: { fontSize: '13dp' }
   }))
   consentDeviceInput = Ti.UI.createTextField({
-    value: Ti.App.Properties.getString('demo.consentDeviceIds', ''), hintText: 'UMP test-device hash (from SDK log)',
+    value: Ti.App.Properties.getString('demo.consentDeviceIds', '') || Ti.App.Properties.getString(`demo.consentDeviceIds.${isAndroid ? 'android' : 'ios'}`, ''), hintText: 'UMP test-device identifier (from SDK log)',
     top: '8dp', left: '8dp', right: '8dp', height: '48dp',
     color: colors.ink, backgroundColor: colors.surface,
     borderColor: colors.line, borderWidth: 1, borderRadius: '8dp',

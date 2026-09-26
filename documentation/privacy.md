@@ -240,7 +240,7 @@ Do not store the numeric values; use the names because the native enum values ar
 
 The published `example/app.js` includes **Consent demo** controls in development/test builds on Android and iOS. First launch uses the normal region. Production builds hide these controls and ignore saved debug settings.
 
-1. In the visible **Test device** field, paste the physical device’s UMP test-device hash from the SDK log once; the app remembers it. iOS simulators need no hash. Enter only finishes typing.
+1. In the visible **Test device** field, use the physical device's UMP identifier from the SDK log, including any hyphens on iOS; the app remembers it. To prefill a development build, set the string application property `demo.consentDeviceIds.ios` or `demo.consentDeviceIds.android` in the consumer's `tiapp.xml`. A saved nonempty field takes precedence. iOS simulators need no identifier. Enter only finishes typing.
 2. Tap the scenario selector, choose **Europe — consent form**, **US — privacy options**, **Other region — no form**, or **My actual region**, then tap **Run test**. Selecting a scenario alone does not reset consent. Running it clears the previous UMP choice and replaces existing ads.
 3. The single result below the button reports progress and completion. Europe requests consent; US opens privacy options when available; Other and the actual region can finish without a dialog. Which form is available depends on the AdMob message configuration. The banner slot keeps its height while ads reload.
 4. Use **Advertising privacy options** to revise a choice without resetting. Relaunching preserves the chosen mode, hashes and consent. Run **My actual region** to remove the region override.
