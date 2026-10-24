@@ -12,7 +12,7 @@ ehthumbs.db
 Thumbs.db
 
 # ===================================================================
-# BUILD ARTIFACTS (estos NO deben estar en git)
+# BUILD ARTIFACTS (not versioned)
 # ===================================================================
 
 # Generated module files
@@ -61,7 +61,7 @@ mediation/*/ios/build/
 mediation/*/ios/titanium.xcconfig.bak
 mediation/*/ios/*.xcodeproj/project.xcworkspace/xcuserdata/*
 
-# CocoaPods (temporales - se regeneran con install_frameworks.sh)
+# CocoaPods (regenerated with install_frameworks.sh)
 ios/Pods/
 ios/*.xcworkspace
 mediation/*/ios/Pods/
@@ -92,14 +92,11 @@ android/gradle/wrapper/gradle-wrapper.jar
 android/gradle/wrapper/gradle-wrapper.properties
 
 # ===================================================================
-# FRAMEWORKS (estos SÍ deben estar en git para distribución)
+# FRAMEWORKS (versioned for distribution)
 # ===================================================================
 
-# IMPORTANTE: Los frameworks NO se ignoran porque son necesarios
-# para que otros desarrolladores puedan compilar el módulo
-# ios/platform/ - MANTENER EN GIT
-# mediation/*/ios/platform/ - MANTENER EN GIT
-# android/lib/ - MANTENER EN GIT
+# Frameworks are required to build and distribute the modules.
+# Keep ios/platform/, mediation/*/ios/platform/ and android/lib/ versioned.
 
 # ===================================================================
 # DEVELOPMENT & TESTING
@@ -131,9 +128,8 @@ coverage/
 *.temp
 .cache/
 
-# Capturas sueltas en la raíz: llegan al pegar imágenes en una conversación y
-# no forman parte del módulo. Las imágenes de la documentación viven en
-# documentation/ y no las toca esta regla.
+# Screenshots pasted into the repository root are personal working files.
+# Documentation screenshots in subdirectories remain versioned.
 /*.png
 /*.jpg
 /*.jpeg
@@ -142,3 +138,21 @@ coverage/
 # Python tooling caches
 __pycache__/
 *.pyc
+
+# Personal state, diagnostics and signing material
+/audit-evidence/
+/.agents/
+/AGENTS.md
+/HANDOFF.md
+*.bak
+*.bak.*
+*.orig
+*.rej
+.env
+.env.*
+!.env.example
+*.p12
+*.p8
+*.mobileprovision
+*.keystore
+*.jks
