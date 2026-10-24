@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] (Unreleased)
+## [1.0.0] - 2026-10-24
 
 - Add a bounded iPad layout workaround for a collapsed Google Interstitial SVG. Eligibility follows the zero-width column-flex markup for both demo and publisher-owned units. It preserves proportions and stops with the presentation lifecycle. Production creative coverage remains unverified; see the fullscreen guide for its limits.
 
