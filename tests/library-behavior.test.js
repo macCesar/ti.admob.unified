@@ -12,10 +12,11 @@ function fixture(success = true, osname = 'android') {
     object.removeEventListener = object.off.bind(object)
     return object
   }
+  const app = emitter()
   const native = emitter()
   const created = []
   Object.assign(native, {
-    AD_CLOSED: 'closed', AD_LOADED: 'loaded', AD_FAILED_TO_LOAD: 'failed', AD_DESTROYED: 'destroyed',
+    AD_CLOSED: 'closed', AD_LOADED: 'loaded', AD_FAILED_TO_LOAD: 'failed', AD_DESTROYED: 'destroyed', AD_REWARDED: 'rewarded',
     canRequestAds: () => true,
     ADAPTIVE_ANCHORED: 'anchored',
     getAnchoredAdaptiveBannerSize: () => ({ height: 90 }),
@@ -24,7 +25,7 @@ function fixture(success = true, osname = 'android') {
     presentPrivacyOptions() { this.privacyCalls = (this.privacyCalls || 0) + 1 },
     openAdInspector() { this.inspectorCalls = (this.inspectorCalls || 0) + 1 }
   })
-  native.createBanner = native.createAdaptiveBanner = native.createInterstitial = native.createRewarded = native.createAppOpen = () => {
+  native.createBanner = native.createAdaptiveBanner = native.createInterstitial = native.createRewarded = native.createRewardedInterstitial = native.createAppOpen = () => {
     const proxy = emitter()
     Object.assign(proxy, {
       rect: { width: 0, height: 0 },
@@ -39,9 +40,9 @@ function fixture(success = true, osname = 'android') {
   const module = { exports: {} }
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../example/lib/ads.js'), 'utf8'), {
     module, require: () => native,
-    Ti: { Platform: { osname }, API: { error() {}, warn() {}, debug() {} }, UI: { FILL: 'FILL' } }
+    Ti: { App: app, Platform: { osname }, API: { error() {}, warn() {}, debug() {} }, UI: { FILL: 'FILL' } }
   })
-  return { ads: module.exports, native, created, host: { height: 0, add() {}, remove() {} } }
+  return { ads: module.exports, app, native, created, host: { height: 0, add() {}, remove() {} } }
 }
 
 test('banner retry inside failure callback keeps the replacement alive and its space reserved', async () => {
@@ -132,7 +133,7 @@ test('iOS adaptive placements reserve native height and cancel pending layout on
 
 
 test('fullscreen managers reload on Show only and retain the request size through in-flight rotation', async () => {
-  for (const format of ['createInterstitial', 'createRewarded', 'createAppOpen']) {
+  for (const format of ['createInterstitial', 'createRewarded', 'createRewardedInterstitial', 'createAppOpen']) {
     const f = fixture(); await f.ads.start()
     const window = { size: { width: 810, height: 1080 } }
     const manager = f.ads[format]({ window, adUnitId: 'test', autoLoad: true })
@@ -170,4 +171,110 @@ test('native autoReload updates fullscreen request dimensions after dismissal', 
   ad.emit('loaded')
   assert.equal(manager.show(), true)
   assert.equal(f.created.length, 1)
+})
+
+test('rewarded interstitial waits for startup, never shows on load, and forwards only earned rewards', async () => {
+  const f = fixture()
+  const rewards = []
+  assert.equal(typeof f.ads.createRewardedInterstitial, 'function')
+  const manager = f.ads.createRewardedInterstitial({ adUnitId: 'test', autoLoad: true,
+    onRewarded: event => rewards.push(event) })
+  assert.equal(f.created.length, 0)
+  await f.ads.start()
+  assert.equal(f.created.length, 1)
+  const ad = f.created[0]
+  ad.emit('loaded')
+  assert.equal(ad.shows, undefined)
+  assert.equal(rewards.length, 0)
+  assert.equal(manager.show(), true)
+  ad.emit('rewarded', { rewardType: 'bonus', rewardAmount: 7 })
+  assert.deepEqual(rewards, [{ rewardType: 'bonus', rewardAmount: 7 }])
+  ad.emit('closed')
+  assert.equal(rewards.length, 1)
+  manager.destroy()
+  ad.emit('rewarded', { rewardType: 'bonus', rewardAmount: 7 })
+  assert.equal(rewards.length, 1)
+})
+
+
+for (const status of [0, 1, 2, 3]) {
+  test(`ATT startup waits for status ${status} before eligibility, initialization and loading`, async () => {
+    const f = fixture(true, 'iphone')
+    const order = []
+    f.native.requestConsent = () => order.push('ump')
+    f.native.requestTrackingAuthorization = () => order.push('att')
+    f.native.canRequestAds = () => { order.push('eligibility'); return true }
+    f.native.initialize = () => { order.push('initialize'); f.native.emit('module_initialized', { success: true }) }
+    f.ads.createInterstitial({ adUnitId: 'test', autoLoad: true })
+    const pending = f.ads.start({ requestTrackingAuthorization: true })
+    assert.deepEqual(order, ['ump'])
+    assert.equal(f.created.length, 0)
+    f.native.emit('consent_complete', { success: true })
+    await Promise.resolve()
+    assert.deepEqual(order, ['ump', 'att'])
+    assert.equal(f.created.length, 0)
+    f.native.emit('tracking_authorization_completed', { status, authorized: status === 3, applicable: true })
+    const result = await pending
+    assert.equal(result.tracking.status, status)
+    assert.equal(result.initialized, true, 'ATT denial does not replace the UMP eligibility gate')
+    assert.deepEqual(order, ['ump', 'att', 'eligibility', 'initialize'])
+    assert.equal(f.created[0].loads, 1)
+    assert.equal(f.native.listenerCount('tracking_authorization_completed'), 0)
+  })
+}
+
+test('ATT disabled skips its request and UMP ineligibility prevents initialization and loads', async () => {
+  for (const allowed of [false, true]) {
+    const f = fixture()
+    f.native.requestTrackingAuthorization = () => assert.fail('ATT must be explicit')
+    f.native.canRequestAds = () => allowed
+    f.ads.createInterstitial({ adUnitId: 'test', autoLoad: true })
+    const result = await f.ads.start()
+    assert.equal(result.tracking, null)
+    assert.equal(result.initialized, allowed)
+    assert.equal(f.created.length, allowed ? 1 : 0)
+  }
+})
+
+
+test('ATT startup defers the prompt when UMP finishes while iOS is inactive', async () => {
+  const f = fixture(true, 'iphone')
+  f.native.requestConsent = () => {}
+  let requests = 0
+  f.native.requestTrackingAuthorization = () => {
+    requests++
+    f.native.emit('tracking_authorization_completed', { status: 2, authorized: false, applicable: true })
+  }
+  const pending = f.ads.start({ requestTrackingAuthorization: true })
+  f.app.emit('pause')
+  f.native.emit('consent_complete', { success: true })
+  await Promise.resolve()
+  assert.equal(requests, 0)
+  assert.equal(f.ads.isReady(), false)
+  f.app.emit('resumed')
+  const result = await pending
+  assert.equal(requests, 1)
+  assert.equal(result.initialized, true)
+  assert.equal(f.app.listenerCount('pause'), 0)
+  assert.equal(f.app.listenerCount('resumed'), 0)
+  f.app.emit('resumed')
+  assert.equal(requests, 1)
+})
+
+test('fullscreen managers preserve preloads across client-area changes but reload for outer-window changes', async () => {
+  for (const format of ['createInterstitial', 'createRewarded', 'createRewardedInterstitial', 'createAppOpen']) {
+    const f = fixture(); await f.ads.start()
+    const window = { rect: { width: 360, height: 802 }, size: { width: 360, height: 705 } }
+    const manager = f.ads[format]({ window, adUnitId: 'test', autoLoad: true })
+    const ad = f.created[0]; ad.emit('loaded')
+    window.size = { width: 360, height: 689 }
+    assert.equal(manager.show(), true, format)
+    assert.equal(f.created.length, 1)
+    assert.notEqual(ad.destroyed, true)
+    manager.load(); ad.emit('loaded')
+    window.rect = { width: 802, height: 360 }
+    assert.equal(manager.show(), false, 'a real outer-window change still invalidates the ad')
+    assert.equal(ad.destroyed, true)
+    assert.equal(f.created.length, 2)
+  }
 })
