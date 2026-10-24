@@ -14,12 +14,14 @@ const documentationPages = [
   'documentation/index.md',
   'documentation/getting-started.md',
   'documentation/integration.md',
+  'documentation/production.md',
   'documentation/library.md',
   'documentation/privacy.md',
   'documentation/mediation.md',
   'documentation/third-party-notices.md',
   'documentation/banners.md',
   'documentation/fullscreen.md',
+  'documentation/rewarded-interstitial.md',
   'documentation/api-reference.md',
   'documentation/migration.md'
 ]
@@ -138,7 +140,12 @@ test('provides a modern, safe executable example', () => {
   assert.doesNotMatch(example, /consent_ready|consent_error/)
   assert.doesNotMatch(example, /canShowPersonalizedAds|isGDPR|canShowAds/)
   assert.doesNotMatch(example, /setTimeout|setInterval/)
-  assert.doesNotMatch(example, /Ti\.App\.addEventListener\(['"](?:pause|resume)/)
+  // App lifecycle listeners may defer ATT, but banner lifecycle stays native.
+  for (const name of ['onApplicationPause', 'onApplicationResumed']) {
+    const handler = example.match(new RegExp(`function ${name}\\(\\) \\{([^}]+)\\}`))
+    assert.ok(handler)
+    assert.doesNotMatch(handler[1], /banner|loadExampleAds|\.pause\(|\.resume\(/i)
+  }
   assert.doesNotMatch(example, /applicationId|debugGeography/)
   assert.doesNotMatch(example, /ca-app-pub-\d+\/\d+/)
 
@@ -164,6 +171,7 @@ test('ships a copy-ready integration library for every implemented ad format', (
     'createAdaptiveBanner',
     'createInterstitial',
     'createRewarded',
+    'createRewardedInterstitial',
     'createAppOpen'
   ]) {
     assert.match(reusableLibrary, new RegExp(`\\b${factory}\\b`))
@@ -226,7 +234,6 @@ test('marks the test constants that have no factory as reserved', () => {
   const gettingStarted = read('documentation/getting-started.md')
 
   for (const constant of [
-    'TEST_REWARDED_INTERSTITIAL',
     'TEST_NATIVE'
   ]) {
     const reserved = new RegExp(`\`${constant}\`[^\\n]*None\\. Reserved`)
@@ -247,6 +254,9 @@ test('marks the test constants that have no factory as reserved', () => {
   const video = /`TEST_INTERSTITIAL_VIDEO`[^\n]*createInterstitial\(\)/
   assert.match(apiReference, video)
   assert.match(gettingStarted, video)
+  const rewardedInterstitial = /`TEST_REWARDED_INTERSTITIAL`[^\n]*createRewardedInterstitial\(\)/
+  assert.match(apiReference, rewardedInterstitial)
+  assert.match(gettingStarted, rewardedInterstitial)
 })
 
 test('documents mediation without revenue promises', () => {

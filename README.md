@@ -2,11 +2,11 @@
 
 `ti.admob.unified` provides one Titanium JavaScript API for Google Mobile Ads and the User Messaging Platform (UMP) on iOS and Android.
 
-The first release, `1.0.0`, provides a consent-first privacy flow and shared lifecycle and event contracts for banners, interstitials, rewarded ads, and app open ads. Five optional mediation complements let applications select their networks on both platforms.
+Version `1.0.0` supports a consent-first startup flow and the same lifecycle and event payloads for banners, interstitials, rewarded ads, rewarded interstitials and app open ads on both platforms. Five optional mediation complements let your app include the networks it uses.
 
 For migration from `ti.admob`, `ti.android.admob`, or an internal development build, see [Migrating to ti.admob.unified](documentation/migration.md). No earlier release of this module has been published.
 
-Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/` to use the application integration library. It sequences privacy and initialization, manages standard/adaptive banners and interstitial, rewarded and app-open ads, and cleans up placements without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
+Copy [`example/lib/ads.js`](example/lib/ads.js) to `app/lib/ads.js` in Alloy or `Resources/lib/ads.js` in Classic Titanium to use the application integration library. It sequences privacy and initialization, manages standard/adaptive banners and interstitial, rewarded, rewarded interstitial and app-open ads, and cleans up placements without refresh timers. See [Copy-ready JavaScript library](documentation/library.md).
 
 <p align="center">
   <picture>
@@ -15,9 +15,9 @@ Copy [`example/lib/ads.js`](example/lib/ads.js) into your project's `lib/` to us
   </picture>
 </p>
 
-## Why one module instead of two
+## One contract across platforms
 
-Separate Titanium AdMob modules use different names, events and payloads on each platform. Applications must account for those differences wherever they create ads or handle events.
+Use the same factory names, configuration properties and event handlers on iOS and Android.
 
 One module declaration in `tiapp.xml` covers both platforms:
 
@@ -27,7 +27,7 @@ One module declaration in `tiapp.xml` covers both platforms:
 </modules>
 ```
 
-The shared factory names, properties and constants let each placement use one call on both platforms:
+Factory names, properties and constants match across platforms, so each placement uses one call:
 
 ```js
 const ad = Admob.createBanner({ adUnitId: unitId, adSize: Admob.BANNER })
@@ -35,7 +35,7 @@ const ad = Admob.createBanner({ adUnitId: unitId, adSize: Admob.BANNER })
 
 Fullscreen ads are single-use on both platforms. Set `autoReload: true` to load the next ad after the current one closes.
 
-The shared event contract covers event names, payload keys and value types on iOS and Android, so the same handler can be used on both:
+Event names, payload keys and value types match on iOS and Android. Use the same handler on both:
 
 ```js
 ad.addEventListener(Admob.AD_LOADED, event => {
@@ -45,7 +45,9 @@ ad.addEventListener(Admob.AD_LOADED, event => {
 
 [The roadmap](ROADMAP.md#differences-that-stay) describes the SDK differences and explains why they remain.
 
-Both platforms follow the same sequence: UMP consent, the `canRequestAds()` check, then initialization. The App Tracking Transparency call handles the iOS-only step and completes immediately on Android with `applicable: false`.
+Both platforms follow the same sequence: UMP consent, optional ATT while the app is active, the `canRequestAds()` check, then initialization and ad loading. The integration library defers ATT until `resumed` if iOS becomes inactive during UMP.
+
+[`getTrackingAuthorizationStatus()`](documentation/api-reference.md#gettrackingauthorizationstatus) reads the current ATT state without opening a prompt, emitting an event or initializing ads. It returns `{ status, authorized, applicable }` on both platforms. Android returns `{ status: 3, authorized: true, applicable: false }` as an ATT convention; it does not grant general tracking permission. See [Privacy and initialization](documentation/privacy.md#app-tracking-transparency) and the [Classic/Alloy library example](example/library-usage.js).
 
 The five optional network modules use the same identifiers on both platforms. AdMob discovers their adapters. See [Mediation parity](MEDIATION_COMPARISON.md).
 
@@ -53,17 +55,19 @@ The five optional network modules use the same identifiers on both platforms. Ad
 
 | Component                 | Baseline    |
 | ------------------------- | ----------- |
-| Titanium SDK              | `13.2.0.GA` |
+| Titanium SDK              | `13.4.1.GA` |
 | iOS                       | `15.0+`     |
 | Android                   | API `24+`   |
-| Google Mobile Ads iOS     | `13.10.0`    |
+| Google Mobile Ads iOS     | `13.11.0`   |
 | UMP iOS                   | `3.1.0`     |
 | Google Mobile Ads Android | `25.5.0`    |
 | UMP Android               | `4.0.0`     |
 
+The manifests' `minsdk` value is the minimum Titanium SDK that can consume the module. Apps using an older SDK cannot build with this release. The module build toolchain and consumer minimum are both `13.4.1.GA`; Android's minimum OS API remains `24+`.
+
 ## Distribution and application configuration
 
-The distribution contains iOS and Android archives for the core and each optional network complement. Scripts discover module folders and read their manifests and Gradle declarations. Install both core archives when targeting both platforms. Add only the complements you intend to configure.
+The release includes iOS and Android archives for the core and each optional network complement. Build scripts find module folders through their manifests and Gradle declarations. Install both core archives for an app that targets both platforms, then add the complements you intend to configure.
 
 Your application must declare platform-specific AdMob application IDs in `tiapp.xml`. These are Google's test IDs; replace them with the corresponding production app IDs before distribution:
 
@@ -90,15 +94,15 @@ Application IDs use `~`; ad-unit IDs use `/`. A missing application ID can cause
 
 The first release, `1.0.0`, provides five optional dependency modules with identical identifiers on iOS and Android. Install only the networks the application intends to use. The core `ti.admob.unified` contains Google Mobile Ads and UMP only. Each complement has no JavaScript API and performs no manual provider initialization.
 
-| Network                   | Module ID                             | iOS adapter  | Android adapter |
-| ------------------------- | ------------------------------------- | ------------ | --------------- |
-| AppLovin                  | `ti.admob.unified.mediation.applovin` | `13.6.4.0` | `13.6.4.2` |
-| Meta Audience Network     | `ti.admob.unified.mediation.meta`     | `6.22.0.0` | `6.22.0.1` |
-| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.4.1.0` | `11.4.1.2` |
-| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.20.1.0` | `4.20.1.0` |
-| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.7.0` | `7.7.8.1` |
+| Network                   | Module ID                             | iOS adapter | Android adapter |
+| ------------------------- | ------------------------------------- | ----------- | --------------- |
+| AppLovin                  | `ti.admob.unified.mediation.applovin` | `13.6.4.0`  | `13.6.4.2`      |
+| Meta Audience Network     | `ti.admob.unified.mediation.meta`     | `6.22.0.0`  | `6.22.0.1`      |
+| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.5.0.0`  | `11.5.0.1`      |
+| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.21.0.0`  | `4.21.0.0`      |
+| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.8.0`   | `7.7.9.0`       |
 
-ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib. Unity Ads 4.20.1 no longer depends on IronSourceAdQualitySDK, so it is not distributed.
+ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib. Unity Ads 4.21.0 no longer depends on IronSourceAdQualitySDK, so it is not distributed.
 
 Install the core and the selected network ZIP for each target platform:
 
@@ -121,21 +125,23 @@ Google Mobile Ads automatically discovers the adapters included by the selected 
 
 | Format                   | iOS             | Android         |
 | ------------------------ | --------------- | --------------- |
-| Standard banner          | Implemented     | Implemented          |
-| Anchored adaptive banner | Implemented     | Implemented          |
-| Inline adaptive banner   | Implemented     | Implemented          |
-| Collapsible banner       | Implemented     | Implemented          |
-| Interstitial             | Implemented     | Implemented          |
-| Rewarded                 | Implemented     | Implemented          |
-| App Open                 | Implemented     | Implemented          |
-| Rewarded interstitial    | Not implemented | Not implemented |
+| Standard banner          | Implemented     | Implemented     |
+| Anchored adaptive banner | Implemented     | Implemented     |
+| Inline adaptive banner   | Implemented     | Implemented     |
+| Collapsible banner       | Implemented     | Implemented     |
+| Interstitial             | Implemented     | Implemented     |
+| Rewarded                 | Implemented     | Implemented     |
+| App Open                 | Implemented     | Implemented     |
+| Rewarded interstitial    | Implemented     | Implemented     |
 | Native                   | Not implemented | Not implemented |
 
-Standard, adaptive, interstitial, rewarded, and app open proxies use portable lifecycle and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md) for the single-use, reward, and four-hour-expiry rules.
+Standard, adaptive, interstitial, rewarded, rewarded interstitial, and app open proxies use portable lifecycle and event payload contracts. See [Fullscreen ads](documentation/fullscreen.md) for the single-use, reward, and four-hour-expiry rules.
 
-The format table describes implemented APIs, not a guarantee of ad delivery. The audit observed intermittent iOS Rewarded timeouts, including a reproduction without Titanium, and an earlier physical-iPad adaptive startup sizing failure that did not recur in the latest repeated launches. See [Release readiness](ROADMAP.md#release-readiness) for outstanding runtime acceptance conditions.
+The table lists the implemented APIs. An app using the module is already available in the stores. Earlier physical-iPad tests found intermittent iOS Rewarded timeouts and a blank interstitial; both issues remain open. See [Release readiness](ROADMAP.md#release-readiness) for the validation scope and open issues.
 
 ## Installation
+
+See [Getting started](documentation/getting-started.md) for archive extraction and the first test run, then [Shipping an application](documentation/production.md) for production IDs, store disclosures, app verification and troubleshooting.
 
 Install the `1.0.0` ZIP for each target platform and declare the module:
 
@@ -174,8 +180,11 @@ function initializeAdsOnce() {
 
 Admob.addEventListener('module_initialized', event => {
   if (!event.success) {
+    initializationStarted = false
     Ti.API.warn(`AdMob initialization failed: ${event.error}`)
+    return
   }
+  // Create/load placements here, after initialization succeeds.
 })
 
 Admob.addEventListener('consent_complete', event => {
@@ -202,6 +211,8 @@ Read [Privacy and initialization](documentation/privacy.md) for production, debu
 For development diagnostics, `openAdInspector()` presents Google's native Ad Inspector on a registered test device and emits `ad_inspector_closed`. Invoke it only from visible development UI after SDK initialization.
 
 ## Adaptive banner
+
+The following placement snippets assume `module_initialized` has succeeded and `canRequestAds()` is true. Define the host inside an open, laid-out window, or use the [integration library](documentation/library.md) to defer loading until ready.
 
 The module reports the real adaptive height after load. Use that value for the final layout. For iOS large anchored banners, reserve the height returned by `getAnchoredAdaptiveBannerSize(width)` and wait for the banner's first nonzero layout before loading. Starting in a zero-height host can suppress a collapsible ad's expansion.
 
@@ -276,13 +287,13 @@ Both types emit `loaded`, `failed_to_load`, `clicked`, `impression`, `opened`, `
 
 On Android, a configuration change such as light/dark appearance recreates the hosting activity. The module preserves the JavaScript proxy across that recreation and requests a replacement native banner after Titanium rebuilds its view; `destroyed` remains reserved for a real terminal cleanup.
 
-The public factories are `createBanner()`, `createAdaptiveBanner()`, `createInterstitial()`, `createRewarded()`, and `createAppOpen()`.
+The public factories are `createBanner()`, `createAdaptiveBanner()`, `createInterstitial()`, `createRewarded()`, `createRewardedInterstitial()`, and `createAppOpen()`.
 
 See [Banner ads](documentation/banners.md) for layout patterns, payloads, lifecycle cleanup, adaptive sizing, and platform-specific options.
 
 ## Fullscreen ads
 
-Interstitial, rewarded, and app open proxies expose the same API on iOS and Android:
+Interstitial, rewarded, rewarded interstitial, and app open proxies expose the same API on iOS and Android:
 
 - `load()` serializes requests and ignores duplicate calls while loading, loaded, or showing.
 - `show()` presents the unused native ad or emits `failed_to_show`.
@@ -295,8 +306,14 @@ const interstitial = Admob.createInterstitial({
   autoReload: true
 })
 
-interstitial.addEventListener(Admob.AD_LOADED, () => interstitial.show())
+interstitial.addEventListener(Admob.AD_LOADED, () => {
+  Ti.API.info('Interstitial ready for the next natural break')
+})
 interstitial.load()
+
+function onNaturalBreak() {
+  if (interstitial.isLoaded()) interstitial.show()
+}
 ```
 
 Grant rewards only from the reward event:
@@ -308,14 +325,17 @@ const rewarded = Admob.createRewarded({
 })
 
 rewarded.addEventListener(Admob.AD_REWARDED, event => {
-  grantReward(event.rewardType, event.rewardAmount)
+  grantReward(event.rewardAmount, event.rewardType)
 })
 
-rewarded.addEventListener(Admob.AD_LOADED, () => rewarded.show())
 rewarded.load()
+
+function onRewardOfferAccepted() {
+  if (rewarded.isLoaded()) rewarded.show()
+}
 ```
 
-Show an app open ad when the user returns to a running app. Do not present it on a cold start behind your own splash:
+Show an app open ad during your own foreground loading experience. On a cold start, skip it if the user has already reached the app content. The application controls this presentation point:
 
 ```js
 const appOpen = Admob.createAppOpen({
@@ -325,14 +345,16 @@ const appOpen = Admob.createAppOpen({
 
 appOpen.load()
 
-Ti.App.addEventListener('resumed', () => {
+function onForegroundLoadingScreen() {
   if (appOpen.isLoaded()) {
     appOpen.show()
+  } else {
+    appOpen.load() // prepare for a later opportunity; continue into the app
   }
-})
+}
 ```
 
-App open ads expire four hours after the request, as Google documents. Past that point `isLoaded()` reports `false` and `show()` emits `failed_to_show`.
+The module checks app open expiry four hours after loading completes, following Google's sample load-time check. Past that point `isLoaded()` reports `false` and `show()` emits `failed_to_show`.
 
 Every fullscreen event includes `adUnitId` and `adType`. Failures consistently add `error`, `message`, and `code`. Both platforms emit `opened` and `showed_fullscreen_content`; rewarded ads additionally emit `rewarded` with `rewardType` and `rewardAmount`.
 
@@ -360,7 +382,7 @@ See [Fullscreen ads](documentation/fullscreen.md) for examples, cleanup, and the
 
 ## Development safety
 
-Use the exported `TEST_*` constants while developing. Their values are platform-specific official Google demo ad unit IDs.
+Use the exported `TEST_*` constants while developing. Each value is an official Google demo ad unit ID for the current platform.
 
 ```js
 const bannerId = Admob.TEST_ADAPTIVE_BANNER
@@ -385,6 +407,14 @@ These commands build and inspect two ZIPs per discovered module, including the c
 
 MIT. See [LICENSE](LICENSE).
 
+
+### Inspect ATT in the example
+
+The session status panel stays visible above the scrolling content. Its height is reserved so it cannot cover controls; the banner keeps its separate space at the bottom.
+
+Show rewarded interstitial opens an introduction with Watch test ad and Skip. Watch permits the ad; Skip cancels that presentation. After Watch, the example handles any needed loading without another Show tap.
+
+The Tracking transparency section includes Check ATT status and Request ATT permission. It displays the current system result and refreshes after returning from Settings. Each manual check updates a visible timestamp and count; resolved permissions explain why another request is unavailable. The request button is available only for an undetermined iOS permission; Android explains that ATT does not apply. Querying the status never prompts or initializes ads. See [ATT demo controls](documentation/privacy.md#att-demo-controls).
 
 ### Try the consent form in the example
 

@@ -10,7 +10,10 @@ This documentation describes the public JavaScript contract implemented by `ti.a
 4. [Privacy and initialization](privacy.md): implement UMP, ATT, the `canRequestAds()` gate, and privacy options correctly.
 5. [AdMob mediation](mediation.md): install selected complements, and configure and validate the five networks without platform-specific JavaScript.
 6. [Banner ads](banners.md): integrate standard or adaptive banners with real layout space and deterministic cleanup.
-7. [Fullscreen ads](fullscreen.md): interstitial, rewarded, and app open ads on one lifecycle, and when it is acceptable to interrupt the user.
+7. [Fullscreen ads](fullscreen.md): interstitial, rewarded, rewarded interstitial, and app open ads on one lifecycle, and when it is acceptable to interrupt the user.
+
+8. [Rewarded interstitial ads](rewarded-interstitial.md): introduce the reward, allow skipping, and handle actual earned rewards.
+9. [Shipping an application](production.md): production configuration, app verification, store disclosures, troubleshooting and validation.
 
 ## Reference
 
