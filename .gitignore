@@ -144,6 +144,11 @@ __pycache__/
 /.agents/
 /AGENTS.md
 /HANDOFF.md
+/docs/project/
+/ANALISIS_*.md
+/AUDIT-*.md
+/PLAN-*.md
+/instrucciones.md
 *.bak
 *.bak.*
 *.orig
