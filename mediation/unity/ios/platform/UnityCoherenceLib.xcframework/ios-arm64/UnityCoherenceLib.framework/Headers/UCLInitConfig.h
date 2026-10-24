@@ -8,8 +8,7 @@ NS_ASSUME_NONNULL_BEGIN
 
  Build with `+config`, then set the fields you need.
 
- Set `source` to `@(UCLCoherenceSourceAds)`. nil or unknown values are
- rejected by the C layer.
+ Set `source` to `@(UCLCoherenceSourceAds)`.
  */
 UCL_EXPORT
 @interface UCLInitConfig : NSObject
@@ -23,8 +22,7 @@ UCL_EXPORT
 @end
 
 /**
- Integer source identifiers. Mirrors the `UNITY_COHERENCE_LIBRARY_SOURCE_*`
- constants in `shared/include/unity/coherence/library.h`.
+ Integer source identifiers.
 
  Box with `@()` when assigning to the `source` property:
  ```

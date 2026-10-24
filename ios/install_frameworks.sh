@@ -3,7 +3,7 @@
 # Resolve and vendor the exact iOS AdMob and UMP versions pinned in Podfile.
 #
 # The mediation adapters and their network SDKs live in the separate
-# ti.admob.unified.mediation module; refresh those with
+# per-network complement modules; refresh those with
 # mediation/<network>/ios/install_frameworks.sh.
 #
 set -euo pipefail

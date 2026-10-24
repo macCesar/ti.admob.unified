@@ -17,4 +17,4 @@ name: ti.admob.unified.mediation.liftoff
 moduleid: ti.admob.unified.mediation.liftoff
 guid: 71efe136-aed9-484b-a638-05ba6f8cfdc2
 platform: iphone
-minsdk: 13.2.0.GA
+minsdk: 13.4.1.GA

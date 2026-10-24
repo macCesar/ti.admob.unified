@@ -47,7 +47,7 @@ while IFS='|' read -r source_path framework_name; do
   test -d "$source_framework"
   cp -R "$source_framework" "$STAGED_PLATFORM/$framework_name"
 done <<'FRAMEWORKS'
-Pods/GoogleMobileAdsMediationUnity/UnityAdapter-4.20.1.0/UnityAdapter.xcframework|UnityAdapter.xcframework
+Pods/GoogleMobileAdsMediationUnity/UnityAdapter-4.21.0.0/UnityAdapter.xcframework|UnityAdapter.xcframework
 Pods/UnityAds/UnityAds.xcframework|UnityAds.xcframework
 Pods/UnityCoherenceLib/UnityCoherenceLib.xcframework|UnityCoherenceLib.xcframework
 FRAMEWORKS

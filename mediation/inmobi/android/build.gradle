@@ -1,6 +1,8 @@
 dependencies {
     // The generated POM propagates the adapter, its SDK and the patched HTTP dependency.
-    implementation 'com.google.ads.mediation:inmobi:11.4.1.2'
-    // InMobi resolves OkHttp 3.14.9; 4.12.0 retains the okhttp3 API and includes the TLS fix.
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.google.ads.mediation:inmobi:11.5.0.1'
+    // Keep the okhttp3 public API with the latest version compatible with the Titanium 13.4.1 compile-SDK floor.
+    // Okio 3.18.2 fixes base64 compatibility for pre-3.18 callers.
+    implementation 'com.squareup.okhttp3:okhttp:5.4.0'
+    implementation 'com.squareup.okio:okio:3.18.2'
 }

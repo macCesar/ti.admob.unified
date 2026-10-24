@@ -5,6 +5,7 @@
 import AVFoundation
 import AdSupport
 import AppTrackingTransparency
+import CFNetwork
 import SystemConfiguration.CaptiveNetwork
 import CommonCrypto
 import Compression
@@ -17,6 +18,7 @@ import Foundation
 @_exported import InMobiSDK
 import MachO
 import MetricKit
+import Network
 import ObjectiveC
 import PassKit
 import InMobiSDK.Private
@@ -483,6 +485,7 @@ import ObjectiveC.runtime
   @objc public var appleScheme: [Swift.String]
   @objc public var interstitial: InMobiSDK.CustomBrowserInternalConfig
   @objc public var banner: InMobiSDK.CustomBrowserInternalConfig
+  @objc public var customExpandAnimationEnabled: Swift.Bool
   @objc override dynamic public init()
   @objc deinit
   public func encode(to encoder: any Swift.Encoder) throws
@@ -1071,21 +1074,7 @@ extension InMobiSDK.IMAudio {
   @objc public var purchases: InMobiSDK.PurchasesConfig
   @objc public var publisher: InMobiSDK.PublisherConfig
   @objc public var experiments: InMobiSDK.ExperimentsConfig
-  @objc public var fraud: InMobiSDK.FraudSignalConfig
   @objc public var appOwnership: InMobiSDK.LPAppOwnershipConfig
-  @objc override dynamic public init()
-  @objc deinit
-  public func encode(to encoder: any Swift.Encoder) throws
-  required public init(from decoder: any Swift.Decoder) throws
-}
-@objc @_inheritsConvenienceInitializers public class FraudSignalConfig : ObjectiveC.NSObject {
-  public var installSourceEnabled: Swift.Bool
-  public var jailBrokenEnabled: Swift.Bool
-  public var debuggerAttachedEnabled: Swift.Bool
-  public var hookEnabled: Swift.Bool
-  public var bundleIdMismatchEnabled: Swift.Bool
-  public var simulatorEnabled: Swift.Bool
-  public var appInstallTimeEnabled: Swift.Bool
   @objc override dynamic public init()
   @objc deinit
   public func encode(to encoder: any Swift.Encoder) throws
@@ -1717,6 +1706,17 @@ extension InMobiSDK.AnyDictionary : Swift.Encodable {
   @objc override dynamic public init()
   @objc deinit
 }
+@_hasMissingDesignatedInitializers @objc(IMCustomExpandFrames) final public class IMCustomExpandFrames : ObjectiveC.NSObject {
+  @objc final public let adFrame: CoreFoundation.CGRect
+  @objc final public let browserFrame: CoreFoundation.CGRect
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc(IMCustomExpandLayout) final public class IMCustomExpandLayout : ObjectiveC.NSObject {
+  @objc(framesForBounds:safeArea:percentage:landscape:) public static func frames(forBounds bounds: CoreFoundation.CGRect, safeArea: UIKit.UIEdgeInsets, percentage: CoreFoundation.CGFloat, landscape isLandscape: Swift.Bool) -> InMobiSDK.IMCustomExpandFrames
+  @objc(offScreenBrowserFrameForFrame:bounds:landscape:) public static func offScreenBrowserFrame(for browserFrame: CoreFoundation.CGRect, bounds: CoreFoundation.CGRect, landscape isLandscape: Swift.Bool) -> CoreFoundation.CGRect
+  @objc override dynamic public init()
+  @objc deinit
+}
 @_inheritsConvenienceInitializers @objc public class RootConfig : InMobiSDK.IMConfigBase {
   @objc override public func getType() -> Swift.String
   @objc override public func toDictionary() -> [Swift.String : Any]?
@@ -1914,6 +1914,53 @@ public enum PlayerError : Swift.Error, Foundation.LocalizedError, Swift.CustomSt
 }
 extension Swift.String : Swift.Error {
 }
+@_inheritsConvenienceInitializers @objc(IMAnonymisationManager) final public class IMAnonymisationManager : ObjectiveC.NSObject {
+  @objc public static let shared: InMobiSDK.IMAnonymisationManager
+  @objc(isSignalPermitted:) final public func isSignalPermitted(_ key: InMobiSDK.IMAnonymisationSignalKey) -> Swift.Bool
+  @objc final public func refreshFromSynapseHandshakeState()
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public enum IMAnonymisationSignalKey : Swift.Int, Swift.CaseIterable {
+  case uidMap = 0
+  case novatiqHyperId = 1
+  case unifiedId = 2
+  case clientIp = 3
+  case bootTime = 4
+  case deviceVolumeCreationDate = 5
+  case fingermark = 6
+  case latLongAccuracy = 7
+  case locationTimestamp = 8
+  case locationAllowed = 9
+  case locationGranularity = 10
+  case connectedOperator = 11
+  case isoCountryCode = 12
+  case carrierName = 13
+  case age = 14
+  case yearOfBirth = 15
+  case gender = 16
+  case location = 17
+  case ageGroup = 18
+  case postalCode = 19
+  case areaCode = 20
+  case interests = 21
+  case education = 22
+  case language = 23
+  case unifiedIdPhone = 24
+  case unifiedIdEmail = 25
+  case unifiedIdAge = 26
+  case clientIp6 = 27
+  case ubiquityTokenHash = 28
+  public init?(rawValue: Swift.Int)
+  public typealias AllCases = [InMobiSDK.IMAnonymisationSignalKey]
+  public typealias RawValue = Swift.Int
+  nonisolated public static var allCases: [InMobiSDK.IMAnonymisationSignalKey] {
+    get
+  }
+  public var rawValue: Swift.Int {
+    get
+  }
+}
 extension InMobiSDK.IMStatusCode : Swift.Equatable {}
 extension InMobiSDK.IMStatusCode : Swift.Hashable {}
 extension InMobiSDK.IMStatusCode : Swift.RawRepresentable {}
@@ -2041,8 +2088,6 @@ extension InMobiSDK.IMBannerAudioStatus : Swift.Sendable {}
 extension InMobiSDK.IMBannerAudioStatus : Swift.BitwiseCopyable {}
 extension InMobiSDK.SignalConfig : Swift.Encodable {}
 extension InMobiSDK.SignalConfig : Swift.Decodable {}
-extension InMobiSDK.FraudSignalConfig : Swift.Encodable {}
-extension InMobiSDK.FraudSignalConfig : Swift.Decodable {}
 extension InMobiSDK.BloomFilterServiceConfig : Swift.Encodable {}
 extension InMobiSDK.BloomFilterServiceConfig : Swift.Decodable {}
 extension InMobiSDK.IMSessionSignalsType : Swift.Equatable {}
@@ -2157,3 +2202,6 @@ extension InMobiSDK.IMInterstitialAnimationType : Swift.Hashable {}
 extension InMobiSDK.IMInterstitialAnimationType : Swift.RawRepresentable {}
 extension InMobiSDK.IMInterstitialAnimationType : Swift.Sendable {}
 extension InMobiSDK.IMInterstitialAnimationType : Swift.BitwiseCopyable {}
+extension InMobiSDK.IMAnonymisationSignalKey : Swift.Equatable {}
+extension InMobiSDK.IMAnonymisationSignalKey : Swift.Hashable {}
+extension InMobiSDK.IMAnonymisationSignalKey : Swift.RawRepresentable {}

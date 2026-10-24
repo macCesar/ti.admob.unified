@@ -2878,6 +2878,10 @@ public enum BinaryDelimited {
     @objc get
     @objc set
   }
+  @objc public var mediationPartnerName: Swift.String? {
+    @objc get
+    @objc set
+  }
   @objc public var eventId: Swift.String {
     @objc get
   }
@@ -3549,6 +3553,10 @@ public struct TextFormatEncodingOptions : Swift.Sendable {
     @objc get
     @objc set
   }
+  @objc @_Concurrency.MainActor @preconcurrency public var mediationPartnerName: Swift.String? {
+    @objc get
+    @objc set
+  }
   @objc @_Concurrency.MainActor @preconcurrency public func getBannerSize() -> CoreFoundation.CGSize
   @_Concurrency.MainActor @preconcurrency @objc override dynamic public func removeFromSuperview()
   @_Concurrency.MainActor @preconcurrency @objc override dynamic public func didMoveToSuperview()
@@ -3688,6 +3696,7 @@ public enum BinaryEncodingError : Swift.Error, Swift.Hashable {
   case privacyURLError = 136
   case tpatRetryFailed = 137
   case configRefreshFailed = 138
+  case templateDownloadError = 139
   case invalidEventIDError = 200
   case invalidPlacementID = 201
   case adConsumed = 202

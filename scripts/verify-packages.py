@@ -29,8 +29,26 @@ def verify():
                 assert all(n.startswith(prefix) for n in z.namelist()), f'Unexpected module path in {archive}'
                 manifest = z.read(prefix + 'manifest').decode()
                 assert re.search(r'^version: ' + re.escape(version) + '$', manifest, re.M)
-                assert re.search(r'^minsdk: 13\.2\.0\.GA$', manifest, re.M)
+                assert re.search(r'^minsdk: 13\.4\.1\.GA$', manifest, re.M)
                 assert re.search(r'^moduleid: ' + re.escape(module_id) + '$', manifest, re.M)
+                for source in (base / 'documentation').glob('*.md'):
+                    name = prefix + source.relative_to(base).as_posix()
+                    assert z.read(name) == source.read_bytes(), f'Stale packaged document: {archive}: {name}'
+                    assert name[:-3] + '.html' in z.namelist(), f'Missing rendered document: {archive}: {name}'
+                for name in z.namelist():
+                    if not name.startswith(prefix + 'documentation/') or not name.endswith(('.md', '.html')):
+                        continue
+                    source = base / name[len(prefix):]
+                    assert source.exists() or (source.suffix == '.html' and source.with_suffix('.md').exists()), f'Retired document: {archive}: {name}'
+                    if name.endswith('.html'):
+                        for href in re.findall(r'href="([^"]+)"', z.read(name).decode()):
+                            target = href.split('#')[0]
+                            if target and ':' not in target:
+                                resolved = posixpath.normpath(posixpath.join(posixpath.dirname(name), target))
+                                assert resolved in z.namelist(), f'Broken packaged link: {archive}: {name} -> {href}'
+                for source in (base / '.github/screenshots').glob('*.png'):
+                    name = prefix + source.relative_to(base).as_posix()
+                    assert z.read(name) == source.read_bytes(), f'Stale packaged screenshot: {archive}: {name}'
                 for source in (base / 'example').rglob('*'):
                     if source.is_file() and not any(part.startswith('.') for part in source.relative_to(base).parts):
                         name = prefix + source.relative_to(base).as_posix()
@@ -69,15 +87,6 @@ def verify():
                         digest = hashlib.sha256(''.join(lines).encode()).hexdigest()
                         assert digest == expected, (archive, framework, digest)
                     assert any(n.endswith('.a') and module_id in n for n in z.namelist()), f'Missing native library: {archive}'
-                    for name in z.namelist():
-                        if '/documentation/' not in name or not name.endswith('.html'):
-                            continue
-                        for href in re.findall(r'href="([^"]+)"', z.read(name).decode()):
-                            target = href.split('#')[0]
-                            if not target or ':' in target:
-                                continue
-                            resolved = posixpath.normpath(posixpath.join(posixpath.dirname(name), target))
-                            assert resolved in z.namelist(), f'Broken packaged link: {archive}: {name} -> {href}'
             print(f'OK {archive.relative_to(ROOT)}')
     print(f'Verified {2 * len(modules)} ZIPs, {len(modules)} POMs, disjoint frameworks, link flags, versions, architectures, permissions and tree checksums.')
 

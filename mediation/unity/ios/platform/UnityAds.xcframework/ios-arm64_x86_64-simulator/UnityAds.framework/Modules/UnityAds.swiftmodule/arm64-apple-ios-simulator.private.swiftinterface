@@ -145,6 +145,21 @@ extension UADSShowFinishState : RawRepresentable {
   #endif
   @objc deinit
 }
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class UADSRewardedOffersAd : UnityAd {
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public static func load(_ configuration: UADSLoadConfiguration, completion: @escaping (UADSRewardedOffersAd?, UnityAdsError?) -> Void)
+  #endif
+  #if compiler(>=5.3) && $NonescapableTypes
+  @objc public func show(_ configuration: UADSShowConfiguration? = nil, delegate: UADSRewardedOffersShowDelegate)
+  #endif
+  @objc deinit
+}
+@objc public protocol UADSRewardedOffersShowDelegate : ObjectiveC.NSObjectProtocol {
+  @objc func showDidStart(_ unityAd: UADSRewardedOffersAd)
+  @objc func showDidClick(_ unityAd: UADSRewardedOffersAd)
+  @objc func showDidComplete(_ unityAd: UADSRewardedOffersAd, with finishState: UADSShowFinishState)
+  @objc func showDidFail(_ unityAd: UADSRewardedOffersAd, error: UnityAdsError)
+}
 @objc public protocol UADSRewardedShowDelegate : ObjectiveC.NSObjectProtocol {
   @objc func showDidStart(_ unityAd: UADSRewardedAd)
   @objc func showDidClick(_ unityAd: UADSRewardedAd)

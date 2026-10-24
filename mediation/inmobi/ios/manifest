@@ -17,4 +17,4 @@ name: ti.admob.unified.mediation.inmobi
 moduleid: ti.admob.unified.mediation.inmobi
 guid: ffa003bc-bac7-4abe-a3d7-35090f3136db
 platform: iphone
-minsdk: 13.2.0.GA
+minsdk: 13.4.1.GA

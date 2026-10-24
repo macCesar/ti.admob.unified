@@ -1,6 +1,8 @@
 dependencies {
     // The generated POM propagates the adapter, its SDK and the patched HTTP dependency.
-    implementation 'com.google.ads.mediation:vungle:7.7.8.1'
-    // OkHttp 4.12 brings patched Okio 3.6 instead of the SDK's vulnerable 3.0.
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.google.ads.mediation:vungle:7.7.9.0'
+    // Keep the okhttp3 public API with the latest version compatible with the Titanium 13.4.1 compile-SDK floor.
+    // Okio 3.18.2 fixes base64 compatibility for pre-3.18 callers.
+    implementation 'com.squareup.okhttp3:okhttp:5.4.0'
+    implementation 'com.squareup.okio:okio:3.18.2'
 }

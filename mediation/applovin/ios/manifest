@@ -17,4 +17,4 @@ name: ti.admob.unified.mediation.applovin
 moduleid: ti.admob.unified.mediation.applovin
 guid: df683337-72c6-47c6-89cf-f8449245c90d
 platform: iphone
-minsdk: 13.2.0.GA
+minsdk: 13.4.1.GA

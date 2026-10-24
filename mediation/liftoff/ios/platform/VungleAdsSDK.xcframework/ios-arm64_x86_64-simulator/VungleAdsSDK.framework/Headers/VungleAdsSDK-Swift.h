@@ -327,6 +327,21 @@ SWIFT_CLASS("_TtC12VungleAdsSDK12BasePublicAd")
 @property (nonatomic, readonly, copy) NSString * _Nonnull placementId;
 /// Optional adapter ad format set by mediation layer.
 @property (nonatomic, copy) NSString * _Nullable adapterAdFormat;
+/// Canonical mediation partner name, set per ad by the mediation adapter <em>before load()</em>.
+/// Sent as <code>request.mediation_name</code> in the waterfall / CSB ads request; the server echoes
+/// the resolved value back in the ads response, and that echoed value is what metrics and
+/// error logging report. Before the response arrives, logging falls back to this value,
+/// then <code>adapterAdFormat</code>, then the SDK’s UA-shaped fallback
+/// (<code>Vungle/<version>;<integrations></code>, see <code>Logger</code>).
+/// Bidding loads (<code>load(_ bidPayload:)</code>) send no ads request; once the bid payload is
+/// decoded, logging reports its <code>mediation_name</code>.
+/// The value is handed to the request when it is built, so a value set after load() returns
+/// reaches only the metrics and errors logged after it is set, and reaches the server only
+/// if the request has not been built yet (automatic-initialization window).
+/// CSB loads (<code>load(csbData:)</code>, postbid and priority access) are the exception: metrics and
+/// error logging always report <code>csb</code> for them, regardless of this value or the response echo.
+/// The request still carries this value.
+@property (nonatomic, copy) NSString * _Nullable mediationPartnerName;
 @property (nonatomic, readonly, copy) NSString * _Nonnull eventId;
 @property (nonatomic, readonly, copy) NSString * _Nonnull creativeId;
 - (void)setWithExtras:(VungleAdsExtras * _Nonnull)extras;
@@ -670,6 +685,9 @@ SWIFT_CLASS("_TtC12VungleAdsSDK16VungleBannerView")
 ///
 - (void)sendLossURLWithSettlementPrice:(double)settlementPrice;
 @property (nonatomic, copy) NSString * _Nullable adapterAdFormat;
+/// Canonical mediation partner name, set per ad by the mediation adapter before load().
+/// Forwarded to the underlying Banner ad object.
+@property (nonatomic, copy) NSString * _Nullable mediationPartnerName;
 /// This method gets the Vungle banner view ad object size.
 ///
 /// returns:
@@ -802,6 +820,8 @@ typedef SWIFT_ENUM(NSInteger, VungleError, open) {
   VungleErrorTpatRetryFailed = 137,
 /// Failed to refresh config
   VungleErrorConfigRefreshFailed = 138,
+/// Failed to download template
+  VungleErrorTemplateDownloadError = 139,
 /// The event id in the ads response is invalid or the local URL can’t be created from it
   VungleErrorInvalidEventIDError = 200,
 /// The placement id in the ad object is empty or not part of the config response
@@ -1475,6 +1495,21 @@ SWIFT_CLASS("_TtC12VungleAdsSDK12BasePublicAd")
 @property (nonatomic, readonly, copy) NSString * _Nonnull placementId;
 /// Optional adapter ad format set by mediation layer.
 @property (nonatomic, copy) NSString * _Nullable adapterAdFormat;
+/// Canonical mediation partner name, set per ad by the mediation adapter <em>before load()</em>.
+/// Sent as <code>request.mediation_name</code> in the waterfall / CSB ads request; the server echoes
+/// the resolved value back in the ads response, and that echoed value is what metrics and
+/// error logging report. Before the response arrives, logging falls back to this value,
+/// then <code>adapterAdFormat</code>, then the SDK’s UA-shaped fallback
+/// (<code>Vungle/<version>;<integrations></code>, see <code>Logger</code>).
+/// Bidding loads (<code>load(_ bidPayload:)</code>) send no ads request; once the bid payload is
+/// decoded, logging reports its <code>mediation_name</code>.
+/// The value is handed to the request when it is built, so a value set after load() returns
+/// reaches only the metrics and errors logged after it is set, and reaches the server only
+/// if the request has not been built yet (automatic-initialization window).
+/// CSB loads (<code>load(csbData:)</code>, postbid and priority access) are the exception: metrics and
+/// error logging always report <code>csb</code> for them, regardless of this value or the response echo.
+/// The request still carries this value.
+@property (nonatomic, copy) NSString * _Nullable mediationPartnerName;
 @property (nonatomic, readonly, copy) NSString * _Nonnull eventId;
 @property (nonatomic, readonly, copy) NSString * _Nonnull creativeId;
 - (void)setWithExtras:(VungleAdsExtras * _Nonnull)extras;
@@ -1818,6 +1853,9 @@ SWIFT_CLASS("_TtC12VungleAdsSDK16VungleBannerView")
 ///
 - (void)sendLossURLWithSettlementPrice:(double)settlementPrice;
 @property (nonatomic, copy) NSString * _Nullable adapterAdFormat;
+/// Canonical mediation partner name, set per ad by the mediation adapter before load().
+/// Forwarded to the underlying Banner ad object.
+@property (nonatomic, copy) NSString * _Nullable mediationPartnerName;
 /// This method gets the Vungle banner view ad object size.
 ///
 /// returns:
@@ -1950,6 +1988,8 @@ typedef SWIFT_ENUM(NSInteger, VungleError, open) {
   VungleErrorTpatRetryFailed = 137,
 /// Failed to refresh config
   VungleErrorConfigRefreshFailed = 138,
+/// Failed to download template
+  VungleErrorTemplateDownloadError = 139,
 /// The event id in the ads response is invalid or the local URL can’t be created from it
   VungleErrorInvalidEventIDError = 200,
 /// The placement id in the ad object is empty or not part of the config response

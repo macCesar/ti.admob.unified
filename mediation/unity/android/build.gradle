@@ -1,4 +1,9 @@
 dependencies {
-    // The generated POM propagates only this adapter and its transitive SDK dependencies.
-    implementation 'com.google.ads.mediation:unity:4.20.1.0'
+    // Google publishes the adapter without the Unity Ads SDK dependency.
+    // Declare both coordinates, as required by the official integration guide.
+    implementation 'com.google.ads.mediation:unity:4.21.0.0'
+    implementation 'com.unity3d.ads:unity-ads:4.21.0'
+    // Unity's SDK requests older HTTP libraries; use the reviewed patched versions.
+    implementation 'com.squareup.okhttp3:okhttp:5.4.0'
+    implementation 'com.squareup.okio:okio:3.18.2'
 }

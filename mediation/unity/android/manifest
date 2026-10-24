@@ -25,4 +25,4 @@ platform: android
 #
 classpaths:
 plugins:
-minsdk: 13.2.0.GA
+minsdk: 13.4.1.GA

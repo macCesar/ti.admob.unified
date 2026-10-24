@@ -6,10 +6,10 @@ The first release, `1.0.0`, provides five optional dependency modules with ident
 | ------------------------- | ------------------------------------- | ------------ | --------------- |
 | AppLovin                  | `ti.admob.unified.mediation.applovin` | `13.6.4.0` | `13.6.4.2` |
 | Meta Audience Network     | `ti.admob.unified.mediation.meta`     | `6.22.0.0` | `6.22.0.1` |
-| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.4.1.0` | `11.4.1.2` |
-| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.20.1.0` | `4.20.1.0` |
-| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.7.0` | `7.7.8.1` |
+| InMobi                    | `ti.admob.unified.mediation.inmobi`   | `11.5.0.0` | `11.5.0.1` |
+| Unity Ads                 | `ti.admob.unified.mediation.unity`    | `4.21.0.0` | `4.21.0.0` |
+| Liftoff Monetize (Vungle) | `ti.admob.unified.mediation.liftoff`  | `7.7.8.0` | `7.7.9.0` |
 
-ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib; Unity Ads 4.20.1 no longer requires IronSourceAdQualitySDK.
+ironSource mediation is deferred: neither its adapter nor its advertising SDK is distributed. Unity includes UnityCoherenceLib; Unity Ads 4.21.0 no longer requires IronSourceAdQualitySDK.
 
 All requests use the core factories and event contracts. Network selection requires installing the corresponding complement and configuring the source in AdMob. `getMediationStatus()` reports `{ initializationState, adapters }` with all statuses known to Google on both platforms. Entries include native class name, state, description and latency in milliseconds. Initialization and ad delivery require separate verification. See [AdMob mediation](documentation/mediation.md).

@@ -4,5 +4,5 @@ platform :ios, '15.0'
 target 'ti.admob.unified.mediation.inmobi' do
   use_frameworks!
   # GMA and UMP resolve here but are distributed exclusively by the core.
-  pod 'GoogleMobileAdsMediationInMobi', '= 11.4.1.0'
+  pod 'GoogleMobileAdsMediationInMobi', '= 11.5.0.0'
 end

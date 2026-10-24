@@ -47,7 +47,7 @@ while IFS='|' read -r source_path framework_name; do
   test -d "$source_framework"
   cp -R "$source_framework" "$STAGED_PLATFORM/$framework_name"
 done <<'FRAMEWORKS'
-Pods/GoogleMobileAdsMediationInMobi/InMobiAdapter-11.4.1.0/InMobiAdapter.xcframework|InMobiAdapter.xcframework
+Pods/GoogleMobileAdsMediationInMobi/InMobiAdapter-11.5.0.0/InMobiAdapter.xcframework|InMobiAdapter.xcframework
 Pods/InMobiSDK/InMobiSDK.xcframework|InMobiSDK.xcframework
 FRAMEWORKS
 

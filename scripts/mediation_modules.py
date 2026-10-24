@@ -6,7 +6,7 @@ from pathlib import Path
 import re
 
 ROOT = Path(__file__).resolve().parents[1]
-BUILD_DEPENDENCIES = ('org.appcelerator:titanium:13.2.0.GA', 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.0')
+BUILD_DEPENDENCIES = ('org.appcelerator:titanium:13.4.1.GA', 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.3.0')
 
 
 

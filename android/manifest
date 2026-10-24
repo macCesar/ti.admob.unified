@@ -1,12 +1,12 @@
 #
 # ti.admob.unified - Unified AdMob Module for Titanium SDK
 # This module provides a consistent API across iOS and Android platforms
-# with automatic compliance handling for GDPR, CCPA, and App Tracking Transparency.
+# with UMP consent support and portable tracking authorization events.
 #
 version: 1.0.0
 apiversion: 4
 architectures: arm64-v8a armeabi-v7a x86 x86_64
-description: A unified AdMob module for Titanium SDK with automatic compliance handling
+description: Unified Google Mobile Ads and UMP API for Titanium SDK on iOS and Android
 author: César Estrada
 license: MIT
 copyright: Copyright (c) 2025 by César Estrada
@@ -25,4 +25,4 @@ platform: android
 #
 classpaths:
 plugins:
-minsdk: 13.2.0.GA
+minsdk: 13.4.1.GA

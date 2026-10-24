@@ -7,5 +7,5 @@ dependencies {
 	implementation 'com.google.android.ump:user-messaging-platform:4.0.0'
 	// Patch the utility library inherited through GMA/AndroidX.
 	// This is not an ad network; the Android variant supports our API 24 floor.
-	implementation 'com.google.guava:guava:33.7.1-android'
+	implementation 'com.google.guava:guava:33.7.2-android'
 }

@@ -8,6 +8,6 @@ target 'ti.admob.unified' do
 
   # This Podfile is the dependency source of truth. Distribution continues to
   # use the vendored XCFrameworks in ios/platform/.
-  pod 'Google-Mobile-Ads-SDK', '= 13.10.0'
+  pod 'Google-Mobile-Ads-SDK', '= 13.11.0'
   pod 'GoogleUserMessagingPlatform', '= 3.1.0'
 end

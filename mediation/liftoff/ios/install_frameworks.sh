@@ -47,7 +47,7 @@ while IFS='|' read -r source_path framework_name; do
   test -d "$source_framework"
   cp -R "$source_framework" "$STAGED_PLATFORM/$framework_name"
 done <<'FRAMEWORKS'
-Pods/GoogleMobileAdsMediationVungle/LiftoffMonetizeAdapter-7.7.7.0/LiftoffMonetizeAdapter.xcframework|LiftoffMonetizeAdapter.xcframework
+Pods/GoogleMobileAdsMediationVungle/LiftoffMonetizeAdapter-7.7.8.0/LiftoffMonetizeAdapter.xcframework|LiftoffMonetizeAdapter.xcframework
 Pods/VungleAds/static/VungleAdsSDK.xcframework|VungleAdsSDK.xcframework
 FRAMEWORKS
 
