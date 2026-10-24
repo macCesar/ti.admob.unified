@@ -71,8 +71,8 @@ const MEDIATION_NETWORKS = [
     name: 'InMobi',
     adapter: 'InMobiAdapter',
     maven: 'inmobi',
-    iosNetworkSdk: '11.4.1',
-    androidNetworkSdk: '11.4.1'
+    iosNetworkSdk: '11.5.0',
+    androidNetworkSdk: '11.5.0'
   },
   {
     directory: 'unity',
@@ -80,8 +80,8 @@ const MEDIATION_NETWORKS = [
     name: 'Unity Ads',
     adapter: 'UnityAdapter',
     maven: 'unity',
-    iosNetworkSdk: '4.20.1',
-    androidNetworkSdk: '4.20.1'
+    iosNetworkSdk: '4.21.0',
+    androidNetworkSdk: '4.21.0'
   },
   {
     directory: 'liftoff',
@@ -89,8 +89,8 @@ const MEDIATION_NETWORKS = [
     name: 'Liftoff Monetize',
     adapter: 'LiftoffMonetizeAdapter',
     maven: 'vungle',
-    iosNetworkSdk: '7.7.7',
-    androidNetworkSdk: '7.7.8',
+    iosNetworkSdk: '7.7.8',
+    androidNetworkSdk: '7.7.9',
     knownLag: true
   }
 ]
@@ -114,7 +114,7 @@ test('pins the unified ads dependency baseline', () => {
   const androidGradle = read('android/build.gradle')
   assert.match(androidGradle, /play-services-ads:25\.5\.0/)
   assert.match(androidGradle, /user-messaging-platform:4\.0\.0/)
-  assert.match(androidGradle, /com\.google\.guava:guava:33\.7\.1-android/)
+  assert.match(androidGradle, /com\.google\.guava:guava:33\.7\.2-android/)
 
   const platformEntries = fs.readdirSync(path.join(root, 'ios/platform'))
     .filter(name => name.endsWith('.xcframework'))
@@ -128,7 +128,7 @@ test('pins the unified ads dependency baseline', () => {
     frameworkVersion(
       'ios/platform/GoogleMobileAds.xcframework/ios-arm64/GoogleMobileAds.framework/Info.plist'
     ),
-    '13.10.0'
+    '13.11.0'
   )
   assert.equal(
     frameworkVersion(
@@ -161,8 +161,10 @@ test('isolates five dependency-only mediation modules on both platforms', () => 
     }
     const gradle = read(`${base}/android/build.gradle`)
     const coordinates = [...gradle.matchAll(/implementation '([^']+)'/g)].map(match => match[1])
-    const utilities = ['inmobi', 'liftoff'].includes(network.directory) ? ['com.squareup.okhttp3:okhttp:4.12.0'] : []
-    assert.deepEqual(coordinates.slice(1), utilities, `${id} must include only its adapter and declared security fixes`)
+    const utilities = ['inmobi', 'liftoff', 'unity'].includes(network.directory)
+      ? ['com.squareup.okhttp3:okhttp:5.4.0', 'com.squareup.okio:okio:3.18.2'] : []
+    if (network.directory === 'unity') utilities.unshift('com.unity3d.ads:unity-ads:4.21.0')
+    assert.deepEqual(coordinates.slice(1), utilities, `${id} must include its adapter, required network SDK and reviewed utility fixes`)
     assert.ok(coordinates[0].startsWith(`com.google.ads.mediation:${network.maven}:`))
     const entries = fs.readdirSync(path.join(root, base, 'ios/platform')).sort()
     assert.deepEqual(entries, network.frameworks.map(name => `${name}.xcframework`).sort())
@@ -258,7 +260,7 @@ test('keeps the mediation network SDK versions aligned across platforms', () => 
 
 test('aligns Titanium and iOS deployment requirements', () => {
   for (const manifest of ['ios/manifest', 'android/manifest', ...MEDIATION_NETWORKS.flatMap(n => [`mediation/${n.directory}/ios/manifest`, `mediation/${n.directory}/android/manifest`])]) {
-    assert.match(read(manifest), /minsdk: 13\.2\.0\.GA/)
+    assert.match(read(manifest), /minsdk: 13\.4\.1\.GA/)
   }
   for (const config of ['ios/titanium.xcconfig', ...MEDIATION_NETWORKS.map(n => `mediation/${n.directory}/ios/titanium.xcconfig`)]) {
     assert.match(read(config), /TITANIUM_SDK_VERSION = 13\.4\.1\.GA/)
@@ -310,6 +312,8 @@ test('keeps tracking authorization portable across platforms', () => {
   }
 
   assert.match(iosHeader, /requestTrackingAuthorization/)
+  assert.match(iosHeader, /\(NSDictionary \*\)getTrackingAuthorizationStatus:/)
+  assert.match(androidModule, /@Kroll\.method\s+public KrollDict getTrackingAuthorizationStatus\(\)/)
   assert.match(
     androidModule,
     /requestTrackingAuthorization\(\)[\s\S]*?applicable", false/
@@ -800,7 +804,7 @@ test('accepts a custom banner size on both platforms', () => {
 test('applies targeting on every iOS placement, not just some', () => {
   const iosPlacements = [iosBanner, iosAdaptiveBanner, iosInterstitial, iosRewarded, iosAppOpen]
 
-  // GADRequest.keywords is declared in the bundled GoogleMobileAds 13.10.0 and
+  // GADRequest.keywords is declared in the bundled GoogleMobileAds 13.11.0 and
   // is the counterpart of Android's addKeyword. Every placement must use it.
   for (const source of iosPlacements) {
     assert.match(source, /request\.keywords = self(\.proxy)?\.keywords/)

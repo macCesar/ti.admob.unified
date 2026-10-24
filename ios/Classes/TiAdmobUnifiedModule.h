@@ -65,10 +65,12 @@ static inline NSInteger TiAdmobUnifiedLoadErrorCode(NSError *error)
 - (void)resetConsent:(id)args;
 
 // iOS-specific: App Tracking Transparency
+- (NSDictionary *)getTrackingAuthorizationStatus:(id)args;
 - (void)requestTrackingAuthorization:(id)args;
 
 // Ad creation methods
 - (id)createRewarded:(id)args;
+- (id)createRewardedInterstitial:(id)args;
 - (id)createInterstitial:(id)args;
 - (id)createBanner:(id)args;
 - (id)createAdaptiveBanner:(id)args;

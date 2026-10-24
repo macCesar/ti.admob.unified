@@ -18,7 +18,8 @@ def body(path, marker):
         depth += (source[end] == '{') - (source[end] == '}'); end += 1
     return source[start:end]
 module = 'ios/Classes/TiAdmobUnifiedModule.m'
-rewarded = 'ios/Classes/TiAdmobUnifiedRewardedAdProxy.m'
+rewarded = ('ios/Classes/TiAdmobUnifiedRewardedInterstitialAdProxy.m'
+            if '--rewarded-interstitial' in sys.argv else 'ios/Classes/TiAdmobUnifiedRewardedAdProxy.m')
 load = body('ios/Classes/TiAdmobUnifiedModule.h', 'static inline NSInteger TiAdmobUnifiedLoadErrorCode')
 constants = sorted(set(re.findall(r'case (GADError\w+):', load)))
 prefix = r'''
@@ -91,8 +92,10 @@ NSString *GADErrorDomain = @"GMA";
 @property NSNumber *amount;
 @end
 @implementation GADAdReward @end
+@protocol GADFullScreenPresentingAd @end
 @interface FakeAd : NSObject
 @property GADAdReward *adReward;
+@property id fullScreenContentDelegate;
 @property(copy) void (^callback)(void);
 - (void)presentFromRootViewController:(id)controller userDidEarnRewardHandler:(void(^)(void))callback;
 @end
@@ -106,12 +109,13 @@ NSString *GADErrorDomain = @"GMA";
     NSDictionary *_consentResult;
     BOOL _consentResetPending, _privacyInFlight;
     NSDictionary *_queuedConsent;
-    BOOL isDestroyed, isShowing;
+    BOOL isDestroyed, isShowing, isLoading, destroyedEventFired;
     FakeAd *rewardedAd;
 }
 @property NSMutableArray *events;
 @property NSInteger requests;
 @property NSString *identity;
+@property NSNumber *autoReload;
 - (void)requestConsent:(id)args;
 - (BOOL)finishPendingConsentReset:(id)unused context:(id)context;
 - (void)completeConsentWithError:(NSError *)error internal:(id)unused;
@@ -122,13 +126,16 @@ NSString *GADErrorDomain = @"GMA";
 - (void)fireEvent:(NSString *)name withObject:(id)event { [self.events addObject:@{@"name":name,@"event":event}]; }
 - (NSNumber *)isGDPR:(id)args { return @YES; }
 - (void)requestConsent:(id)args { self.requests++; _consentState = 1; }
+- (void)load:(id)args { self.requests++; }
 - (NSDictionary *)baseEvent:(id)a internal:(id)b { return @{@"adUnitId":self.identity}; }
 - (NSDictionary *)errorEvent:(NSString *)message code:(NSInteger)code { return @{@"error":message,@"code":@(code)}; }
 '''
 methods = '\n'.join(body(module, marker) for marker in [
     '- (NSDictionary *)getMediationStatus:', '- (void)setAppVolume:', '- (void)resetConsent:',
     '- (BOOL)finishPendingConsentReset:', '- (void)completeConsentWithError:'])
-methods += '\n' + body(rewarded, '- (void)show:')
+methods += '\n' + '\n'.join(body(rewarded, marker) for marker in [
+    '- (void)show:', '- (NSNumber *)isLoaded:', '- (void)destroy:',
+    '- (void)adDidDismissFullScreenContent:'])
 main = r'''
 @end
 static int assertions;
@@ -198,6 +205,25 @@ int main() { @autoreleasepool {
     check([event[@"adUnitId"] isEqual:@"original"], @"original ad identity retained");
     h->isShowing = NO; h->rewardedAd = ad; [h show:nil]; h->isDestroyed = YES;
     count = h.events.count; ad.callback(); check(h.events.count == count, @"destroy suppresses late reward");
+    Harness *l = [Harness new]; FakeAd *pending = [FakeAd new];
+    check(![[l isLoaded:nil] boolValue], @"new proxy not ready");
+    l->rewardedAd = pending;
+    check([[l isLoaded:nil] boolValue], @"loaded proxy ready");
+    [l show:nil]; check(![[l isLoaded:nil] boolValue], @"show consumes readiness");
+    count = l.events.count; [l show:nil]; check(l.events.count == count + 1 && [l.events.lastObject[@"name"] isEqual:@"failed_to_show"], @"duplicate show rejected");
+    l.autoReload = @YES;
+    [l adDidDismissFullScreenContent:nil internal:nil];
+    check(l->rewardedAd == nil && !l->isShowing && l.requests == 1, @"dismissal clears and reloads once");
+    check([l.events.lastObject[@"name"] isEqual:@"closed"], @"dismissal grants no reward");
+    l->rewardedAd = pending; pending.fullScreenContentDelegate = l;
+    [l destroy:nil]; [l destroy:nil];
+    check(l->rewardedAd == nil && pending.fullScreenContentDelegate == nil && ![[l isLoaded:nil] boolValue], @"destroy releases ad and delegate");
+    check([l.events filteredArrayUsingPredicate:[NSPredicate predicateWithFormat:@"name == 'destroyed'"]].count == 1, @"destroyed once");
+    count = l.events.count; [l adDidDismissFullScreenContent:nil internal:nil];
+    check(l.events.count == count && l.requests == 1, @"late dismissal cannot reload");
+    l = [Harness new]; pending = [FakeAd new]; pending.adReward = [GADAdReward new];
+    l->rewardedAd = pending; [l show:nil]; pending.callback();
+    check(l.events.lastObject[@"event"][@"rewardType"] == NSNull.null && l.events.lastObject[@"event"][@"rewardAmount"] == NSNull.null, @"missing SDK reward fields remain null");
     check(TiAdmobUnifiedLoadErrorCode([NSError errorWithDomain:@"other" code:GADErrorNoFill userInfo:nil]) == 0, @"foreign domain");
     NSDictionary *expected = @{ @(GADErrorInvalidRequest):@1, @(GADErrorNoFill):@3, @(GADErrorNetworkError):@2, @(GADErrorTimeout):@2, @(GADErrorMediationDataError):@0, @(GADErrorMediationAdapterError):@0, @(GADErrorMediationInvalidAdSize):@10, @(GADErrorApplicationIdentifierMissing):@8 };
     for (NSNumber *code in expected) check(TiAdmobUnifiedLoadErrorCode([NSError errorWithDomain:GADErrorDomain code:code.integerValue userInfo:nil]) == [expected[code] integerValue], @"load error mapping");

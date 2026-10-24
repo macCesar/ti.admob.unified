@@ -14,6 +14,7 @@
 #import "TiApp.h"
 #import "TiUtils.h"
 #import "TiAdmobUnifiedRewardedAdProxy.h"
+#import "TiAdmobUnifiedRewardedInterstitialAdProxy.h"
 #import "TiAdmobUnifiedAdaptiveBannerAdProxy.h"
 #import "TiAdmobUnifiedInterstitialAdProxy.h"
 #import "TiAdmobUnifiedBannerAdProxy.h"
@@ -520,6 +521,16 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // ===================================================================
 // iOS-SPECIFIC: APP TRACKING TRANSPARENCY
 // ===================================================================
+- (NSDictionary *)getTrackingAuthorizationStatus:(id)args
+{
+    ATTrackingManagerAuthorizationStatus status = ATTrackingManager.trackingAuthorizationStatus;
+    return @{
+        @"status": @(status),
+        @"authorized": [NSNumber numberWithBool:(status == ATTrackingManagerAuthorizationStatusAuthorized)],
+        @"applicable": @YES
+    };
+}
+
 - (void)requestTrackingAuthorization:(id)args
 {
     ENSURE_UI_THREAD(requestTrackingAuthorization, args);
@@ -557,6 +568,15 @@ typedef NS_ENUM(NSInteger, TiAdmobUnifiedOperationState) {
 // ===================================================================
 // AD CREATION METHODS
 // ===================================================================
+- (id)createRewardedInterstitial:(id)args
+{
+    ENSURE_ARG_COUNT(args, 1);
+    NSDictionary *config = [args objectAtIndex:0];
+
+    DebugLog(@"[DEBUG] Creating rewarded interstitial ad");
+    return [[TiAdmobUnifiedRewardedInterstitialAdProxy alloc] _initWithPageContext:[self executionContext] args:@[config]];
+}
+
 - (id)createRewarded:(id)args
 {
     ENSURE_ARG_COUNT(args, 1);

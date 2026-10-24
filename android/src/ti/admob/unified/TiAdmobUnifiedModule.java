@@ -212,88 +212,103 @@ public class TiAdmobUnifiedModule extends KrollModule
 			return;
 		}
 
-        try {
-		Log.d(LCAT, "Initializing Google Mobile Ads SDK");
-		
 		Activity activity = TiApplication.getInstance().getCurrentActivity();
 		if (activity == null) {
-			Log.e(LCAT, "Cannot initialize - no current activity");
-			Map<String, Object> errorEvent = new HashMap<>();
-			errorEvent.put("success", false);
-			errorEvent.put("error", "No current activity");
-			errorEvent.put("code", -1);
-			synchronized (initializationLock) {
-				initializationState = OperationState.FAILED;
-				initializationResult = errorEvent;
-			}
-			fireEvent("module_initialized", errorEvent);
+			failInitialization(new IllegalStateException("No current activity"));
 			return;
 		}
-
-		// Configure request configuration if provided
-		if (config != null) {
-			RequestConfiguration.Builder requestConfigBuilder =
-				MobileAds.getRequestConfiguration().toBuilder();
-			
-			// Test device IDs
-			if (config.containsKey("testDeviceIds")) {
-				String[] testDeviceIds = config.getStringArray("testDeviceIds");
-				if (testDeviceIds != null && testDeviceIds.length > 0) {
-					Log.d(LCAT, "Setting test device IDs");
-					requestConfigBuilder.setTestDeviceIds(Arrays.asList(testDeviceIds));
-				}
-			}
-			
-			setAgeRestrictedTreatment(requestConfigBuilder, config);
-			
-			// Max ad content rating
-			if (config.containsKey("maxAdContentRating")) {
-				String rating = config.getString("maxAdContentRating");
-				requestConfigBuilder.setMaxAdContentRating(rating);
-			}
-			
-			MobileAds.setRequestConfiguration(requestConfigBuilder.build());
+		final KrollDict snapshot = config == null ? null : new KrollDict();
+		if (snapshot != null) snapshot.putAll(config);
+		try {
+			// Google recommends background initialization even with GMA's default
+			// optimization flags. Configuration can also load SDK classes/binders.
+			new Thread(() -> initializeSdk(activity, snapshot), "ti-admob-init").start();
+		} catch (RuntimeException error) {
+			failInitialization(error);
 		}
+	}
 
-		// Skip mediation adapter initialization when the application declares it
-		// will not use mediation during this session. Adapters stay bundled; the
-		// SDK just does not start them, so a network that never answers cannot
-		// hold the first ad request.
-		if (config != null && config.optBoolean("disableMediation", false)) {
-			Log.d(LCAT, "Disabling mediation adapter initialization for this session");
-			MobileAds.disableMediationAdapterInitialization(activity);
-		}
+	private void initializeSdk(Activity activity, KrollDict config)
+	{
+		try {
+			// Configure request configuration if provided
+			if (config != null) {
+				RequestConfiguration.Builder requestConfigBuilder =
+					MobileAds.getRequestConfiguration().toBuilder();
 
-		Log.d(LCAT, "Starting AdMob SDK initialization...");
-
-		MobileAds.initialize(activity, new OnInitializationCompleteListener() {
-			@Override
-			public void onInitializationComplete(InitializationStatus initializationStatus) {
-                if (pendingAppVolume != null) MobileAds.setAppVolume(pendingAppVolume);
-				Log.d(LCAT, "AdMob SDK initialization completed successfully");
-				
-				// Log adapter statuses for debugging
-				Map<String, com.google.android.gms.ads.initialization.AdapterStatus> statusMap = 
-					initializationStatus.getAdapterStatusMap();
-				for (String adapterClass : statusMap.keySet()) {
-					com.google.android.gms.ads.initialization.AdapterStatus status = statusMap.get(adapterClass);
-					Log.d(LCAT, String.format("Adapter %s: %s", adapterClass, status.getDescription()));
+				// Test device IDs
+				if (config.containsKey("testDeviceIds")) {
+					String[] testDeviceIds = config.getStringArray("testDeviceIds");
+					if (testDeviceIds != null && testDeviceIds.length > 0) {
+						Log.d(LCAT, "Setting test device IDs");
+						requestConfigBuilder.setTestDeviceIds(Arrays.asList(testDeviceIds));
+					}
 				}
-				
-				Map<String, Object> event = new HashMap<>();
-				event.put("success", true);
-				event.put("status", initializationStatus.toString());
-				synchronized (initializationLock) {
-					initializationState = OperationState.COMPLETE;
-					initializationResult = event;
+
+				setAgeRestrictedTreatment(requestConfigBuilder, config);
+
+				// Max ad content rating
+				if (config.containsKey("maxAdContentRating")) {
+					String rating = config.getString("maxAdContentRating");
+					requestConfigBuilder.setMaxAdContentRating(rating);
 				}
-				fireEvent("module_initialized", event);
+
+				MobileAds.setRequestConfiguration(requestConfigBuilder.build());
 			}
-		});
-        } catch (RuntimeException error) {
-            synchronized (initializationLock) { initializationState = OperationState.FAILED; }
-            throw error;
-        }
+
+			// Skip mediation adapter initialization when the application declares it
+			// will not use mediation during this session. Adapters stay bundled; the
+			// SDK just does not start them, so a network that never answers cannot
+			// hold the first ad request.
+			if (config != null && config.optBoolean("disableMediation", false)) {
+				Log.d(LCAT, "Disabling mediation adapter initialization for this session");
+				MobileAds.disableMediationAdapterInitialization(activity);
+			}
+
+			Log.d(LCAT, "Starting AdMob SDK initialization...");
+
+			MobileAds.initialize(activity, new OnInitializationCompleteListener() {
+				@Override
+				public void onInitializationComplete(InitializationStatus initializationStatus) {
+					activity.runOnUiThread(() -> {
+						if (pendingAppVolume != null) MobileAds.setAppVolume(pendingAppVolume);
+						Log.d(LCAT, "AdMob SDK initialization completed successfully");
+
+						// Log adapter statuses for debugging
+						Map<String, com.google.android.gms.ads.initialization.AdapterStatus> statusMap =
+							initializationStatus.getAdapterStatusMap();
+						for (String adapterClass : statusMap.keySet()) {
+							com.google.android.gms.ads.initialization.AdapterStatus status = statusMap.get(adapterClass);
+							Log.d(LCAT, String.format("Adapter %s: %s", adapterClass, status.getDescription()));
+						}
+
+						Map<String, Object> event = new HashMap<>();
+						event.put("success", true);
+						event.put("status", initializationStatus.toString());
+						synchronized (initializationLock) {
+							initializationState = OperationState.COMPLETE;
+							initializationResult = event;
+						}
+						fireEvent("module_initialized", event);
+					});
+				}
+			});
+		} catch (RuntimeException error) {
+			activity.runOnUiThread(() -> failInitialization(error));
+		}
+	}
+
+	private void failInitialization(RuntimeException error)
+	{
+		Map<String, Object> event = new HashMap<>();
+		event.put("success", false);
+		event.put("error", error.getMessage() == null ? error.toString() : error.getMessage());
+		event.put("code", -1);
+		synchronized (initializationLock) {
+			initializationState = OperationState.FAILED;
+			initializationResult = event;
+		}
+		fireEvent("module_initialized", event);
 	}
 
 	@Kroll.method(runOnUiThread = true)
@@ -763,6 +778,17 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// TRACKING AUTHORIZATION
 	// ===================================================================
 	@Kroll.method
+	public KrollDict getTrackingAuthorizationStatus()
+	{
+		// Portable ATT convention only; this is not a general tracking permission.
+		KrollDict result = new KrollDict();
+		result.put("status", 3);
+		result.put("authorized", true);
+		result.put("applicable", false);
+		return result;
+	}
+
+	@Kroll.method
 	public void requestTrackingAuthorization()
 	{
 		// ATT is an Apple platform API. Android completes the same portable
@@ -777,6 +803,13 @@ public class TiAdmobUnifiedModule extends KrollModule
 	// ===================================================================
 	// AD CREATION METHODS
 	// ===================================================================
+	@Kroll.method
+	public TiAdmobUnifiedRewardedInterstitialAdProxy createRewardedInterstitial(KrollDict config)
+	{
+		Log.d(LCAT, "Creating rewarded interstitial ad");
+		return new TiAdmobUnifiedRewardedInterstitialAdProxy(config);
+	}
+
 	@Kroll.method
 	public TiAdmobUnifiedRewardedAdProxy createRewarded(KrollDict config)
 	{
