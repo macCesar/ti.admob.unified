@@ -11,6 +11,81 @@
 #import "TiApp.h"
 #import "TiAdmobUnifiedModule.h"
 #import "TiUtils.h"
+#import <WebKit/WebKit.h>
+
+// Compatibility workaround for the zero-width Google Interstitial SVG observed
+// with GMA 13.11.0 on iPad. Eligibility follows the exact collapsed column-flex
+// markup, including on publisher units. This is not a public GMA repair API;
+// remove it when the creative template or WebKit fixes its sizing.
+static NSString *TiAdmobUnifiedTestCreativeScript(void)
+{
+    return @"(()=>{"
+        @"if(location.hostname!=='doubleclick.net'&&!location.hostname.endsWith('.doubleclick.net'))return false;"
+        @"let changed=false;"
+        @"for(const svg of document.querySelectorAll('svg.advertiser-provided-image')){"
+        @"const r=svg.getBoundingClientRect(),b=svg.viewBox&&svg.viewBox.baseVal,p=svg.parentElement;"
+        @"if(r.width!==0||r.height<=0||!b||b.width<=0||b.height<=0||!p)continue;"
+        @"const layout=getComputedStyle(p);if(layout.display!=='flex'||layout.flexDirection!=='column')continue;"
+        @"if(!getComputedStyle(svg).backgroundImage.includes('https://tpc.googlesyndication.com/simgad/'))continue;"
+        @"let hidden=false;for(let node=svg;node;node=node.parentElement){const style=getComputedStyle(node);"
+        @"if(style.display==='none'||style.visibility==='hidden'||style.visibility==='collapse'||Number(style.opacity)===0){hidden=true;break;}}"
+        @"if(hidden)continue;"
+        @"p.style.aspectRatio=b.width+' / '+b.height;changed=true;}return changed;})()";
+}
+
+// An NSObject owns the bounded presentation task so no helper methods or state
+// become part of the Titanium proxy's JavaScript surface.
+@interface TiAdmobUnifiedTestCreativeRepair : NSObject
+@property (nonatomic, weak) UIViewController *presenter;
+@property (nonatomic, weak) UIViewController *adController;
+@property (nonatomic, assign) BOOL cancelled;
+- (void)start;
+- (void)cancel;
+@end
+
+@implementation TiAdmobUnifiedTestCreativeRepair
+- (void)start
+{
+    __weak TiAdmobUnifiedTestCreativeRepair *weakSelf = self;
+    for (NSNumber *delay in @[@0, @0.016, @0.05, @0.1, @0.25, @0.5, @1.0]) {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay.doubleValue * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            TiAdmobUnifiedTestCreativeRepair *strongSelf = weakSelf;
+            if (strongSelf == nil || strongSelf.cancelled) return;
+            UIViewController *controller = strongSelf.presenter.presentedViewController;
+            if (controller == nil || controller.isBeingDismissed) return;
+            if (strongSelf.adController != nil && strongSelf.adController != controller) return;
+            strongSelf.adController = controller;
+            [strongSelf repairView:controller.view];
+        });
+    }
+}
+
+- (void)repairView:(UIView *)view
+{
+    if (self.cancelled || view == nil) return;
+    if ([view isKindOfClass:WKWebView.class]) {
+        WKWebView *webView = (WKWebView *)view;
+        NSString *host = webView.URL.host;
+        if ([host isEqualToString:@"doubleclick.net"] || [host hasSuffix:@".doubleclick.net"]) {
+            __weak TiAdmobUnifiedTestCreativeRepair *weakSelf = self;
+            [webView evaluateJavaScript:TiAdmobUnifiedTestCreativeScript() completionHandler:^(id result, NSError *error) {
+                TiAdmobUnifiedTestCreativeRepair *strongSelf = weakSelf;
+                if (strongSelf != nil && !strongSelf.cancelled && [result respondsToSelector:@selector(boolValue)] && [result boolValue]) {
+                    DebugLog(@"[DEBUG] Repaired collapsed Google SVG in iPad Interstitial");
+                }
+            }];
+        }
+    }
+    for (UIView *child in view.subviews) [self repairView:child];
+}
+
+- (void)cancel
+{
+    self.cancelled = YES;
+    self.presenter = nil;
+    self.adController = nil;
+}
+@end
 
 // Plain ivars rather than properties: a synthesised getter is reachable from
 // JavaScript through Kroll's key lookup, and Android exposes neither the native
@@ -21,6 +96,7 @@
     TiAdmobUnifiedNativeDelegate *_nativeDelegate;
     NSString *_requestAdUnitId;
     GADInterstitialAd *interstitialAd;
+    TiAdmobUnifiedTestCreativeRepair *_testCreativeRepair;
     BOOL isLoading;
     BOOL isShowing;
     BOOL isDestroyed;
@@ -216,6 +292,12 @@
 
     self->isShowing = YES;
     [self->interstitialAd presentFromRootViewController:rootViewController];
+    if (self->isShowing && UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad) {
+        [_testCreativeRepair cancel];
+        _testCreativeRepair = [[TiAdmobUnifiedTestCreativeRepair alloc] init];
+        _testCreativeRepair.presenter = rootViewController;
+        [_testCreativeRepair start];
+    }
 }
 
 - (NSNumber *)isLoaded:(id)args
@@ -238,6 +320,8 @@
     DebugLog(@"[DEBUG] Destroying interstitial ad");
 
     self->isDestroyed = YES;
+    [_testCreativeRepair cancel];
+    _testCreativeRepair = nil;
     self->interstitialAd.fullScreenContentDelegate = nil;
     self->interstitialAd = nil;
     self->isLoading = NO;
@@ -276,6 +360,8 @@
     }
     DebugLog(@"[ERROR] Interstitial ad failed to present: %@", error.localizedDescription);
 
+    [_testCreativeRepair cancel];
+    _testCreativeRepair = nil;
     self->interstitialAd = nil;
     self->isShowing = NO;
     [self fireEvent:@"failed_to_show"
@@ -301,6 +387,8 @@
     }
     DebugLog(@"[DEBUG] Interstitial ad dismissed full screen content");
 
+    [_testCreativeRepair cancel];
+    _testCreativeRepair = nil;
     self->interstitialAd = nil;
     self->isShowing = NO;
     [self fireEvent:@"closed" withObject:[self baseEvent:nil internal:nil]];
